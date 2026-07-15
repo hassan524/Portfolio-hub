@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -11,10 +12,11 @@ import {
   BarChart3,
   Shield,
   Wand,
+  Eye,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
-import { TemplateCard } from "@/components/site/TemplateCard";
-import { TEMPLATES } from "@/lib/templates";
+import { TemplatePreviewDialog } from "@/components/site/TemplatePreviewDialog";
+import { TEMPLATES, type Template } from "@/lib/templates";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,70 +39,176 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const [dialogTemplate, setDialogTemplate] = useState<Template | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const openPreview = (t: Template) => {
+    setDialogTemplate(t);
+    setDialogOpen(true);
+  };
+
+  const closePreview = () => {
+    setDialogOpen(false);
+    setTimeout(() => setDialogTemplate(null), 300);
+  };
+
   return (
     <SiteLayout>
       <Hero />
       <LogoStrip />
-      <TemplateShowcase />
+      <TemplateShowcase onPreview={openPreview} />
       <HowItWorks />
       <FeatureGrid />
       <LiveEditorPreview />
       <Testimonials />
-      <PricingPreview />
       <FAQ />
       <FinalCTA />
+      <TemplatePreviewDialog
+        template={dialogTemplate}
+        open={dialogOpen}
+        onClose={closePreview}
+      />
     </SiteLayout>
   );
 }
 
+/* ---------------- TYPEWRITER HOOK ---------------- */
+function useTypewriter(text: string, speed = 55, delay = 400) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setDisplayed("");
+    setDone(false);
+    let i = 0;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        i++;
+        setDisplayed(text.slice(0, i));
+        if (i >= text.length) {
+          if (intervalId) clearInterval(intervalId);
+          setDone(true);
+        }
+      }, speed);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [text, speed, delay]);
+
+  return { displayed, done };
+}
+
 /* ---------------- HERO ---------------- */
 function Hero() {
+  const line1 = "The portfolio you'll ";
+  const line2 = "actually finish.";
+  const { displayed: typed1, done: done1 } = useTypewriter(line1, 45, 500);
+  const { displayed: typed2, done: done2 } = useTypewriter(
+    line2,
+    50,
+    500 + line1.length * 45 + 100
+  );
+
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-hero-glow pointer-events-none" />
       <div className="absolute inset-0 grid-bg opacity-60 pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="mx-auto max-w-4xl text-center"
-        >
+        <div className="mx-auto max-w-4xl text-center">
 
-          <h1 className=" font-display text-[52px] leading-[0.95] md:text-[104px] md:leading-[0.92] tracking-[-0.03em]">
-            The portfolio you'll{" "}
-            <span className="italic text-gradient-brand">actually finish.</span>
+          <h1 className="font-display text-[52px] leading-[0.95] md:text-[104px] md:leading-[0.92] tracking-[-0.03em]">
+            {/* Line 1 — each letter smoothly joins */}
+            {typed1.split("").map((char, i) => (
+              <motion.span
+                key={`l1-${i}`}
+                initial={{ opacity: 0, filter: "blur(6px)", y: 8 }}
+                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                transition={{
+                  duration: 0.35,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                }}
+                style={{ display: "inline-block", whiteSpace: "pre" }}
+              >
+                {char}
+              </motion.span>
+            ))}
+            {/* Line 2 — italic gradient */}
+            <span className="italic text-gradient-brand">
+              {typed2.split("").map((char, i) => (
+                <motion.span
+                  key={`l2-${i}`}
+                  initial={{ opacity: 0, filter: "blur(6px)", y: 8 }}
+                  animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                  transition={{
+                    duration: 0.35,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                  }}
+                  style={{ display: "inline-block", whiteSpace: "pre" }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </span>
+            {/* Blinking cursor */}
+            {!done2 && (
+              <motion.span
+                animate={{ opacity: [1, 0, 1] }}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className="inline-block w-[3px] md:w-[5px] h-[48px] md:h-[90px] bg-foreground ml-1 align-middle rounded-full"
+              />
+            )}
           </h1>
 
-          <p className="mx-auto mt-8 max-w-2xl text-lg md:text-xl text-ink-soft leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: done2 ? 1 : 0, y: done2 ? 0 : 20 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mx-auto mt-8 max-w-2xl text-lg md:text-xl text-ink-soft leading-relaxed"
+          >
             PortfolioHub is a free portfolio maker with premium, hand-designed templates.
             Pick one, drop in your info, publish a live link. No design skills, no code,
             no monthly fees.
-          </p>
+          </motion.p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: done2 ? 1 : 0, y: done2 ? 0 : 20 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
+          >
+            <Link
+              to="/auth/signup"
+              className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background shadow-lift hover:shadow-soft transition-all"
+            >
+              Get Started
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
             <Link
               to="/templates"
-              className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background shadow-lift hover:shadow-soft transition-all"
+              className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300 shadow-soft"
             >
               Browse templates
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <Link
-              to="/showcase"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium text-ink hover:bg-secondary transition-all"
-            >
-              See live examples
-            </Link>
-          </div>
+          </motion.div>
 
-          <div className="mt-8 flex items-center justify-center gap-6 text-xs text-ink-soft">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: done2 ? 1 : 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-8 flex items-center justify-center gap-6 text-xs text-ink-soft"
+          >
             <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Free forever</span>
             <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> No credit card</span>
             <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Publish in 5 min</span>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Hero device / mock */}
         <motion.div
@@ -208,34 +316,174 @@ function LogoStrip() {
   );
 }
 
-/* ---------------- TEMPLATE SHOWCASE ---------------- */
-function TemplateShowcase() {
-  const featured = TEMPLATES.slice(0, 6);
+/* ---------------- TEMPLATE SHOWCASE (Marquee) — BIGGER CARDS ---------------- */
+function MarqueeTemplateCard({
+  t,
+  onClick,
+}: {
+  t: Template;
+  onClick: () => void;
+}) {
+  const [bg, ink, accent] = t.palette;
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="max-w-2xl">
-          <span className="text-xs tracking-[0.2em] uppercase text-ink-soft">Templates</span>
-          <h2 className="mt-3 font-display text-4xl md:text-6xl leading-[0.95]">
-            Start with a<span className="italic text-gradient-brand"> beautiful</span> base.
-          </h2>
-          <p className="mt-5 text-ink-soft leading-relaxed max-w-xl">
-            Each template is designed by a real human, tuned for the field it serves —
-            from quiet writer sites to loud, kinetic design studios.
-          </p>
+    <button
+      onClick={onClick}
+      className="group/tcard relative shrink-0 w-[440px] md:w-[520px] overflow-hidden rounded-2xl border border-border bg-card shadow-soft hover:shadow-lift transition-all duration-500 text-left cursor-pointer"
+    >
+      <div
+        className="relative aspect-[16/10] overflow-hidden"
+        style={{ backgroundColor: bg }}
+      >
+        {/* Mini preview */}
+        <div className="absolute inset-0 p-6 md:p-8" style={{ color: ink }}>
+          <div className="text-[10px] tracking-[0.2em] uppercase opacity-60">
+            {t.name}
+          </div>
+          <div className="mt-6 font-display text-[36px] md:text-[42px] leading-[0.95]">
+            Your name
+          </div>
+          <div
+            className="font-display text-[32px] md:text-[38px] leading-[0.95] italic mt-0.5"
+            style={{ color: accent }}
+          >
+            goes here.
+          </div>
+          <div className="mt-6 grid grid-cols-3 gap-2">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="aspect-[4/3] rounded-md"
+                style={{
+                  background: i === 1 ? accent : `${ink}15`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-        <Link
-          to="/templates"
-          className="inline-flex items-center gap-1.5 text-sm font-medium hover:gap-3 transition-all"
-        >
-          Browse all templates <ArrowRight className="h-4 w-4" />
-        </Link>
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover/tcard:bg-black/40 transition-all duration-500 flex items-center justify-center">
+          <div className="opacity-0 group-hover/tcard:opacity-100 transform scale-90 group-hover/tcard:scale-100 transition-all duration-500 inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-lift">
+            <Eye className="h-4 w-4" />
+            Preview
+          </div>
+        </div>
+
+        {t.isPro && (
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/80 text-white px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase backdrop-blur">
+            Pro
+          </span>
+        )}
       </div>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {featured.map((t, i) => (
-          <TemplateCard key={t.slug} t={t} index={i} />
-        ))}
+      <div className="flex items-start justify-between gap-3 p-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-display text-xl">{t.name}</h3>
+            <span className="text-[9px] uppercase tracking-wider text-ink-soft border border-border rounded-full px-2 py-0.5">
+              {t.category}
+            </span>
+          </div>
+          <p className="mt-0.5 text-sm text-ink-soft leading-relaxed">
+            {t.tagline}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => void }) {
+  // Use first 12 templates for showcase, split into rows
+  const showcaseTemplates = TEMPLATES.slice(0, 12);
+  const mid = Math.ceil(showcaseTemplates.length / 2);
+  const row1Source = showcaseTemplates.slice(0, mid);
+  const row2Source = showcaseTemplates.slice(mid);
+  
+  // Duplicate for seamless loop
+  const row1 = [...row1Source, ...row1Source];
+  const row2 = [...row2Source.reverse(), ...row2Source];
+
+  return (
+    <section className="py-24 md:py-32 overflow-hidden">
+      {/* Section header */}
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <span className="text-xs tracking-[0.2em] uppercase text-ink-soft">
+              Templates
+            </span>
+            <h2 className="mt-3 font-display text-4xl md:text-6xl leading-[0.95]">
+              Start with a<span className="italic text-gradient-brand"> beautiful</span>{" "}
+              base.
+            </h2>
+            <p className="mt-5 text-ink-soft leading-relaxed max-w-xl">
+              Each template is designed by a real human, tuned for the field it serves —
+              from quiet writer sites to loud, kinetic design studios.
+            </p>
+          </div>
+          <div className="flex items-center gap-5">
+            <span className="inline-flex items-center gap-2 text-sm text-ink-soft">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-background text-xs font-semibold">
+                {TEMPLATES.length}
+              </span>
+              templates
+            </span>
+            <Link
+              to="/templates"
+              className="group inline-flex items-center gap-1.5 text-sm font-medium hover:gap-3 transition-all"
+            >
+              See all templates{" "}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrolling rows */}
+      <div className="mt-14 space-y-8">
+        {/* Row 1 — scrolls left */}
+        <div className="marquee-row relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          <div className="flex gap-6 animate-marquee-left w-max">
+            {row1.map((t, i) => (
+              <MarqueeTemplateCard
+                key={`r1-${t.slug}-${i}`}
+                t={t}
+                onClick={() => onPreview(t)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Row 2 — scrolls right */}
+        <div className="marquee-row relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          <div className="flex gap-6 animate-marquee-right w-max">
+            {row2.map((t, i) => (
+              <MarqueeTemplateCard
+                key={`r2-${t.slug}-${i}`}
+                t={t}
+                onClick={() => onPreview(t)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Show more CTA */}
+      <div className="mx-auto max-w-7xl px-6 mt-12">
+        <div className="flex items-center justify-center">
+          <Link
+            to="/templates"
+            className="group inline-flex items-center gap-3 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300 shadow-soft hover:shadow-lift"
+          >
+            <span>Show all {TEMPLATES.length} templates</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -247,7 +495,7 @@ function HowItWorks() {
     {
       n: "01",
       t: "Pick a template",
-      d: "Browse 9 hand-designed templates. Every one is production-ready.",
+      d: "Browse hand-designed templates. Every one is production-ready.",
       icon: Layout,
     },
     {
@@ -369,12 +617,6 @@ function LiveEditorPreview() {
               </div>
             ))}
           </div>
-          <Link
-            to="/editor"
-            className="mt-10 inline-flex items-center gap-2 rounded-full bg-background text-foreground px-5 py-3 text-sm font-medium"
-          >
-            Try the editor <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
 
         <div className="rounded-2xl bg-[oklch(0.22_0.02_260)] p-4 shadow-lift">
@@ -464,77 +706,6 @@ function Testimonials() {
   );
 }
 
-/* ---------------- PRICING PREVIEW ---------------- */
-function PricingPreview() {
-  return (
-    <section className="border-y border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-        <div className="max-w-2xl">
-          <span className="text-xs tracking-[0.2em] uppercase text-ink-soft">Pricing</span>
-          <h2 className="mt-3 font-display text-4xl md:text-6xl leading-[0.95]">
-            Free is <span className="italic text-gradient-brand">actually free.</span>
-          </h2>
-          <p className="mt-5 text-ink-soft">
-            Everything you need to publish a portfolio is on the free plan. Pro exists for
-            people who want extras — not because we're holding your site hostage.
-          </p>
-        </div>
-        <div className="mt-14 grid md:grid-cols-2 gap-6">
-          <div className="rounded-3xl border border-border bg-background p-10">
-            <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-3xl">Free</h3>
-              <div className="text-3xl font-medium">$0<span className="text-sm text-ink-soft">/mo</span></div>
-            </div>
-            <p className="mt-3 text-sm text-ink-soft">Everything to ship a portfolio you're proud of.</p>
-            <ul className="mt-8 space-y-3 text-sm">
-              {[
-                "All 6 free templates",
-                "portfoliohub.app subdomain",
-                "Unlimited projects & pages",
-                "Password-protected drafts",
-                "Basic analytics",
-              ].map((l) => (
-                <li key={l} className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4" /> {l}
-                </li>
-              ))}
-            </ul>
-            <Link to="/templates" className="mt-10 inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-medium hover:bg-secondary">
-              Start free <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="relative rounded-3xl bg-foreground text-background p-10 shadow-lift overflow-hidden">
-            <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-gradient-brand opacity-40 blur-3xl" />
-            <div className="relative flex items-baseline justify-between">
-              <h3 className="font-display text-3xl">Pro</h3>
-              <div className="text-3xl font-medium">$6<span className="text-sm opacity-60">/mo</span></div>
-            </div>
-            <p className="relative mt-3 text-sm opacity-70">For folks who want a custom domain and the fancy templates.</p>
-            <ul className="relative mt-8 space-y-3 text-sm">
-              {[
-                "Everything in Free",
-                "All 9 templates (including Pro)",
-                "Custom domain + SSL",
-                "Remove PortfolioHub badge",
-                "Advanced analytics + goals",
-                "Priority support",
-              ].map((l) => (
-                <li key={l} className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4" style={{ color: "oklch(0.82 0.16 75)" }} /> {l}
-                </li>
-              ))}
-            </ul>
-            <Link to="/pricing" className="relative mt-10 inline-flex items-center gap-2 rounded-full bg-background text-foreground px-5 py-3 text-sm font-medium">
-              Go Pro <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ---------------- FAQ ---------------- */
 function FAQ() {
   const faqs = [
@@ -589,16 +760,10 @@ function FinalCTA() {
         </p>
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
           <Link
-            to="/templates"
+            to="/auth/signup"
             className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
           >
-            Browse templates <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-secondary"
-          >
-            Go to dashboard
+            Get Started — it's free <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

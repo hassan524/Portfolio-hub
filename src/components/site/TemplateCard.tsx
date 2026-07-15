@@ -1,6 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import type { Template } from "@/lib/templates";
 
 export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) {
@@ -13,10 +12,8 @@ export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) 
       transition={{ duration: 0.5, delay: index * 0.05, ease: "easeOut" }}
       className="group relative"
     >
-      <Link
-        to="/templates/$slug"
-        params={{ slug: t.slug }}
-        className="block overflow-hidden rounded-2xl border border-border bg-card shadow-soft hover:shadow-lift transition-all duration-500"
+      <div
+        className="block overflow-hidden rounded-2xl border border-border bg-card shadow-soft hover:shadow-lift transition-all duration-500 cursor-pointer"
       >
         <div
           className="relative aspect-[4/3] overflow-hidden"
@@ -40,11 +37,8 @@ export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) 
             </div>
             <p className="mt-1 text-sm text-ink-soft leading-relaxed">{t.tagline}</p>
           </div>
-          <div className="mt-1 grid h-9 w-9 place-items-center rounded-full border border-border group-hover:bg-foreground group-hover:text-background transition-all shrink-0">
-            <ArrowUpRight className="h-4 w-4" />
-          </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   );
 }

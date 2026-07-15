@@ -12,26 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as StatusRouteImport } from './routes/status'
-import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as HelpRouteImport } from './routes/help'
-import { Route as GuidesRouteImport } from './routes/guides'
-import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as EditorRouteImport } from './routes/editor'
-import { Route as DomainsRouteImport } from './routes/domains'
-import { Route as DeployRouteImport } from './routes/deploy'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as CareersRouteImport } from './routes/careers'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as SocialSplatRouteImport } from './routes/social.$'
+import { Route as AuthSignupRouteImport } from './routes/auth/signup'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -48,54 +39,14 @@ const StatusRoute = StatusRouteImport.update({
   path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShowcaseRoute = ShowcaseRouteImport.update({
-  id: '/showcase',
-  path: '/showcase',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GuidesRoute = GuidesRouteImport.update({
-  id: '/guides',
-  path: '/guides',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeaturesRoute = FeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EditorRoute = EditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DomainsRoute = DomainsRouteImport.update({
-  id: '/domains',
-  path: '/domains',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeployRoute = DeployRouteImport.update({
-  id: '/deploy',
-  path: '/deploy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -108,24 +59,9 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChangelogRoute = ChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CareersRoute = CareersRouteImport.update({
-  id: '/careers',
-  path: '/careers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -148,54 +84,46 @@ const SocialSplatRoute = SocialSplatRouteImport.update({
   path: '/social/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
-  '/blog': typeof BlogRoute
-  '/careers': typeof CareersRoute
-  '/changelog': typeof ChangelogRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
-  '/dashboard': typeof DashboardRoute
-  '/deploy': typeof DeployRoute
-  '/domains': typeof DomainsRoute
-  '/editor': typeof EditorRoute
-  '/features': typeof FeaturesRoute
-  '/guides': typeof GuidesRoute
   '/help': typeof HelpRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
-  '/showcase': typeof ShowcaseRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
   '/terms': typeof TermsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/social/$': typeof SocialSplatRoute
   '/templates/$slug': typeof TemplatesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
-  '/blog': typeof BlogRoute
-  '/careers': typeof CareersRoute
-  '/changelog': typeof ChangelogRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
-  '/dashboard': typeof DashboardRoute
-  '/deploy': typeof DeployRoute
-  '/domains': typeof DomainsRoute
-  '/editor': typeof EditorRoute
-  '/features': typeof FeaturesRoute
-  '/guides': typeof GuidesRoute
   '/help': typeof HelpRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
-  '/showcase': typeof ShowcaseRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
   '/terms': typeof TermsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/social/$': typeof SocialSplatRoute
   '/templates/$slug': typeof TemplatesSlugRoute
 }
@@ -203,25 +131,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
-  '/blog': typeof BlogRoute
-  '/careers': typeof CareersRoute
-  '/changelog': typeof ChangelogRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
-  '/dashboard': typeof DashboardRoute
-  '/deploy': typeof DeployRoute
-  '/domains': typeof DomainsRoute
-  '/editor': typeof EditorRoute
-  '/features': typeof FeaturesRoute
-  '/guides': typeof GuidesRoute
   '/help': typeof HelpRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
-  '/showcase': typeof ShowcaseRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
   '/terms': typeof TermsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/social/$': typeof SocialSplatRoute
   '/templates/$slug': typeof TemplatesSlugRoute
 }
@@ -230,75 +149,48 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/analytics'
-    | '/blog'
-    | '/careers'
-    | '/changelog'
+    | '/auth'
     | '/contact'
     | '/cookies'
-    | '/dashboard'
-    | '/deploy'
-    | '/domains'
-    | '/editor'
-    | '/features'
-    | '/guides'
     | '/help'
-    | '/pricing'
     | '/privacy'
-    | '/showcase'
     | '/status'
     | '/templates'
     | '/terms'
+    | '/auth/login'
+    | '/auth/signup'
     | '/social/$'
     | '/templates/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/analytics'
-    | '/blog'
-    | '/careers'
-    | '/changelog'
+    | '/auth'
     | '/contact'
     | '/cookies'
-    | '/dashboard'
-    | '/deploy'
-    | '/domains'
-    | '/editor'
-    | '/features'
-    | '/guides'
     | '/help'
-    | '/pricing'
     | '/privacy'
-    | '/showcase'
     | '/status'
     | '/templates'
     | '/terms'
+    | '/auth/login'
+    | '/auth/signup'
     | '/social/$'
     | '/templates/$slug'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/analytics'
-    | '/blog'
-    | '/careers'
-    | '/changelog'
+    | '/auth'
     | '/contact'
     | '/cookies'
-    | '/dashboard'
-    | '/deploy'
-    | '/domains'
-    | '/editor'
-    | '/features'
-    | '/guides'
     | '/help'
-    | '/pricing'
     | '/privacy'
-    | '/showcase'
     | '/status'
     | '/templates'
     | '/terms'
+    | '/auth/login'
+    | '/auth/signup'
     | '/social/$'
     | '/templates/$slug'
   fileRoutesById: FileRoutesById
@@ -306,22 +198,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AnalyticsRoute: typeof AnalyticsRoute
-  BlogRoute: typeof BlogRoute
-  CareersRoute: typeof CareersRoute
-  ChangelogRoute: typeof ChangelogRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
   CookiesRoute: typeof CookiesRoute
-  DashboardRoute: typeof DashboardRoute
-  DeployRoute: typeof DeployRoute
-  DomainsRoute: typeof DomainsRoute
-  EditorRoute: typeof EditorRoute
-  FeaturesRoute: typeof FeaturesRoute
-  GuidesRoute: typeof GuidesRoute
   HelpRoute: typeof HelpRoute
-  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
-  ShowcaseRoute: typeof ShowcaseRoute
   StatusRoute: typeof StatusRoute
   TemplatesRoute: typeof TemplatesRouteWithChildren
   TermsRoute: typeof TermsRoute
@@ -351,13 +232,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/showcase': {
-      id: '/showcase'
-      path: '/showcase'
-      fullPath: '/showcase'
-      preLoaderRoute: typeof ShowcaseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -365,60 +239,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/help': {
       id: '/help'
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/guides': {
-      id: '/guides'
-      path: '/guides'
-      fullPath: '/guides'
-      preLoaderRoute: typeof GuidesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/features': {
-      id: '/features'
-      path: '/features'
-      fullPath: '/features'
-      preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/editor': {
-      id: '/editor'
-      path: '/editor'
-      fullPath: '/editor'
-      preLoaderRoute: typeof EditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domains': {
-      id: '/domains'
-      path: '/domains'
-      fullPath: '/domains'
-      preLoaderRoute: typeof DomainsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/deploy': {
-      id: '/deploy'
-      path: '/deploy'
-      fullPath: '/deploy'
-      preLoaderRoute: typeof DeployRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -435,32 +260,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/changelog': {
-      id: '/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof ChangelogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/careers': {
-      id: '/careers'
-      path: '/careers'
-      fullPath: '/careers'
-      preLoaderRoute: typeof CareersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -491,8 +295,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
+
+interface AuthRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthSignupRoute: typeof AuthSignupRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthSignupRoute: AuthSignupRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface TemplatesRouteChildren {
   TemplatesSlugRoute: typeof TemplatesSlugRoute
@@ -509,22 +339,11 @@ const TemplatesRouteWithChildren = TemplatesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AnalyticsRoute: AnalyticsRoute,
-  BlogRoute: BlogRoute,
-  CareersRoute: CareersRoute,
-  ChangelogRoute: ChangelogRoute,
+  AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
   CookiesRoute: CookiesRoute,
-  DashboardRoute: DashboardRoute,
-  DeployRoute: DeployRoute,
-  DomainsRoute: DomainsRoute,
-  EditorRoute: EditorRoute,
-  FeaturesRoute: FeaturesRoute,
-  GuidesRoute: GuidesRoute,
   HelpRoute: HelpRoute,
-  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
-  ShowcaseRoute: ShowcaseRoute,
   StatusRoute: StatusRoute,
   TemplatesRoute: TemplatesRouteWithChildren,
   TermsRoute: TermsRoute,
