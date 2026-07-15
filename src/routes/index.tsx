@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { useAppContext } from "@/context/AppContext";
 import {
   ArrowRight,
   Check,
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
   const [dialogTemplate, setDialogTemplate] = useState<Template | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -105,6 +107,8 @@ function useTypewriter(text: string, speed = 55, delay = 400) {
 
 /* ---------------- HERO ---------------- */
 function Hero() {
+  const { session } = useAppContext();
+  const isLoggedIn = !!session;
   const line1 = "The portfolio you'll ";
   const line2 = "actually finish.";
   const { displayed: typed1, done: done1 } = useTypewriter(line1, 45, 500);
@@ -182,13 +186,23 @@ function Hero() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <Link
-              to="/auth/signup"
-              className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background shadow-lift hover:shadow-soft transition-all"
-            >
-              Get Started
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to="/dashboard"
+                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background shadow-lift hover:shadow-soft transition-all"
+              >
+                Go to Dashboard
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            ) : (
+              <Link
+                to="/auth/signup"
+                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background shadow-lift hover:shadow-soft transition-all"
+              >
+                Get Started
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            )}
             <Link
               to="/templates"
               className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300 shadow-soft"
@@ -742,6 +756,9 @@ function FAQ() {
 
 /* ---------------- FINAL CTA ---------------- */
 function FinalCTA() {
+  const { session } = useAppContext();
+  const isLoggedIn = !!session;
+
   return (
     <section className="relative overflow-hidden border-t border-border">
       <div className="absolute inset-0 bg-hero-glow pointer-events-none" />
@@ -752,19 +769,33 @@ function FinalCTA() {
           viewport={{ once: true }}
           className="font-display text-5xl md:text-7xl leading-[0.95]"
         >
-          Your portfolio is<br />
-          <span className="italic text-gradient-brand">one hour away.</span>
+          {isLoggedIn ? (
+            <>Your dashboard<br /><span className="italic text-gradient-brand">awaits.</span></>
+          ) : (
+            <>Your portfolio is<br /><span className="italic text-gradient-brand">one hour away.</span></>
+          )}
         </motion.h2>
         <p className="mt-6 text-lg text-ink-soft">
-          No credit card. No lock-in. Just pick a template and start.
+          {isLoggedIn
+            ? "Manage your portfolio, check analytics, and keep iterating."
+            : "No credit card. No lock-in. Just pick a template and start."}
         </p>
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
-          <Link
-            to="/auth/signup"
-            className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
-          >
-            Get Started — it's free <ArrowRight className="h-4 w-4" />
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
+            >
+              Open Dashboard <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <Link
+              to="/auth/signup"
+              className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
+            >
+              Get Started — it's free <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
       </div>
     </section>

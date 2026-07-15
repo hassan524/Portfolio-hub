@@ -2,7 +2,15 @@ import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import type { Template } from "@/lib/templates";
 
-export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) {
+export function TemplateCard({
+  t,
+  index = 0,
+  onPreview,
+}: {
+  t: Template;
+  index?: number;
+  onPreview?: (template: Template) => void;
+}) {
   const [bg, ink, accent] = t.palette;
   return (
     <motion.div
@@ -12,8 +20,10 @@ export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) 
       transition={{ duration: 0.5, delay: index * 0.05, ease: "easeOut" }}
       className="group relative"
     >
-      <div
-        className="block overflow-hidden rounded-2xl border border-border bg-card shadow-soft hover:shadow-lift transition-all duration-500 cursor-pointer"
+      <button
+        type="button"
+        onClick={() => onPreview?.(t)}
+        className="block w-full overflow-hidden rounded-2xl border border-border bg-card text-left shadow-soft hover:shadow-lift transition-all duration-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <div
           className="relative aspect-[4/3] overflow-hidden"
@@ -38,7 +48,7 @@ export function TemplateCard({ t, index = 0 }: { t: Template; index?: number }) 
             <p className="mt-1 text-sm text-ink-soft leading-relaxed">{t.tagline}</p>
           </div>
         </div>
-      </div>
+      </button>
     </motion.div>
   );
 }

@@ -3,7 +3,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { SiteLayout } from "@/components/site/Layout";
 import { TemplateCard } from "@/components/site/TemplateCard";
-import { TEMPLATES } from "@/lib/templates";
+import { TemplatePreviewDialog } from "@/components/site/TemplatePreviewDialog";
+import { TEMPLATES, type Template } from "@/lib/templates";
 
 export const Route = createFileRoute("/templates")({
   head: () => ({
@@ -28,7 +29,19 @@ const CATEGORIES = ["All", "Developer", "Designer", "Photographer", "Writer", "S
 
 function TemplatesPage() {
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("All");
+  const [dialogTemplate, setDialogTemplate] = useState<Template | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const filtered = cat === "All" ? TEMPLATES : TEMPLATES.filter((t) => t.category === cat);
+
+  const openPreview = (template: Template) => {
+    setDialogTemplate(template);
+    setDialogOpen(true);
+  };
+
+  const closePreview = () => {
+    setDialogOpen(false);
+    setTimeout(() => setDialogTemplate(null), 300);
+  };
 
   return (
     <SiteLayout>
@@ -72,7 +85,7 @@ function TemplatesPage() {
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((t, i) => (
-            <TemplateCard key={t.slug} t={t} index={i} />
+            <TemplateCard key={t.slug} t={t} index={i} onPreview={openPreview} />
           ))}
         </div>
 
@@ -93,6 +106,12 @@ function TemplatesPage() {
           </Link>
         </div>
       </section>
+
+      <TemplatePreviewDialog
+        template={dialogTemplate}
+        open={dialogOpen}
+        onClose={closePreview}
+      />
     </SiteLayout>
   );
 }

@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import { Menu, X, Sparkles, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Menu, X, Sparkles, LogOut, LayoutDashboard, User } from "lucide-react";
+import { useAppContext } from "@/context/AppContext";
 
 const NAV_LINKS = [
   { label: "Templates", to: "/templates" as const },
@@ -13,12 +14,41 @@ const NAV_LINKS = [
 export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const { user, session, signOut } = useAppContext();
+  const navigate = useNavigate();
+
+  const isLoggedIn = !!session;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close avatar dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    }
+    if (avatarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [avatarOpen]);
+
+  const displayName =
+    user?.user_metadata?.full_name || user?.email || "User";
+  const avatarLetter = displayName.charAt(0).toUpperCase();
+
+  const handleSignOut = async () => {
+    setAvatarOpen(false);
+    await signOut();
+    navigate({ to: "/" });
+  };
 
   return (
     <motion.header
@@ -57,31 +87,100 @@ export function Header() {
 
         {/* ─── Desktop CTA ─── */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/auth/login"
-            className="text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/auth/signup"
-            className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13.5px] font-semibold text-background hover:opacity-90 transition-all shadow-soft hover:shadow-lift"
-          >
-            Get Started
-            <svg
-              className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-2 text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2 rounded-lg hover:bg-secondary/60"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+              {/* Avatar dropdown */}
+              <div ref={avatarRef} className="relative">
+                <button
+                  onClick={() => setAvatarOpen((v) => !v)}
+                  className="group relative grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-white text-sm font-semibold shadow-soft hover:shadow-lift transition-all duration-300 hover:scale-105"
+                >
+                  {avatarLetter}
+                </button>
+                <AnimatePresence>
+                  {avatarOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute right-0 top-12 w-64 rounded-2xl border border-border bg-surface-elevated shadow-lift overflow-hidden z-50"
+                    >
+                      {/* User info */}
+                      <div className="px-4 py-4 border-b border-border">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-white text-sm font-semibold shrink-0">
+                            {avatarLetter}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">
+                              {user?.user_metadata?.full_name || "User"}
+                            </div>
+                            <div className="text-xs text-ink-soft truncate">
+                              {user?.email}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Menu items */}
+                      <div className="p-2">
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setAvatarOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-secondary/60 transition-colors"
+                        >
+                          <LayoutDashboard className="h-4 w-4 text-ink-soft" />
+                          Dashboard
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-secondary/60 transition-colors cursor-pointer"
+                        >
+                          <LogOut className="h-4 w-4 text-ink-soft" />
+                          Sign out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/auth/login"
+                className="text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth/signup"
+                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13.5px] font-semibold text-background hover:opacity-90 transition-all shadow-soft hover:shadow-lift"
+              >
+                Get Started
+                <svg
+                  className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* ─── Mobile Hamburger ─── */}
@@ -145,20 +244,55 @@ export function Header() {
               ))}
 
               <div className="mt-3 pt-3 border-t border-border space-y-2">
-                <Link
-                  to="/auth/login"
-                  onClick={() => setOpen(false)}
-                  className="block text-center rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/auth/signup"
-                  onClick={() => setOpen(false)}
-                  className="block text-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
-                >
-                  Get Started
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    {/* User info in mobile */}
+                    <div className="flex items-center gap-3 px-3 py-2">
+                      <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-brand text-white text-xs font-semibold shrink-0">
+                        {avatarLetter}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{displayName}</div>
+                        <div className="text-xs text-ink-soft truncate">{user?.email}</div>
+                      </div>
+                    </div>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setOpen(false);
+                        handleSignOut();
+                      }}
+                      className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/auth/login"
+                      onClick={() => setOpen(false)}
+                      className="block text-center rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      to="/auth/signup"
+                      onClick={() => setOpen(false)}
+                      className="block text-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
