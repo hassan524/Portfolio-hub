@@ -1,0 +1,129 @@
+{
+  "id": "designer-neon-bold",
+  "name": "Designer \u2014 Neon Bold",
+  "category": "Designer",
+  "tagline": "Design systems thinker, pixel-level perfectionist.",
+  "isPro": false,
+  "theme": {
+    "bg": "#0d0d14",
+    "ink": "#f5f5ff",
+    "accent": "#ff2fd4",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "rounded",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Noor Ahmed",
+        "tagline": "Design systems thinker, pixel-level perfectionist.",
+        "bio": "Independent designer based in Dubai, UAE. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Dubai, UAE",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Fintech Rebrand",
+            "desc": "Full visual identity + product redesign",
+            "featured": true
+          },
+          {
+            "title": "Design System v2",
+            "desc": "Unified 40+ screens under one system",
+            "featured": false
+          },
+          {
+            "title": "Onboarding Flow",
+            "desc": "Reduced drop-off by 28%",
+            "featured": false
+          },
+          {
+            "title": "Marketing Site Refresh",
+            "desc": "New brand site + component library",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a designer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Dubai, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Motion Design",
+          "Framer",
+          "User Research",
+          "Prototyping",
+          "Design Systems",
+          "Figma"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Designer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Designer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

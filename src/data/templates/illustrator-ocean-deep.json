@@ -1,0 +1,128 @@
+{
+  "id": "illustrator-ocean-deep",
+  "name": "Illustrator \u2014 Ocean Deep",
+  "category": "Illustrator",
+  "tagline": "Character design and visual storytelling.",
+  "isPro": false,
+  "theme": {
+    "bg": "#081826",
+    "ink": "#e5f4ff",
+    "accent": "#38bdf8",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Sam Osei",
+        "tagline": "Character design and visual storytelling.",
+        "bio": "Independent illustrator based in Karachi, PK. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Karachi, PK",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Children's Book Illustrations",
+            "desc": "24-page picture book, published 2026",
+            "featured": true
+          },
+          {
+            "title": "Brand Mascot Design",
+            "desc": "For a beverage startup",
+            "featured": false
+          },
+          {
+            "title": "Editorial Illustrations",
+            "desc": "Monthly column artwork",
+            "featured": false
+          },
+          {
+            "title": "Sticker Pack Series",
+            "desc": "10k+ downloads",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a illustrator, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Karachi, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Character Design",
+          "Vector Art",
+          "Animation",
+          "Procreate",
+          "Editorial Illustration"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Illustrator",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Illustrator",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

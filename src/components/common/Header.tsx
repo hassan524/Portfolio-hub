@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Sparkles, LogOut, LayoutDashboard, User } from "lucide-react";
+import { Menu, X, Sparkles, LayoutDashboard } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 const NAV_LINKS = [
@@ -94,7 +94,7 @@ export function Header() {
                 className="inline-flex items-center gap-2 text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2 rounded-lg hover:bg-secondary/60"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                Dashboard
+                My portfolios
               </Link>
               {/* Avatar dropdown */}
               <div ref={avatarRef} className="relative">
@@ -123,9 +123,6 @@ export function Header() {
                             <div className="text-sm font-medium truncate">
                               {user?.user_metadata?.full_name || "User"}
                             </div>
-                            <div className="text-xs text-ink-soft truncate">
-                              {user?.email}
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -137,15 +134,8 @@ export function Header() {
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-secondary/60 transition-colors"
                         >
                           <LayoutDashboard className="h-4 w-4 text-ink-soft" />
-                          Dashboard
+                          My portfolios
                         </Link>
-                        <button
-                          onClick={handleSignOut}
-                          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-secondary/60 transition-colors cursor-pointer"
-                        >
-                          <LogOut className="h-4 w-4 text-ink-soft" />
-                          Sign out
-                        </button>
                       </div>
                     </motion.div>
                   )}
@@ -253,7 +243,6 @@ export function Header() {
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">{displayName}</div>
-                        <div className="text-xs text-ink-soft truncate">{user?.email}</div>
                       </div>
                     </div>
                     <Link
@@ -262,18 +251,8 @@ export function Header() {
                       className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors"
                     >
                       <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
+                      My portfolios
                     </Link>
-                    <button
-                      onClick={() => {
-                        setOpen(false);
-                        handleSignOut();
-                      }}
-                      className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign out
-                    </button>
                   </>
                 ) : (
                   <>

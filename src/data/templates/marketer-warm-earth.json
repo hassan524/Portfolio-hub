@@ -1,0 +1,129 @@
+{
+  "id": "marketer-warm-earth",
+  "name": "Marketer \u2014 Warm Earth",
+  "category": "Marketer",
+  "tagline": "Growth marketer who loves the data behind the story.",
+  "isPro": true,
+  "theme": {
+    "bg": "#f6efe6",
+    "ink": "#3b2a1a",
+    "accent": "#b3592a",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Amara Kim",
+        "tagline": "Growth marketer who loves the data behind the story.",
+        "bio": "Independent marketer based in New York, NY. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "New York, NY",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Growth Campaign",
+            "desc": "3x'd signups in one quarter",
+            "featured": true
+          },
+          {
+            "title": "Brand Launch",
+            "desc": "Full go-to-market for new product line",
+            "featured": false
+          },
+          {
+            "title": "Email Lifecycle Overhaul",
+            "desc": "Doubled open rates",
+            "featured": false
+          },
+          {
+            "title": "Paid Social Strategy",
+            "desc": "Cut CAC by 35%",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a marketer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring New York, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "A/B Testing",
+          "Copywriting",
+          "SEO",
+          "Lifecycle Marketing",
+          "Paid Media",
+          "Analytics"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Marketer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Marketer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

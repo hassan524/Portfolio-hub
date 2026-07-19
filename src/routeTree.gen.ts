@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PortfoliosRouteImport } from './routes/portfolios'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CookiesRouteImport } from './routes/cookies'
@@ -43,6 +44,11 @@ const StatusRoute = StatusRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfoliosRoute = PortfoliosRouteImport.update({
+  id: '/portfolios',
+  path: '/portfolios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/portfolios': typeof PortfoliosRoute
   '/privacy': typeof PrivacyRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/portfolios': typeof PortfoliosRoute
   '/privacy': typeof PrivacyRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/portfolios': typeof PortfoliosRoute
   '/privacy': typeof PrivacyRoute
   '/status': typeof StatusRoute
   '/templates': typeof TemplatesRouteWithChildren
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/dashboard'
     | '/help'
+    | '/portfolios'
     | '/privacy'
     | '/status'
     | '/templates'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/dashboard'
     | '/help'
+    | '/portfolios'
     | '/privacy'
     | '/status'
     | '/templates'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/dashboard'
     | '/help'
+    | '/portfolios'
     | '/privacy'
     | '/status'
     | '/templates'
@@ -215,6 +227,7 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
+  PortfoliosRoute: typeof PortfoliosRoute
   PrivacyRoute: typeof PrivacyRoute
   StatusRoute: typeof StatusRoute
   TemplatesRoute: typeof TemplatesRouteWithChildren
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolios': {
+      id: '/portfolios'
+      path: '/portfolios'
+      fullPath: '/portfolios'
+      preLoaderRoute: typeof PortfoliosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -364,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
+  PortfoliosRoute: PortfoliosRoute,
   PrivacyRoute: PrivacyRoute,
   StatusRoute: StatusRoute,
   TemplatesRoute: TemplatesRouteWithChildren,

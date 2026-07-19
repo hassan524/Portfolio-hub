@@ -1,0 +1,128 @@
+{
+  "id": "consultant-mono-brutalist",
+  "name": "Consultant \u2014 Mono Brutalist",
+  "category": "Consultant",
+  "tagline": "Helping teams solve their hardest problems.",
+  "isPro": true,
+  "theme": {
+    "bg": "#ffffff",
+    "ink": "#000000",
+    "accent": "#000000",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "sharp",
+    "spacing": "compact"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Avery Brooks",
+        "tagline": "Helping teams solve their hardest problems.",
+        "bio": "Independent consultant based in Austin, TX. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Austin, TX",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Ops Overhaul",
+            "desc": "Cut operating costs 22% for mid-size retailer",
+            "featured": true
+          },
+          {
+            "title": "Go-to-Market Advisory",
+            "desc": "For a Series A startup",
+            "featured": false
+          },
+          {
+            "title": "Org Design Project",
+            "desc": "Restructured 60-person team",
+            "featured": false
+          },
+          {
+            "title": "Turnaround Strategy",
+            "desc": "Helped stabilize a struggling business unit",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a consultant, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Austin, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Facilitation",
+          "Strategy",
+          "Data Analysis",
+          "Change Management",
+          "Operations"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Consultant",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Consultant",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

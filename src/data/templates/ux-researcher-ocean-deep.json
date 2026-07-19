@@ -1,0 +1,128 @@
+{
+  "id": "ux-researcher-ocean-deep",
+  "name": "UX Researcher \u2014 Ocean Deep",
+  "category": "UX Researcher",
+  "tagline": "Research that actually changes decisions.",
+  "isPro": false,
+  "theme": {
+    "bg": "#081826",
+    "ink": "#e5f4ff",
+    "accent": "#38bdf8",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Harper Reyes",
+        "tagline": "Research that actually changes decisions.",
+        "bio": "Independent ux researcher based in Austin, TX. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Austin, TX",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Onboarding Study",
+            "desc": "Identified friction cutting activation 20%",
+            "featured": true
+          },
+          {
+            "title": "Longitudinal Study",
+            "desc": "6-month study on user retention drivers",
+            "featured": false
+          },
+          {
+            "title": "Accessibility Audit",
+            "desc": "Full product accessibility review",
+            "featured": false
+          },
+          {
+            "title": "Concept Testing Series",
+            "desc": "Validated 4 early-stage product ideas",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a ux researcher, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Austin, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Usability Testing",
+          "User Interviews",
+          "Figma",
+          "Survey Design",
+          "Synthesis"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "UX Researcher",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior UX Researcher",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

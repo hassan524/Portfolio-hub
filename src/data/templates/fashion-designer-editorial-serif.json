@@ -1,0 +1,128 @@
+{
+  "id": "fashion-designer-editorial-serif",
+  "name": "Fashion Designer \u2014 Editorial Serif",
+  "category": "Fashion Designer",
+  "tagline": "Where craft meets ready-to-wear.",
+  "isPro": false,
+  "theme": {
+    "bg": "#fdfcf9",
+    "ink": "#111111",
+    "accent": "#8a1f11",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "sharp",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Morgan Rivera",
+        "tagline": "Where craft meets ready-to-wear.",
+        "bio": "Independent fashion designer based in Lisbon, PT. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Lisbon, PT",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Capsule Collection",
+            "desc": "Debut line, sold through 3 boutiques",
+            "featured": true
+          },
+          {
+            "title": "Runway Show",
+            "desc": "Presented at regional fashion week",
+            "featured": false
+          },
+          {
+            "title": "Sustainable Line",
+            "desc": "Made from 100% deadstock fabric",
+            "featured": false
+          },
+          {
+            "title": "Custom Commission Work",
+            "desc": "Bridal and eveningwear pieces",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a fashion designer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Lisbon, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Illustration",
+          "Pattern Making",
+          "Sustainable Textiles",
+          "Merchandising",
+          "Draping"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Fashion Designer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Fashion Designer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}
