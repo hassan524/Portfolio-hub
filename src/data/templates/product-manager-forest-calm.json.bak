@@ -1,0 +1,128 @@
+{
+  "id": "product-manager-forest-calm",
+  "name": "Product Manager \u2014 Forest Calm",
+  "category": "Product Manager",
+  "tagline": "Bridging design, engineering, and users.",
+  "isPro": false,
+  "theme": {
+    "bg": "#f2f5f0",
+    "ink": "#1c2a1e",
+    "accent": "#3d7a4f",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Taylor Patel",
+        "tagline": "Bridging design, engineering, and users.",
+        "bio": "Independent product manager based in Berlin, DE. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Berlin, DE",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Core Product Relaunch",
+            "desc": "Led redesign used by 2M+ users",
+            "featured": true
+          },
+          {
+            "title": "New Feature Line",
+            "desc": "0 to 15% of revenue in a year",
+            "featured": false
+          },
+          {
+            "title": "Onboarding Redesign",
+            "desc": "Increased activation by 31%",
+            "featured": false
+          },
+          {
+            "title": "Platform Expansion",
+            "desc": "Launched in 3 new markets",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a product manager, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Berlin, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "A/B Testing",
+          "Roadmapping",
+          "Stakeholder Management",
+          "SQL",
+          "User Research"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Product Manager",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Product Manager",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

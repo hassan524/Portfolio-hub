@@ -1,0 +1,129 @@
+{
+  "id": "photographer-retro-terminal",
+  "name": "Photographer \u2014 Retro Terminal",
+  "category": "Photographer",
+  "tagline": "Capturing moments that last forever.",
+  "isPro": true,
+  "theme": {
+    "bg": "#0b1a0f",
+    "ink": "#c8ffcf",
+    "accent": "#39ff6a",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Space Grotesk",
+    "corners": "sharp",
+    "spacing": "compact"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Leo Kim",
+        "tagline": "Capturing moments that last forever.",
+        "bio": "Independent photographer based in Amsterdam, NL. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Amsterdam, NL",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Coastal Editorial Series",
+            "desc": "Shot for a national travel magazine",
+            "featured": true
+          },
+          {
+            "title": "Wedding Collection 2026",
+            "desc": "Featured in three publications",
+            "featured": false
+          },
+          {
+            "title": "Street Portraits",
+            "desc": "Ongoing personal documentary project",
+            "featured": false
+          },
+          {
+            "title": "Brand Campaign",
+            "desc": "Product photography for apparel launch",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a photographer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Amsterdam, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Color Grading",
+          "Studio Lighting",
+          "Portraiture",
+          "Lightroom",
+          "Film",
+          "Editorial"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Photographer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Photographer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

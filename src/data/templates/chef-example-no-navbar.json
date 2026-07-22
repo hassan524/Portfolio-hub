@@ -1,0 +1,585 @@
+{
+  "id": "chef-example-no-navbar",
+  "name": "Chef — Sunset Warm",
+  "category": "Chef",
+  "tagline": "Bold, no navbar, straight into the hero",
+  "isPro": false,
+  "theme": {
+    "bg": "#1a1a1a",
+    "ink": "#faf4ec",
+    "accent": "#e2793f",
+    "fontHeading": "inherit",
+    "fontBody": "inherit",
+    "corners": "rounded",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "variant": "hero-11",
+        "eyebrow": "Chef & Recipe Developer",
+        "name": "Amara Khan",
+        "tagline": "Food that tells a story",
+        "bio": "",
+        "primaryCta": "See the menu",
+        "secondaryCta": "",
+        "location": "Karachi",
+        "availability": "Booking events",
+        "align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "hero",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "projects-1",
+      "type": "projects",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "variant": "projects-11",
+        "eyebrow": "Recent",
+        "heading": "Menus",
+        "items": [
+          {
+            "title": "Autumn tasting menu",
+            "desc": "Seven courses, local produce",
+            "featured": true
+          },
+          {
+            "title": "Weekend brunch",
+            "desc": "Rotating seasonal specials"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "projects",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutDefault",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a chef, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me reading, exploring, or sketching out the next idea."
+        ],
+        "skills": [],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Chef",
+            "yr": "2023–Present"
+          }
+        ],
+        "variant": "about-11"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "AboutDefault",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "testimonials-1",
+      "type": "testimonials",
+      "order": 3,
+      "props": {
+        "kind": "testimonials",
+        "variant": "testimonials-11",
+        "heading": "Kind words",
+        "items": [
+          {
+            "quote": "Best tasting menu we've had all year.",
+            "name": "R. Sheikh",
+            "role": "Guest"
+          },
+          {
+            "quote": "Every dish had a reason to exist.",
+            "name": "F. Malik",
+            "role": "Food critic"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "testimonials",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "contact-1",
+      "type": "contact",
+      "order": 4,
+      "props": {
+        "kind": "contact",
+        "variant": "contact-11",
+        "heading": "Book an event",
+        "message": "Available for private dinners and pop-ups.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "hello@amarakhan.chef"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "contact",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "block-footer-1",
+      "type": "FooterDefault",
+      "order": 5,
+      "props": {
+        "kind": "footer",
+        "heading": "Chef — Sunset Warm",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "hello@amarakhan.chef"
+          }
+        ],
+        "variant": "footer-11"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "FooterDefault",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    }
+  ]
+}

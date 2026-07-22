@@ -1,0 +1,129 @@
+{
+  "id": "musician-clean-slate",
+  "name": "Musician \u2014 Clean Slate",
+  "category": "Musician",
+  "tagline": "Producer and multi-instrumentalist.",
+  "isPro": false,
+  "theme": {
+    "bg": "#ffffff",
+    "ink": "#18181b",
+    "accent": "#7c3aed",
+    "fontHeading": "Inter",
+    "fontBody": "Inter",
+    "corners": "rounded",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Rowan Brooks",
+        "tagline": "Producer and multi-instrumentalist.",
+        "bio": "Independent musician based in Lisbon, PT. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Lisbon, PT",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Debut EP",
+            "desc": "Streamed 500k+ times",
+            "featured": true
+          },
+          {
+            "title": "Film Score",
+            "desc": "Independent feature, festival selection",
+            "featured": false
+          },
+          {
+            "title": "Live Session Series",
+            "desc": "Recorded live-to-tape performances",
+            "featured": false
+          },
+          {
+            "title": "Collaboration Album",
+            "desc": "With three featured artists",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a musician, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Lisbon, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Piano",
+          "Film Scoring",
+          "Ableton",
+          "Composition",
+          "Mixing",
+          "Sound Design"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Musician",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Musician",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

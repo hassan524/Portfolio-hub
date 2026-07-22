@@ -1,0 +1,129 @@
+{
+  "id": "game-developer-sunset-warm",
+  "name": "Game Developer \u2014 Sunset Warm",
+  "category": "Game Developer",
+  "tagline": "Code, design, and a lot of playtesting.",
+  "isPro": false,
+  "theme": {
+    "bg": "#1c1210",
+    "ink": "#fff1e6",
+    "accent": "#ff7a45",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "rounded",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Riley Chen",
+        "tagline": "Code, design, and a lot of playtesting.",
+        "bio": "Independent game developer based in Lisbon, PT. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Lisbon, PT",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Indie Puzzle Game",
+            "desc": "50k downloads, featured on storefront",
+            "featured": true
+          },
+          {
+            "title": "Game Jam Winner",
+            "desc": "1st place, 48-hour jam",
+            "featured": false
+          },
+          {
+            "title": "Mobile Roguelike",
+            "desc": "In active development, closed beta",
+            "featured": false
+          },
+          {
+            "title": "Narrative Prototype",
+            "desc": "Experimental storytelling mechanic",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a game developer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Lisbon, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Level Design",
+          "Godot",
+          "Shader Programming",
+          "Unity",
+          "Game Design",
+          "C#"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Game Developer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Game Developer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

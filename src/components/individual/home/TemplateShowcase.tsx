@@ -1,18 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { TEMPLATES, type Template } from "@/lib/templates";
-import { MarqueeTemplateCard } from "./MarqueeTemplateCard";
+import { templates } from "@/data/templates";
+import type { SiteData } from "@/types/builder.schema";
+import { TemplateCard } from "@/components/common/TemplateCard";
 
-export function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => void }) {
-  // Use first 12 templates for showcase, split into rows
-  const showcaseTemplates = TEMPLATES.slice(0, 12);
-  const mid = Math.ceil(showcaseTemplates.length / 2);
-  const row1Source = showcaseTemplates.slice(0, mid);
-  const row2Source = showcaseTemplates.slice(mid);
-  
+export function TemplateShowcase({ onPreview }: { onPreview: (t: SiteData) => void }) {
+  // Exactly 6 in each row
+  const row1Source = templates.slice(0, 6);
+  const row2Source = templates.slice(6, 12);
+
   // Duplicate for seamless loop
   const row1 = [...row1Source, ...row1Source];
-  const row2 = [...row2Source.reverse(), ...row2Source];
+  const row2 = [...row2Source.slice().reverse(), ...row2Source];
 
   return (
     <section className="py-24 md:py-32 overflow-hidden">
@@ -35,7 +34,7 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => vo
           <div className="flex items-center gap-5">
             <span className="inline-flex items-center gap-2 text-sm text-ink-soft">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-background text-xs font-semibold">
-                {TEMPLATES.length}
+                {templates.length}
               </span>
               templates
             </span>
@@ -58,11 +57,9 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => vo
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
           <div className="flex gap-6 animate-marquee-left w-max">
             {row1.map((t, i) => (
-              <MarqueeTemplateCard
-                key={`r1-${t.slug}-${i}`}
-                t={t}
-                onClick={() => onPreview(t)}
-              />
+              <div key={`r1-${t.id}-${i}`} className="w-[320px] shrink-0">
+                <TemplateCard t={t} onPreview={onPreview} />
+              </div>
             ))}
           </div>
         </div>
@@ -73,11 +70,9 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => vo
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
           <div className="flex gap-6 animate-marquee-right w-max">
             {row2.map((t, i) => (
-              <MarqueeTemplateCard
-                key={`r2-${t.slug}-${i}`}
-                t={t}
-                onClick={() => onPreview(t)}
-              />
+              <div key={`r2-${t.id}-${i}`} className="w-[320px] shrink-0">
+                <TemplateCard t={t} onPreview={onPreview} />
+              </div>
             ))}
           </div>
         </div>
@@ -90,7 +85,7 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: Template) => vo
             to="/templates"
             className="group inline-flex items-center gap-3 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300 shadow-soft hover:shadow-lift"
           >
-            <span>Show all {TEMPLATES.length} templates</span>
+            <span>Show all {templates.length} templates</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

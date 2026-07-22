@@ -1,0 +1,129 @@
+{
+  "id": "data-scientist-corporate-blue",
+  "name": "Data Scientist \u2014 Corporate Blue",
+  "category": "Data Scientist",
+  "tagline": "Machine learning engineer & researcher.",
+  "isPro": false,
+  "theme": {
+    "bg": "#f4f6fa",
+    "ink": "#0f1f3d",
+    "accent": "#2563eb",
+    "fontHeading": "Inter",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Casey Bianchi",
+        "tagline": "Machine learning engineer & researcher.",
+        "bio": "Independent data scientist based in Austin, TX. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Austin, TX",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Churn Prediction Model",
+            "desc": "Improved retention forecasting accuracy 18%",
+            "featured": true
+          },
+          {
+            "title": "Recommendation Engine",
+            "desc": "Powers product suggestions for 1M+ users",
+            "featured": false
+          },
+          {
+            "title": "NLP Research Project",
+            "desc": "Published at a workshop track",
+            "featured": false
+          },
+          {
+            "title": "Forecasting Pipeline",
+            "desc": "Automated demand planning for retail client",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a data scientist, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Austin, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "SQL",
+          "Statistics",
+          "Data Visualization",
+          "PyTorch",
+          "MLOps",
+          "Python"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Data Scientist",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Data Scientist",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

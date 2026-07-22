@@ -1,0 +1,128 @@
+{
+  "id": "fine-artist-corporate-blue",
+  "name": "Fine Artist \u2014 Corporate Blue",
+  "category": "Fine Artist",
+  "tagline": "Mixed-media artist working in color and texture.",
+  "isPro": false,
+  "theme": {
+    "bg": "#f4f6fa",
+    "ink": "#0f1f3d",
+    "accent": "#2563eb",
+    "fontHeading": "Inter",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Rowan Brooks",
+        "tagline": "Mixed-media artist working in color and texture.",
+        "bio": "Independent fine artist based in Dubai, UAE. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Dubai, UAE",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Solo Exhibition",
+            "desc": "Shown at a regional gallery",
+            "featured": true
+          },
+          {
+            "title": "Group Show",
+            "desc": "Featured alongside 12 other artists",
+            "featured": false
+          },
+          {
+            "title": "Public Mural",
+            "desc": "Commissioned for a community center",
+            "featured": false
+          },
+          {
+            "title": "Artist Residency",
+            "desc": "Three-month residency abroad",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a fine artist, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Dubai, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Color Theory",
+          "Sculpture",
+          "Mixed Media",
+          "Printmaking",
+          "Oil Painting"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Fine Artist",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Fine Artist",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

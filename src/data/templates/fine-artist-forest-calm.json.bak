@@ -1,0 +1,128 @@
+{
+  "id": "fine-artist-forest-calm",
+  "name": "Fine Artist \u2014 Forest Calm",
+  "category": "Fine Artist",
+  "tagline": "Art that asks questions rather than answers them.",
+  "isPro": false,
+  "theme": {
+    "bg": "#f2f5f0",
+    "ink": "#1c2a1e",
+    "accent": "#3d7a4f",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Hassan Bianchi",
+        "tagline": "Art that asks questions rather than answers them.",
+        "bio": "Independent fine artist based in San Francisco, CA. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "San Francisco, CA",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Solo Exhibition",
+            "desc": "Shown at a regional gallery",
+            "featured": true
+          },
+          {
+            "title": "Group Show",
+            "desc": "Featured alongside 12 other artists",
+            "featured": false
+          },
+          {
+            "title": "Public Mural",
+            "desc": "Commissioned for a community center",
+            "featured": false
+          },
+          {
+            "title": "Artist Residency",
+            "desc": "Three-month residency abroad",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a fine artist, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring San Francisco, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Mixed Media",
+          "Sculpture",
+          "Printmaking",
+          "Oil Painting",
+          "Color Theory"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Fine Artist",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Fine Artist",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

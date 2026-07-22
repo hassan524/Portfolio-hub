@@ -1,0 +1,129 @@
+{
+  "id": "writer-ocean-deep",
+  "name": "Writer \u2014 Ocean Deep",
+  "category": "Writer",
+  "tagline": "Turning ideas into sentences worth reading.",
+  "isPro": false,
+  "theme": {
+    "bg": "#081826",
+    "ink": "#e5f4ff",
+    "accent": "#38bdf8",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Jamie Novak",
+        "tagline": "Turning ideas into sentences worth reading.",
+        "bio": "Independent writer based in Karachi, PK. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Karachi, PK",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Essay Collection",
+            "desc": "Self-published, 10k+ reads",
+            "featured": true
+          },
+          {
+            "title": "Ghostwritten Memoir",
+            "desc": "For a founder's book launch",
+            "featured": false
+          },
+          {
+            "title": "Newsletter",
+            "desc": "Weekly essay read by 8,000 subscribers",
+            "featured": false
+          },
+          {
+            "title": "Feature Journalism",
+            "desc": "Published in three outlets",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a writer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Karachi, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "SEO Writing",
+          "Long-form",
+          "Editing",
+          "Storytelling",
+          "Research",
+          "Ghostwriting"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Writer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Writer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

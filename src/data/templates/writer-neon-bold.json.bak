@@ -1,0 +1,129 @@
+{
+  "id": "writer-neon-bold",
+  "name": "Writer \u2014 Neon Bold",
+  "category": "Writer",
+  "tagline": "Long-form storyteller and essayist.",
+  "isPro": false,
+  "theme": {
+    "bg": "#0d0d14",
+    "ink": "#f5f5ff",
+    "accent": "#ff2fd4",
+    "fontHeading": "Space Grotesk",
+    "fontBody": "Inter",
+    "corners": "rounded",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Maya Haddad",
+        "tagline": "Long-form storyteller and essayist.",
+        "bio": "Independent writer based in London, UK. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "London, UK",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Essay Collection",
+            "desc": "Self-published, 10k+ reads",
+            "featured": true
+          },
+          {
+            "title": "Ghostwritten Memoir",
+            "desc": "For a founder's book launch",
+            "featured": false
+          },
+          {
+            "title": "Newsletter",
+            "desc": "Weekly essay read by 8,000 subscribers",
+            "featured": false
+          },
+          {
+            "title": "Feature Journalism",
+            "desc": "Published in three outlets",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a writer, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring London, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Research",
+          "Editing",
+          "Ghostwriting",
+          "Long-form",
+          "Storytelling",
+          "SEO Writing"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Writer",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Writer",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

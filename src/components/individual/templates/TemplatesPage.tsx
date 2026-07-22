@@ -1,19 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { SiteLayout } from "@/components/common/Layout";
 import { TemplateCard } from "@/components/common/TemplateCard";
-import { TemplatePreviewDialog } from "@/components/common/TemplatePreviewDialog";
+import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";
 import type { SiteData } from "@/types/builder.schema";
 
 const CATEGORIES = ["All", ...allCategories] as const;
 
+// 5 rows worth at the widest (3-col) breakpoint. Bump each "Show more" click by the same amount.
+const PAGE_SIZE = 15;
+
 export function TemplatesPage() {
   const [cat, setCat] = useState<string>("All");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
   const filtered = cat === "All" ? templates : templates.filter((t) => t.category === cat);
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  // Reset pagination whenever the category filter changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [cat]);
 
   const openPreview = (template: SiteData) => {
     setDialogTemplate(template);
@@ -24,7 +36,6 @@ export function TemplatesPage() {
     setDialogOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
   };
-  console.log("total templates loaded:", templates.length);
 
   return (
     <SiteLayout>
@@ -66,13 +77,31 @@ export function TemplatesPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((t, i) => (
-            <TemplateCard key={t.id} t={t} index={i} onPreview={openPreview} />
+          {visible.map((t, i) => (
+            <TemplateCard
+              key={t.id}
+              t={t}
+              // index % PAGE_SIZE keeps the stagger delay short and resets each
+              // batch, instead of climbing forever as more rows get appended.
+              index={i % PAGE_SIZE}
+              onPreview={openPreview}
+            />
           ))}
         </div>
 
         {filtered.length === 0 && (
           <div className="text-center text-ink-soft py-20">No templates in this category yet.</div>
+        )}
+
+        {hasMore && (
+          <div className="mt-12 flex justify-center">
+            <button
+              onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+              className="rounded-full cursor-pointer border border-border bg-surface-elevated px-6 py-3 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Show more templates
+            </button>
+          </div>
         )}
 
         <div className="mt-24 rounded-3xl border border-border bg-surface p-10 text-center">

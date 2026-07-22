@@ -1,6 +1,6 @@
 {
   "id": "photographer-luxury-gold",
-  "name": "Photographer \u2014 Luxury Gold",
+  "name": "Photographer — Luxury Gold",
   "category": "Photographer",
   "tagline": "Documentary-style photography with heart.",
   "isPro": false,
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "hero",
-        "eyebrow": "Portfolio \u00b7 2026",
+        "eyebrow": "Portfolio · 2026",
         "name": "Amara Morgan",
         "tagline": "Documentary-style photography with heart.",
         "bio": "Independent photographer based in New York, NY. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
@@ -28,7 +28,83 @@
         "secondaryCta": "Get in touch",
         "location": "New York, NY",
         "availability": "Available for freelance",
-        "align": "left"
+        "align": "left",
+        "variant": "hero-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "HeroCentered",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
       }
     },
     {
@@ -60,7 +136,83 @@
             "desc": "Product photography for apparel launch",
             "featured": true
           }
-        ]
+        ],
+        "variant": "projects-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "ProjectsGrid",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
       }
     },
     {
@@ -86,25 +238,198 @@
           {
             "co": "Independent",
             "role": "Photographer",
-            "yr": "2023\u2013Present"
+            "yr": "2023–Present"
           },
           {
             "co": "Studio Collective",
             "role": "Senior Photographer",
-            "yr": "2020\u20132023"
+            "yr": "2020–2023"
           },
           {
             "co": "Freelance",
             "role": "Early Career",
-            "yr": "2018\u20132020"
+            "yr": "2018–2020"
           }
-        ]
+        ],
+        "variant": "about-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "AboutSimple",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "block-testimonials-1",
+      "type": "TestimonialsDefault",
+      "order": 3,
+      "props": {
+        "kind": "testimonials",
+        "heading": "What people say",
+        "items": [
+          {
+            "quote": "A pleasure to work with — thoughtful, sharp, and always on time.",
+            "name": "Jordan Lee",
+            "role": "Product Manager"
+          },
+          {
+            "quote": "Raised the bar for what we expected from this kind of work.",
+            "name": "Amara Chen",
+            "role": "Founder"
+          }
+        ],
+        "variant": "testimonials-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "TestimonialsDefault",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
       }
     },
     {
       "id": "block-contact-1",
       "type": "ContactForm",
-      "order": 3,
+      "order": 4,
       "props": {
         "kind": "contact",
         "heading": "Let's work together",
@@ -122,7 +447,182 @@
             "platform": "linkedin",
             "label": "LinkedIn"
           }
-        ]
+        ],
+        "variant": "contact-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "ContactForm",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "block-footer-1",
+      "type": "FooterDefault",
+      "order": 5,
+      "props": {
+        "kind": "footer",
+        "heading": "Photographer — Luxury Gold",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ],
+        "variant": "footer-1"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "FooterDefault",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
       }
     }
   ]

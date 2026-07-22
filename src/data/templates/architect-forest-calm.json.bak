@@ -1,0 +1,128 @@
+{
+  "id": "architect-forest-calm",
+  "name": "Architect \u2014 Forest Calm",
+  "category": "Architect",
+  "tagline": "Where structure meets story.",
+  "isPro": false,
+  "theme": {
+    "bg": "#f2f5f0",
+    "ink": "#1c2a1e",
+    "accent": "#3d7a4f",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Alex Ahmed",
+        "tagline": "Where structure meets story.",
+        "bio": "Independent architect based in Barcelona, ES. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Barcelona, ES",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Coastal Residence",
+            "desc": "Award-nominated private home",
+            "featured": true
+          },
+          {
+            "title": "Community Library",
+            "desc": "Public building, LEED certified",
+            "featured": false
+          },
+          {
+            "title": "Adaptive Reuse Project",
+            "desc": "Converted warehouse to studios",
+            "featured": false
+          },
+          {
+            "title": "Urban Housing Concept",
+            "desc": "Competition entry, top 10 finalist",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a architect, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Barcelona, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Sustainable Design",
+          "3D Modeling",
+          "Urban Planning",
+          "Revit",
+          "AutoCAD"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Architect",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Architect",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

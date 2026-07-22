@@ -1,0 +1,128 @@
+{
+  "id": "chef-paper-airy",
+  "name": "Chef \u2014 Paper Airy",
+  "category": "Chef",
+  "tagline": "Chef and recipe developer.",
+  "isPro": false,
+  "theme": {
+    "bg": "#faf9f6",
+    "ink": "#1a1a1a",
+    "accent": "#e85d3d",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "soft",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Avery Kim",
+        "tagline": "Chef and recipe developer.",
+        "bio": "Independent chef based in Karachi, PK. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Karachi, PK",
+        "availability": "Available for freelance",
+        "align": "left"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Seasonal Tasting Menu",
+            "desc": "8-course menu, sold out residency",
+            "featured": true
+          },
+          {
+            "title": "Cookbook Chapter",
+            "desc": "Contributed recipes to a regional cookbook",
+            "featured": false
+          },
+          {
+            "title": "Pop-up Series",
+            "desc": "Ran monthly pop-up for a year",
+            "featured": false
+          },
+          {
+            "title": "Recipe Column",
+            "desc": "Recurring feature in a food publication",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a chef, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Karachi, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Pastry",
+          "Fermentation",
+          "Menu Development",
+          "Food Styling",
+          "Recipe Writing"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Chef",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Chef",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

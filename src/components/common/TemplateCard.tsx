@@ -1,16 +1,19 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
-import type { SiteData, HeroProps } from "@/types/builder.schema";
+import { getBlockComponent } from "@/lib/blockRegistry";
+import type { SiteData, Theme } from "@/types/builder.schema";
 
-const FALLBACK_THEME = {
+const FALLBACK_THEME: Theme = {
   bg: "#ffffff",
   ink: "#111111",
   accent: "#6366f1",
   fontHeading: "inherit",
   fontBody: "inherit",
-  corners: "soft" as const,
-  spacing: "cozy" as const,
+  corners: "soft",
+  spacing: "cozy",
 };
+
+const CANVAS_WIDTH = 1200;
 
 export function TemplateCard({
   t,
@@ -22,7 +25,6 @@ export function TemplateCard({
   onPreview?: (template: SiteData) => void;
 }) {
   const theme = t.theme ?? FALLBACK_THEME;
-  const { bg, ink, accent } = theme;
 
   return (
     <motion.div
@@ -37,14 +39,9 @@ export function TemplateCard({
         onClick={() => onPreview?.(t)}
         className="block w-full overflow-hidden rounded-2xl border border-border bg-card text-left shadow-soft hover:shadow-lift transition-all duration-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <div className="relative aspect-[4/3] overflow-hidden" style={{ backgroundColor: bg }}>
+        <div className="relative aspect-[4/3] overflow-hidden" style={{ backgroundColor: theme.bg }}>
           <TemplatePreview t={t} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/0 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
-          {t.isPro && (
-            <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/80 text-white px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase backdrop-blur">
-              <Lock className="h-3 w-3" /> Pro
-            </span>
-          )}
         </div>
         <div className="flex items-start justify-between gap-3 p-5">
           <div>
@@ -64,59 +61,58 @@ export function TemplateCard({
 
 export function TemplatePreview({ t }: { t: SiteData }) {
   const theme = t.theme ?? FALLBACK_THEME;
-  const { bg, ink, accent } = theme;
-  const style = { color: ink } as const;
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.25);
 
-  const blocks = t.blocks ?? [];
-  const heroBlock = blocks.find((b) => b.props.kind === "hero");
-  const hero = heroBlock?.props as HeroProps | undefined;
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const update = () => setScale(el.clientWidth / CANVAS_WIDTH);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-  const isRounded = theme.corners === "rounded" || theme.corners === "pill";
-  const radius = theme.corners === "pill" ? "9999px" : isRounded ? "12px" : theme.corners === "soft" ? "6px" : "2px";
+  const sorted = [...(t.blocks ?? [])].sort((a, b) => a.order - b.order);
+  const hasNavbar = sorted.some((b) => b.props.kind === "navbar");
 
   return (
-    <div className="absolute inset-0 p-6" style={style}>
-      <div className="flex items-center justify-between text-[9px] tracking-[0.2em] uppercase opacity-60">
-        <span>{hero?.eyebrow ?? t.name}</span>
-        <span>{hero?.availability ?? t.category}</span>
-      </div>
-
+    <div ref={wrapperRef} className="absolute inset-0 overflow-hidden pointer-events-none select-none">
       <div
-        className="mt-6 leading-[0.95]"
-        style={{ fontFamily: theme.fontHeading || "inherit" }}
+        style={{
+          width: CANVAS_WIDTH,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          background: theme.bg,
+          color: theme.ink,
+        }}
       >
-        <div className="text-[32px]">{hero?.name ?? t.name}</div>
-        <div className="text-[20px] italic" style={{ color: accent }}>
-          {hero?.tagline ?? t.tagline}
-        </div>
-      </div>
+        {!hasNavbar && <DefaultNavStrip theme={theme} name={t.name} />}
 
-      <div className="mt-5 flex gap-2">
-        <div
-          className="px-3 py-1.5 text-[9px] font-medium"
-          style={{ background: ink, color: bg, borderRadius: radius }}
-        >
-          {hero?.primaryCta ?? "View work"}
-        </div>
-        <div
-          className="px-3 py-1.5 text-[9px] border"
-          style={{ borderColor: `${ink}30`, borderRadius: radius }}
-        >
-          {hero?.secondaryCta ?? "Contact"}
-        </div>
+        {sorted.map((b) => {
+          const variant = (b.props as any).variant as string | undefined;
+          const Cmp = getBlockComponent(b.props.kind, variant);
+          if (!Cmp) return null;
+          return <Cmp key={b.id} id={b.id} props={b.props} theme={theme} onChange={() => {}} />;
+        })}
       </div>
+    </div>
+  );
+}
 
-      <div className="mt-6 grid grid-cols-3 gap-2">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="aspect-square"
-            style={{
-              background: i === 1 ? accent : `${ink}12`,
-              borderRadius: radius,
-            }}
-          />
-        ))}
+function DefaultNavStrip({ theme, name }: { theme: Theme; name: string }) {
+  const { ink } = theme;
+  return (
+    <div
+      className="flex items-center justify-between px-16 py-5 text-base"
+      style={{ borderBottom: `1px solid ${ink}12` }}
+    >
+      <span className="font-display text-xl">{name}</span>
+      <div className="flex gap-8 opacity-70 text-sm">
+        <span>Work</span>
+        <span>About</span>
+        <span>Contact</span>
       </div>
     </div>
   );

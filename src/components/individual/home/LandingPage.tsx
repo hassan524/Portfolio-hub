@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SiteLayout } from "@/components/common/Layout";
-import { TemplatePreviewDialog } from "@/components/common/TemplatePreviewDialog";
-import { type Template } from "@/lib/templates";
+import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
+import type { SiteData } from "@/types/builder.schema";
 
 // Subcomponents
 import { Hero } from "./Hero";
@@ -15,11 +15,11 @@ import { FAQ } from "./FAQ";
 import { FinalCTA } from "./FinalCTA";
 
 export function LandingPage() {
-  const [dialogTemplate, setDialogTemplate] = useState<Template | null>(null);
+  const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const openPreview = (t: Template) => {
-    setDialogTemplate(t);
+  const openPreview = (template: SiteData) => {
+    setDialogTemplate(template);
     setDialogOpen(true);
   };
 

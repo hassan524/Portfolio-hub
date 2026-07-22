@@ -1,0 +1,128 @@
+{
+  "id": "architect-editorial-serif",
+  "name": "Architect \u2014 Editorial Serif",
+  "category": "Architect",
+  "tagline": "Where structure meets story.",
+  "isPro": false,
+  "theme": {
+    "bg": "#fdfcf9",
+    "ink": "#111111",
+    "accent": "#8a1f11",
+    "fontHeading": "Fraunces",
+    "fontBody": "Inter",
+    "corners": "sharp",
+    "spacing": "airy"
+  },
+  "blocks": [
+    {
+      "id": "block-hero-1",
+      "type": "HeroCentered",
+      "order": 0,
+      "props": {
+        "kind": "hero",
+        "eyebrow": "Portfolio \u00b7 2026",
+        "name": "Quinn Reyes",
+        "tagline": "Where structure meets story.",
+        "bio": "Independent architect based in Karachi, PK. Currently focused on helping ambitious teams and clients ship thoughtful, considered work.",
+        "primaryCta": "View work",
+        "secondaryCta": "Get in touch",
+        "location": "Karachi, PK",
+        "availability": "Available for freelance",
+        "align": "center"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 1,
+      "props": {
+        "kind": "projects",
+        "eyebrow": "Selected Work",
+        "heading": "Recent projects",
+        "items": [
+          {
+            "title": "Coastal Residence",
+            "desc": "Award-nominated private home",
+            "featured": true
+          },
+          {
+            "title": "Community Library",
+            "desc": "Public building, LEED certified",
+            "featured": false
+          },
+          {
+            "title": "Adaptive Reuse Project",
+            "desc": "Converted warehouse to studios",
+            "featured": false
+          },
+          {
+            "title": "Urban Housing Concept",
+            "desc": "Competition entry, top 10 finalist",
+            "featured": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-about-1",
+      "type": "AboutSimple",
+      "order": 2,
+      "props": {
+        "kind": "about",
+        "heading": "A little background",
+        "paragraphs": [
+          "With years of hands-on experience as a architect, I've worked across a range of projects that demand both craft and clarity.",
+          "When I'm not working, you'll usually find me exploring Karachi, reading, or sketching out the next idea."
+        ],
+        "skills": [
+          "Sustainable Design",
+          "Urban Planning",
+          "3D Modeling",
+          "AutoCAD",
+          "Revit"
+        ],
+        "experience": [
+          {
+            "co": "Independent",
+            "role": "Architect",
+            "yr": "2023\u2013Present"
+          },
+          {
+            "co": "Studio Collective",
+            "role": "Senior Architect",
+            "yr": "2020\u20132023"
+          },
+          {
+            "co": "Freelance",
+            "role": "Early Career",
+            "yr": "2018\u20132020"
+          }
+        ]
+      }
+    },
+    {
+      "id": "block-contact-1",
+      "type": "ContactForm",
+      "order": 3,
+      "props": {
+        "kind": "contact",
+        "heading": "Let's work together",
+        "message": "I'm always open to discussing new projects, creative ideas, or opportunities to collaborate.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "Email"
+          },
+          {
+            "platform": "github",
+            "label": "GitHub"
+          },
+          {
+            "platform": "linkedin",
+            "label": "LinkedIn"
+          }
+        ]
+      }
+    }
+  ]
+}

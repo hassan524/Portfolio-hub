@@ -1,0 +1,794 @@
+{
+  "id": "architect-example-with-navbar",
+  "name": "Architect — Editorial Serif",
+  "category": "Architect",
+  "tagline": "Structured, long-form, editorial feel",
+  "isPro": false,
+  "theme": {
+    "bg": "#faf8f4",
+    "ink": "#1a1a1a",
+    "accent": "#a3673a",
+    "fontHeading": "inherit",
+    "fontBody": "inherit",
+    "corners": "soft",
+    "spacing": "cozy"
+  },
+  "blocks": [
+    {
+      "id": "nav-1",
+      "type": "navbar",
+      "order": 0,
+      "props": {
+        "kind": "navbar",
+        "variant": "split",
+        "logoText": "H. Rehan",
+        "links": [
+          {
+            "label": "Work",
+            "href": "#projects"
+          },
+          {
+            "label": "About",
+            "href": "#about"
+          },
+          {
+            "label": "Contact",
+            "href": "#contact"
+          }
+        ],
+        "sticky": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "navbar",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "order": 1,
+      "props": {
+        "kind": "hero",
+        "variant": "hero-13",
+        "eyebrow": "Full Stack Developer",
+        "name": "Hassan Rehan",
+        "tagline": "Building things end to end",
+        "bio": "Two years building production React/Node applications. Currently open to remote junior roles.",
+        "primaryCta": "View work",
+        "secondaryCta": "Contact",
+        "location": "Sukkur, Pakistan",
+        "availability": "Open to work",
+        "align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "hero",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "stats-1",
+      "type": "stats",
+      "order": 2,
+      "props": {
+        "kind": "stats",
+        "variant": "counter-row",
+        "items": [
+          {
+            "label": "Years experience",
+            "value": "2"
+          },
+          {
+            "label": "Projects shipped",
+            "value": "8"
+          },
+          {
+            "label": "Stack",
+            "value": "MERN"
+          },
+          {
+            "label": "Availability",
+            "value": "Now"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "stats",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "projects-1",
+      "type": "projects",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "projects-13",
+        "eyebrow": "Selected work",
+        "heading": "Projects",
+        "items": [
+          {
+            "title": "SheetSync",
+            "desc": "Collaborative spreadsheet SaaS, real-time via Supabase Presence",
+            "year": "2026",
+            "tags": [
+              "Next.js",
+              "Supabase",
+              "TypeScript"
+            ],
+            "featured": true
+          },
+          {
+            "title": "AyahClip",
+            "desc": "Quran recitation transcription and video overlay tool",
+            "year": "2026",
+            "tags": [
+              "Next.js",
+              "Whisper",
+              "Canvas"
+            ]
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "projects",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "testimonials-1",
+      "type": "testimonials",
+      "order": 4,
+      "props": {
+        "kind": "testimonials",
+        "variant": "testimonials-13",
+        "heading": "What people say",
+        "items": [
+          {
+            "quote": "Shipped fast, communicated clearly.",
+            "name": "M. Asad",
+            "role": "Founder"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "testimonials",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "about-1",
+      "type": "about",
+      "order": 5,
+      "props": {
+        "kind": "about",
+        "variant": "about-13",
+        "heading": "About",
+        "paragraphs": [
+          "Self-taught developer, two years of production experience."
+        ],
+        "skills": [
+          "React",
+          "Next.js",
+          "TypeScript",
+          "Node.js",
+          "PostgreSQL",
+          "Supabase"
+        ],
+        "experience": [
+          {
+            "co": "Remote internship",
+            "role": "Full Stack Dev",
+            "yr": "2025"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "about",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "contact-1",
+      "type": "contact",
+      "order": 6,
+      "props": {
+        "kind": "contact",
+        "variant": "contact-13",
+        "heading": "Get in touch",
+        "message": "Open to remote junior roles.",
+        "socials": [
+          {
+            "platform": "email",
+            "label": "hello@hassanrehan.dev"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "contact",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    },
+    {
+      "id": "footer-1",
+      "type": "footer",
+      "order": 7,
+      "props": {
+        "kind": "footer",
+        "variant": "footer-13",
+        "ownerName": "Hassan Rehan"
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": "100%",
+        "height": "auto",
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "margin": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "stretch",
+        "justifyContent": "flex-start",
+        "gap": 0,
+        "zIndex": 0
+      },
+      "style": {
+        "backgroundColor": null,
+        "backgroundImage": null,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "borderRadius": 0,
+        "borderWidth": 0,
+        "borderColor": null,
+        "borderStyle": "solid",
+        "boxShadow": null,
+        "opacity": 1,
+        "filter": null,
+        "overflow": "visible"
+      },
+      "typography": {
+        "fontFamily": null,
+        "fontSize": null,
+        "fontWeight": null,
+        "lineHeight": null,
+        "letterSpacing": null,
+        "textAlign": null,
+        "color": null,
+        "textTransform": "none"
+      },
+      "animation": {
+        "type": "none",
+        "duration": 400,
+        "delay": 0,
+        "easing": "ease-out",
+        "trigger": "onView",
+        "repeat": false
+      },
+      "responsive": {
+        "desktop": {},
+        "tablet": {},
+        "mobile": {}
+      },
+      "editor": {
+        "name": "footer",
+        "locked": false,
+        "visible": true,
+        "draggable": true,
+        "resizable": true,
+        "groupId": null,
+        "parentId": null,
+        "lastEditedAt": null
+      }
+    }
+  ]
+}
