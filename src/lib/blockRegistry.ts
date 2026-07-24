@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import type { BlockKind } from "@/types/builder.schema";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-import { NavMinimal, NavCenteredLogo, NavSplit, NavMega, NavSidebar } from "@/components/blocks/navbar";
+import { Navbar1, Navbar2, Navbar3, Navbar4, Navbar5 } from "@/components/blocks/navbar";
 import {
   Hero1, Hero2, Hero3, Hero4, Hero5, Hero6, Hero7, Hero8, Hero9, Hero10,
   Hero11, Hero12, Hero13, Hero14, Hero15, Hero16, Hero17, Hero18, Hero19, Hero20,
@@ -34,13 +34,21 @@ import { StatsCounterRow } from "@/components/blocks/stats";
 type VariantMap = Record<string, ComponentType<BlockComponentProps<any>>>;
 
 export const BLOCK_REGISTRY: Partial<Record<BlockKind, VariantMap>> = {
-  navbar: {
-    minimal: NavMinimal,
-    "centered-logo": NavCenteredLogo,
-    split: NavSplit,
-    mega: NavMega,
-    sidebar: NavSidebar,
-  },
+navbar: {
+  // Legacy aliases
+  minimal: Navbar1,
+  "centered-logo": Navbar2,
+  split: Navbar3,
+  mega: Navbar4,
+  sidebar: Navbar5,
+
+  // New variants
+  navbar1: Navbar1,
+  navbar2: Navbar2,
+  navbar3: Navbar3,
+  navbar4: Navbar4,
+  navbar5: Navbar5,
+},
   hero: {
     centered: Hero1, "split-image": Hero2, fullbleed: Hero3, terminal: Hero4, marquee: Hero5, "stacked-left": Hero6,
     "hero-1": Hero1, "hero-2": Hero2, "hero-3": Hero3, "hero-4": Hero4, "hero-5": Hero5,

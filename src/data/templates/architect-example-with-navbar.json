@@ -15,12 +15,12 @@
   },
   "blocks": [
     {
-      "id": "nav-1",
+      "id": "nav-zachc",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "split",
+        "variant": "navbar4",
         "logoText": "H. Rehan",
         "links": [
           {
@@ -36,6 +36,7 @@
             "href": "#contact"
           }
         ],
+        "ctaLabel": "Let's Talk",
         "sticky": true
       },
       "layout": {

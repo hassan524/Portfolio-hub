@@ -79,8 +79,8 @@ function MobileDrawer({ open, onClose, links, ctaLabel, ink, bg, accent }: {
   );
 }
 
-// ---------- MINIMAL: logo left, links right, thin border ----------
-export function NavMinimal({ props, theme, onChange }: Props) {
+// ---------- NAVBAR 1: MINIMAL ----------
+export function Navbar1({ props, theme, onChange }: Props) {
   const { ink, bg } = theme;
   const scrolled = useScrolled();
   const [open, setOpen] = useState(false);
@@ -108,8 +108,8 @@ export function NavMinimal({ props, theme, onChange }: Props) {
   );
 }
 
-// ---------- CENTERED LOGO: links split around a centered logo ----------
-export function NavCenteredLogo({ props, theme, onChange }: Props) {
+// ---------- NAVBAR 2: CENTERED LOGO ----------
+export function Navbar2({ props, theme, onChange }: Props) {
   const { ink, bg, accent } = theme;
   const scrolled = useScrolled();
   const [open, setOpen] = useState(false);
@@ -142,8 +142,8 @@ export function NavCenteredLogo({ props, theme, onChange }: Props) {
   );
 }
 
-// ---------- SPLIT: logo + links left-aligned, solid CTA button right ----------
-export function NavSplit({ props, theme, onChange }: Props) {
+// ---------- NAVBAR 3: SPLIT ----------
+export function Navbar3({ props, theme, onChange }: Props) {
   const { ink, bg, accent } = theme;
   const scrolled = useScrolled();
   const [open, setOpen] = useState(false);
@@ -185,8 +185,8 @@ export function NavSplit({ props, theme, onChange }: Props) {
   );
 }
 
-// ---------- MEGA: bold full-width bar, underline hover links, pill CTA ----------
-export function NavMega({ props, theme }: Props) {
+// ---------- NAVBAR 4: MEGA ----------
+export function Navbar4({ props, theme }: Props) {
   const { ink, bg, accent } = theme;
   const scrolled = useScrolled();
   const [open, setOpen] = useState(false);
@@ -227,8 +227,8 @@ export function NavMega({ props, theme }: Props) {
   );
 }
 
-// ---------- SIDEBAR: collapsible drawer trigger, vertical stacked links ----------
-export function NavSidebar({ props, theme }: Props) {
+// ---------- NAVBAR 5: SIDEBAR ----------
+export function Navbar5({ props, theme }: Props) {
   const { ink, bg, accent } = theme;
   const [open, setOpen] = useState(false);
   return (
