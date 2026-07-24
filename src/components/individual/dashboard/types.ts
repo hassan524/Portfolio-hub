@@ -18,6 +18,7 @@ export interface Portfolio {
   showProjects?: boolean;
   showContact?: boolean;
   domain?: string;
+  templateData?: import("@/types/builder.schema").SiteData;
 }
 
 export const DEFAULT_PORTFOLIOS: Portfolio[] = [
@@ -32,11 +33,19 @@ export const DEFAULT_PORTFOLIOS: Portfolio[] = [
     headline: "Senior Product Designer",
     bio: "Designing clean interfaces for high-growth startups. Formerly at Google & Stripe.",
     projects: [
-      { id: "p1", name: "Supabase Dashboard Redesign", desc: "Improved developer conversion by 24% through unified navigation." },
-      { id: "p2", name: "Framer Motion Templates", desc: "A library of 40+ physics-based animations for React developer UI." }
+      {
+        id: "p1",
+        name: "Supabase Dashboard Redesign",
+        desc: "Improved developer conversion by 24% through unified navigation.",
+      },
+      {
+        id: "p2",
+        name: "Framer Motion Templates",
+        desc: "A library of 40+ physics-based animations for React developer UI.",
+      },
     ],
     showProjects: true,
-    showContact: true
+    showContact: true,
   },
   {
     id: "portfolio-2",
@@ -49,10 +58,14 @@ export const DEFAULT_PORTFOLIOS: Portfolio[] = [
     headline: "Creative Technologist",
     bio: "Specializing in WebGL, React, and interactive layouts. I make websites feel alive.",
     projects: [
-      { id: "p1", name: "Antigravity IDE", desc: "A browser-based IDE using WebWorkers and custom compilers." }
+      {
+        id: "p1",
+        name: "Antigravity IDE",
+        desc: "A browser-based IDE using WebWorkers and custom compilers.",
+      },
     ],
     showProjects: true,
-    showContact: true
+    showContact: true,
   },
   {
     id: "portfolio-3",
@@ -66,8 +79,8 @@ export const DEFAULT_PORTFOLIOS: Portfolio[] = [
     bio: "A sandbox for rough ideas, prototype builds, and random web experiments.",
     projects: [],
     showProjects: false,
-    showContact: true
-  }
+    showContact: true,
+  },
 ];
 
 export const ANALYTICS_DATA = [

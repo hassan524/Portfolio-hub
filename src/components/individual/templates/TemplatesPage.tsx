@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { SiteLayout } from "@/components/common/Layout";
 import { TemplateCard } from "@/components/common/TemplateCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";
+import { saveSiteAsPortfolio } from "@/lib/portfolioStorage";
 import type { SiteData } from "@/types/builder.schema";
 
 const CATEGORIES = ["All", ...allCategories] as const;
@@ -13,6 +14,7 @@ const CATEGORIES = ["All", ...allCategories] as const;
 const PAGE_SIZE = 15;
 
 export function TemplatesPage() {
+  const navigate = useNavigate({ from: "/templates" });
   const [cat, setCat] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
@@ -35,6 +37,15 @@ export function TemplatesPage() {
   const closePreview = () => {
     setDialogOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
+  };
+
+  const savePreviewToPortfolios = (site: SiteData) => {
+    const portfolio = saveSiteAsPortfolio(site);
+    setDialogOpen(false);
+    navigate({
+      to: "/dashboard",
+      search: { portfolioId: portfolio.id, tab: "edit" },
+    });
   };
 
   return (
@@ -122,6 +133,7 @@ export function TemplatesPage() {
         template={dialogTemplate}
         open={dialogOpen}
         onClose={closePreview}
+        onSave={savePreviewToPortfolios}
       />
     </SiteLayout>
   );

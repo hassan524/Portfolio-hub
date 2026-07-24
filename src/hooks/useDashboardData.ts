@@ -1,26 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Portfolio, DEFAULT_PORTFOLIOS, ANALYTICS_DATA, REFERRERS } from "@/components/individual/dashboard/types";
+import { type Portfolio, ANALYTICS_DATA, REFERRERS } from "@/components/individual/dashboard/types";
+import { getStoredPortfolios, saveStoredPortfolios } from "@/lib/portfolioStorage";
+
+type TabQueryState = {
+  data: unknown;
+  isLoading: boolean;
+  isFetching: boolean;
+  error: unknown;
+};
 
 // Simulated network delay helper
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Mock API database stored in localStorage for persistence
-const getStoredPortfolios = (): Portfolio[] => {
-  if (typeof window === "undefined") return DEFAULT_PORTFOLIOS;
-  const saved = localStorage.getItem("portfolios_list");
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {}
-  }
-  return DEFAULT_PORTFOLIOS;
-};
-
-const saveStoredPortfolios = (portfolios: Portfolio[]) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("portfolios_list", JSON.stringify(portfolios));
-  }
-};
 
 /**
  * API Mock fetchers for dashboard tabs
@@ -55,7 +45,9 @@ export const dashboardApi = {
     const ctrVal = isDemo ? (portfolioId === "portfolio-2" ? "21.2%" : "27.4%") : "0.0%";
     const timeVal = isDemo ? "2m 34s" : "—";
 
-    const customAnalyticsData = isDemo ? ANALYTICS_DATA : ANALYTICS_DATA.map(d => ({ ...d, views: 0, clicks: 0 }));
+    const customAnalyticsData = isDemo
+      ? ANALYTICS_DATA
+      : ANALYTICS_DATA.map((d) => ({ ...d, views: 0, clicks: 0 }));
 
     return {
       portfolioId,
@@ -65,11 +57,13 @@ export const dashboardApi = {
       duration: timeVal,
       chartData: customAnalyticsData,
       referrers: isDemo ? REFERRERS : [],
-      topLinks: isDemo ? [
-        { title: "Supabase Dashboard Redesign", views: 180 },
-        { title: "Framer Motion Templates", views: 124 },
-        { title: "Main Landing Bio", views: 38 },
-      ] : [],
+      topLinks: isDemo
+        ? [
+            { title: "Supabase Dashboard Redesign", views: 180 },
+            { title: "Framer Motion Templates", views: 124 },
+            { title: "Main Landing Bio", views: 38 },
+          ]
+        : [],
       isDemo,
     };
   },
@@ -90,8 +84,8 @@ export const dashboardApi = {
       sslStatus: "active",
       dnsRecords: [
         { type: "CNAME", host: "www", value: "cname.portfoliohub.app", verified: true },
-        { type: "A", host: "@", value: "76.76.21.21", verified: true }
-      ]
+        { type: "A", host: "@", value: "76.76.21.21", verified: true },
+      ],
     };
   },
 
@@ -102,7 +96,7 @@ export const dashboardApi = {
       portfolioId,
       recordedVideo: localStorage.getItem(`recorded_video_${portfolioId}`) || null,
       aiVideo: localStorage.getItem(`ai_video_${portfolioId}`) || null,
-      shareUrl: `https://video.portfoliohub.app/v/${portfolioId}`
+      shareUrl: `https://video.portfoliohub.app/v/${portfolioId}`,
     };
   },
 
@@ -118,12 +112,24 @@ export const dashboardApi = {
       subdomain: portfolio.subdomain,
       defaultFormat: "static",
       formats: [
-        { id: "static", label: "Static HTML/CSS", desc: "No build steps required. Simple single file." },
-        { id: "vite", label: "Vite React Starter", desc: "Standard React scaffold for modern developers." },
-        { id: "next", label: "Next.js Template", desc: "Optimized SSR routing for maximum SEO & performance." },
-      ]
+        {
+          id: "static",
+          label: "Static HTML/CSS",
+          desc: "No build steps required. Simple single file.",
+        },
+        {
+          id: "vite",
+          label: "Vite React Starter",
+          desc: "Standard React scaffold for modern developers.",
+        },
+        {
+          id: "next",
+          label: "Next.js Template",
+          desc: "Optimized SSR routing for maximum SEO & performance.",
+        },
+      ],
     };
-  }
+  },
 };
 
 /**
@@ -197,7 +203,7 @@ export function useDashboardData(portfolioId: string | null, activeTab: string) 
       await delay(400); // Simulate API latency
       const portfolios = getStoredPortfolios();
       const nextPortfolios = portfolios.map((p) =>
-        p.id === updatedPortfolio.id ? updatedPortfolio : p
+        p.id === updatedPortfolio.id ? updatedPortfolio : p,
       );
       saveStoredPortfolios(nextPortfolios);
       return updatedPortfolio;
@@ -206,7 +212,7 @@ export function useDashboardData(portfolioId: string | null, activeTab: string) 
       // Invalidate related queries so UI syncs
       queryClient.invalidateQueries({ queryKey: ["portfolios"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio", updated.id] });
-    }
+    },
   });
 
   const deletePortfolioMutation = useMutation({
@@ -219,7 +225,7 @@ export function useDashboardData(portfolioId: string | null, activeTab: string) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios"] });
-    }
+    },
   });
 
   const createPortfolioMutation = useMutation({
@@ -232,11 +238,11 @@ export function useDashboardData(portfolioId: string | null, activeTab: string) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios"] });
-    }
+    },
   });
 
   // Determine current active query status and data based on active tab
-  let tabQuery: any = { data: null, isLoading: false, isFetching: false, error: null };
+  let tabQuery: TabQueryState = { data: null, isLoading: false, isFetching: false, error: null };
 
   if (portfolioId) {
     switch (activeTab) {
@@ -263,7 +269,7 @@ export function useDashboardData(portfolioId: string | null, activeTab: string) 
     isLoadingPortfolios: portfoliosQuery.isLoading,
     portfolioDetails: detailsQuery.data,
     isLoadingDetails: detailsQuery.isLoading,
-    
+
     // Active tab data
     tabData: tabQuery.data,
     isLoadingTab: tabQuery.isLoading,
