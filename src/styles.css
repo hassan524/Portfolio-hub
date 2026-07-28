@@ -178,3 +178,39 @@
 .marquee-row:hover .animate-marquee-right {
   animation-play-state: paused;
 }
+
+
+.simple-scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+/* Chrome, Edge, Safari */
+.simple-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.simple-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.simple-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 9999px;
+}
+
+.simple-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Remove top/bottom arrow buttons */
+.simple-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}

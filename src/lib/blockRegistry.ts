@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { BlockKind } from "@/types/builder.schema";
+import type { BlockKind, BlockProps } from "@/types/builder.schema";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
 import { Navbar1, Navbar2, Navbar3, Navbar4, Navbar5 } from "@/components/blocks/navbar";
@@ -32,6 +32,14 @@ import {
 import { StatsCounterRow } from "@/components/blocks/stats";
 
 type VariantMap = Record<string, ComponentType<BlockComponentProps<any>>>;
+
+export type BlockCatalogEntry = {
+  kind: BlockKind;
+  variant: string;
+  label: string;
+  componentType: string;
+  defaultProps: BlockProps;
+};
 
 export const BLOCK_REGISTRY: Partial<Record<BlockKind, VariantMap>> = {
 navbar: {
@@ -108,3 +116,106 @@ export function getBlockComponent(kind: string, variant?: string) {
   if (!variants) return null;
   return variants[variant ?? ""] ?? Object.values(variants)[0] ?? null;
 }
+
+export const BLOCK_CATALOG: BlockCatalogEntry[] = [
+  {
+    kind: "navbar",
+    variant: "navbar1",
+    label: "Navbar",
+    componentType: "navbar",
+    defaultProps: {
+      kind: "navbar",
+      variant: "navbar1",
+      logoText: "Portfolio",
+      links: [
+        { label: "Work", href: "#projects" },
+        { label: "About", href: "#about" },
+        { label: "Contact", href: "#contact" },
+      ],
+      ctaLabel: "Hire me",
+    },
+  },
+  {
+    kind: "hero",
+    variant: "hero-1",
+    label: "Hero",
+    componentType: "hero",
+    defaultProps: {
+      kind: "hero",
+      variant: "hero-1",
+      eyebrow: "Available for work",
+      name: "Your Name",
+      tagline: "Portfolio headline",
+      bio: "A short introduction about your work and experience.",
+      primaryCta: "View work",
+      secondaryCta: "Contact",
+      location: "Remote",
+      availability: "Open",
+      align: "left",
+    },
+  },
+  {
+    kind: "projects",
+    variant: "projects-1",
+    label: "Projects",
+    componentType: "projects",
+    defaultProps: {
+      kind: "projects",
+      variant: "projects-1",
+      eyebrow: "Selected work",
+      heading: "Projects",
+      items: [{ title: "Project name", desc: "Short project description.", tags: ["Design"] }],
+    },
+  },
+  {
+    kind: "about",
+    variant: "about-1",
+    label: "About",
+    componentType: "about",
+    defaultProps: {
+      kind: "about",
+      variant: "about-1",
+      heading: "About",
+      paragraphs: ["Write a short paragraph about your background and approach."],
+      skills: ["Strategy", "Design", "Development"],
+      experience: [{ co: "Company", role: "Role", yr: "2024", desc: "What you did there." }],
+    },
+  },
+  {
+    kind: "testimonials",
+    variant: "testimonials-1",
+    label: "Testimonials",
+    componentType: "testimonials",
+    defaultProps: {
+      kind: "testimonials",
+      variant: "testimonials-1",
+      heading: "Testimonials",
+      items: [{ quote: "Great work and clear communication.", name: "Client Name", role: "Founder" }],
+    },
+  },
+  {
+    kind: "contact",
+    variant: "contact-1",
+    label: "Contact",
+    componentType: "contact",
+    defaultProps: {
+      kind: "contact",
+      variant: "contact-1",
+      heading: "Contact",
+      message: "Tell me about your next project.",
+      socials: [{ platform: "email", label: "hello@example.com" }],
+    },
+  },
+  {
+    kind: "footer",
+    variant: "footer-1",
+    label: "Footer",
+    componentType: "footer",
+    defaultProps: {
+      kind: "footer",
+      variant: "footer-1",
+      heading: "Portfolio",
+      message: "Built with PortfolioHub.",
+    },
+  },
+];
