@@ -1,4 +1,4 @@
-import { Link, useNavigate, useSearch, Navigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -64,11 +64,13 @@ function TabLoadingSkeleton() {
 
 export function DashboardPage() {
   const { session, signOut, user } = useAppContext();
-  const navigate = useNavigate({ from: "/dashboard" });
+  const navigate = useNavigate();
 
-  const searchParams = useSearch({ from: "/dashboard" });
-  const selectedPortfolioId = searchParams.portfolioId || null;
-  const activeTab = searchParams.tab || (selectedPortfolioId ? "analytics" : undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedPortfolioId = searchParams.get("portfolioId");
+  const activeTab = searchParams.get("tab") || (selectedPortfolioId ? "analytics" : undefined);
+  const createParam = searchParams.get("create");
+  const templateParam = searchParams.get("template") || undefined;
 
   const {
     portfolios,
@@ -84,17 +86,25 @@ export function DashboardPage() {
   } = useDashboardData(selectedPortfolioId, activeTab || "analytics");
 
   const setSelectedPortfolioId = (id: string | null) => {
-    navigate({
-      search: (prev: any) => ({
-        ...prev,
-        portfolioId: id ?? undefined,
-        tab: id ? (prev.tab || "analytics") : undefined,
-      }),
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (id) {
+        next.set("portfolioId", id);
+        if (!next.get("tab")) next.set("tab", "analytics");
+      } else {
+        next.delete("portfolioId");
+        next.delete("tab");
+      }
+      return next;
     });
   };
 
   const setActiveTab = (tab: string) => {
-    navigate({ search: (prev: any) => ({ ...prev, tab }) });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", tab);
+      return next;
+    });
   };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -102,18 +112,16 @@ export function DashboardPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   useEffect(() => {
-    if (searchParams.create === "true") {
+    if (createParam === "true") {
       setCreateModalOpen(true);
-      // Clean up parameter from URL
-      navigate({
-        search: (prev: any) => ({
-          ...prev,
-          create: undefined,
-          template: undefined,
-        }),
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("create");
+        next.delete("template");
+        return next;
       });
     }
-  }, [searchParams.create, navigate]);
+  }, [createParam, setSearchParams]);
 
   if (!session) {
     return (
@@ -139,7 +147,7 @@ export function DashboardPage() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate({ to: "/" });
+    navigate("/");
   };
 
   const handleCreatePortfolioSubmit = async (name: string, subdomain: string, template: string) => {
@@ -167,7 +175,12 @@ export function DashboardPage() {
     setCreateModalOpen(false);
     
     // Automatically select the newly created portfolio and open editor
-    navigate({ search: (prev: any) => ({ ...prev, portfolioId: newPortfolio.id, tab: "edit" }) });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("portfolioId", newPortfolio.id);
+      next.set("tab", "edit");
+      return next;
+    });
   };
 
   const handleUpdatePortfolio = async (updatedPortfolio: Portfolio) => {
@@ -177,7 +190,11 @@ export function DashboardPage() {
   const handleDeletePortfolio = async (id: string) => {
     if (confirm("Are you sure you want to delete this portfolio? This cannot be undone.")) {
       await deletePortfolio(id);
-      navigate({ search: (prev: any) => ({ ...prev, portfolioId: undefined }) });
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("portfolioId");
+        return next;
+      });
     }
   };
 
@@ -226,7 +243,7 @@ export function DashboardPage() {
       <main className={`flex-1 min-h-screen overflow-y-auto bg-surface/35 ${selectedPortfolioId ? "lg:pt-0 pt-[64px]" : "pt-0"}`}>
         {/* If no portfolio is selected, redirect to /portfolios */}
         {!selectedPortfolioId && (
-          <Navigate to="/portfolios" search={{ userId: user?.id }} replace />
+          <Navigate to={`/portfolios?userId=${encodeURIComponent(user?.id ?? "")}`} replace />
         )}
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -372,7 +389,7 @@ export function DashboardPage() {
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreatePortfolioSubmit}
-        defaultTemplate={searchParams.template}
+        defaultTemplate={templateParam}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { ArrowLeft, Sparkles, Menu } from "lucide-react";
 import type { Portfolio } from "./types";
 

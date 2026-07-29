@@ -1,9 +1,10 @@
-import { Outlet, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
 import { BrandPanel } from "@/components/individual/auth/BrandPanel";
 
-export function AuthLayout() {
+export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       {/* ────────── LEFT PANEL: Brand / Info ────────── */}
@@ -35,7 +36,7 @@ export function AuthLayout() {
         </Link>
 
         <div className="relative w-full max-w-[420px]">
-          <Outlet />
+          {children}
         </div>
       </motion.div>
     </div>

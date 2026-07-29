@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
@@ -21,7 +21,7 @@ export function SignupPage() {
     e.preventDefault();
     clearError();
     const ok = await signUp(email, password, fullName);
-    if (ok) navigate({ to: "/" });
+    if (ok) navigate("/");
   };
 
   return (

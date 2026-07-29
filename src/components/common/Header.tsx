@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, Sparkles, LayoutDashboard } from "lucide-react";
@@ -47,7 +47,7 @@ export function Header() {
   const handleSignOut = async () => {
     setAvatarOpen(false);
     await signOut();
-    navigate({ to: "/" });
+    navigate("/");
   };
 
   return (

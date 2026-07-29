@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SiteLayout } from "@/components/common/Layout";
 import { TemplateCard } from "@/components/common/TemplateCard";
@@ -14,7 +14,7 @@ const CATEGORIES = ["All", ...allCategories] as const;
 const PAGE_SIZE = 15;
 
 export function TemplatesPage() {
-  const navigate = useNavigate({ from: "/templates" });
+  const navigate = useNavigate();
   const [cat, setCat] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
@@ -42,10 +42,7 @@ export function TemplatesPage() {
   const savePreviewToPortfolios = (site: SiteData) => {
     const portfolio = saveSiteAsPortfolio(site);
     setDialogOpen(false);
-    navigate({
-      to: "/dashboard",
-      search: { portfolioId: portfolio.id, tab: "edit" },
-    });
+    navigate(`/dashboard?portfolioId=${encodeURIComponent(portfolio.id)}&tab=edit`);
   };
 
   return (

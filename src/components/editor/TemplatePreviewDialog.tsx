@@ -4,7 +4,7 @@ import { TemplateSidebar } from "./TemplateSidebar";
 import { TemplateLivePreview } from "./TemplateLivePreview";
 import { ElementStylePanel } from "./ElementStylePanel";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
-import type { PreviewElementEdit, PreviewElementStyle } from "./previewEditTypes";
+import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
 
 type Props = {
   template: SiteData | null;
@@ -39,6 +39,14 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // ── REAL BLOCK HEIGHTS ───────────────────────────────────────────
+  // Measured, DOM-derived data from TemplateLivePreview's
+  // ResizeObserver — NOT part of `site`. This never gets saved to
+  // Supabase; it's purely so the sidebar can display each block's
+  // true rendered height. Kept as its own state because it updates
+  // far more often than actual content edits (any resize/reflow).
+  const [blockHeights, setBlockHeights] = useState<Record<string, number>>({});
+
   // Whenever a new template is opened, deep-clone it into `site` state
   // so we never mutate the original template object directly.
   useEffect(() => {
@@ -47,19 +55,8 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
     setDevice("desktop");
     setIsMaximized(false);
     setSelectedElement(null);
+    setBlockHeights({}); // stale heights from the previous template shouldn't linger
   }, [template?.id]);
-
-  // ── LIVE JSON LOGGER ─────────────────────────────────────────────
-  // This runs automatically every single time `site` changes — i.e.
-  // after ANY edit (bold toggle, color change, text update, block
-  // reorder, drag, theme change, etc). It prints the exact object
-  // you'd persist to the DB at that moment. Later, replace this
-  // console.log with your actual Supabase save call (debounced),
-  // or just call it manually inside your "Save" button handler.
-  useEffect(() => {
-    if (!site) return;
-    console.log("FULL SITE JSON (this is what gets saved to DB):", JSON.stringify(site, null, 2));
-  }, [site]);
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -123,6 +120,14 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
         }
         : prev,
     );
+  }
+
+  // Merges freshly-measured heights (from TemplateLivePreview's
+  // ResizeObserver) into state. Merge rather than replace, so a block
+  // that momentarily isn't observed (e.g. mid-reorder) doesn't flash
+  // to "—" in the sidebar.
+  function handleBlockHeightsChange(heights: Record<string, number>) {
+    setBlockHeights((prev) => ({ ...prev, ...heights }));
   }
 
   // ── PER-ELEMENT STYLE EDITS ──────────────────────────────────────
@@ -231,12 +236,14 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
               onUpdateBlock={updateBlockProps}
               onReorderBlocks={reorderBlocks}
               onSave={onSave}
+              blockHeights={blockHeights}
             />
 
             {/*
               TemplateLivePreview renders the actual blocks, listens for
-              clicks on elements (sets selectedElement), and applies
-              previewEdits styles back onto the DOM live as you edit.
+              clicks on elements (sets selectedElement), applies
+              previewEdits styles back onto the DOM live as you edit,
+              and reports each block's real rendered height back up.
             */}
             <TemplateLivePreview
               site={site}
@@ -252,6 +259,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
               onToggleMaximize={toggleMaximize}
               onClose={onClose}
               onSave={onSave}
+              onBlockHeightsChange={handleBlockHeightsChange}
             />
 
             {/*

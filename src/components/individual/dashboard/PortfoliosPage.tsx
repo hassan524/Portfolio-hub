@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { type Portfolio } from "./types";
 
 export function PortfoliosPage() {
   const { session, user } = useAppContext();
-  const navigate = useNavigate({ from: "/portfolios" });
+  const navigate = useNavigate();
   
   const { portfolios, createPortfolio } = useDashboardData(null, "analytics");
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -60,7 +60,7 @@ export function PortfoliosPage() {
 
     await createPortfolio(newPortfolio);
     setCreateModalOpen(false);
-    navigate({ to: "/dashboard", search: { portfolioId: newPortfolio.id, tab: "edit" } });
+    navigate(`/dashboard?portfolioId=${encodeURIComponent(newPortfolio.id)}&tab=edit`);
   };
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Member";
@@ -91,9 +91,9 @@ export function PortfoliosPage() {
             <PortfoliosOverview
               portfolios={portfolios}
               onSelect={(id) => {
-                navigate({ to: "/dashboard", search: { portfolioId: id, tab: "analytics" } });
+                navigate(`/dashboard?portfolioId=${encodeURIComponent(id)}&tab=analytics`);
               }}
-              onCreateClick={() => navigate({ to: "/templates" })}
+              onCreateClick={() => navigate("/templates")}
             />
           </AnimatePresence>
         </div>

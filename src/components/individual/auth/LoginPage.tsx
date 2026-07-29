@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -20,7 +20,7 @@ export function LoginPage() {
     e.preventDefault();
     clearError();
     const ok = await signIn(email, password);
-    if (ok) navigate({ to: "/" });
+    if (ok) navigate("/");
   };
 
   return (
@@ -44,7 +44,7 @@ export function LoginPage() {
           value={password}
           onChange={setPassword}
           labelAction={
-            <button type="button" onClick={() => navigate({ to: "/auth/forgot-password" })} className="text-xs text-ink-soft hover:text-ink transition-colors cursor-pointer">
+            <button type="button" onClick={() => navigate("/auth/forgot-password")} className="text-xs text-ink-soft hover:text-ink transition-colors cursor-pointer">
               Forgot password?
             </button>
           }

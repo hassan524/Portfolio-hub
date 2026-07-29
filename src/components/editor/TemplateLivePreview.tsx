@@ -31,6 +31,7 @@ export function TemplateLivePreview({
   onToggleMaximize,
   onClose,
   onSave,
+  onBlockHeightsChange,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -59,6 +60,12 @@ export function TemplateLivePreview({
   onToggleMaximize: () => void;
   onClose: () => void;
   onSave?: (site: SiteData) => void;
+
+  // Reports the real, DOM-measured height (px) of every rendered
+  // block, keyed by block id. Fired from a ResizeObserver, so it
+  // updates live whenever a block's actual rendered size changes —
+  // content edits, theme/font swaps, or switching device width.
+  onBlockHeightsChange?: (heights: Record<string, number>) => void;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -206,6 +213,50 @@ export function TemplateLivePreview({
       );
     });
   }, [blocks, selectedElementId, site.previewEdits]);
+
+  // ── Real block height measurement ────────────────────────────────
+  // Watches every rendered `[data-block-id]` node with a
+  // ResizeObserver, which reports the browser's actual laid-out
+  // content height — not a stored number. Fires on mount (observer
+  // callbacks always run once for the initial size) and again any
+  // time a block's real size changes: text wrapping, image load,
+  // theme/font swap, or switching desktop/responsive width.
+  const blockHeightsRef = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!onBlockHeightsChange) return;
+    const root = contentRef.current;
+    if (!root) return;
+
+    const observer = new ResizeObserver((entries) => {
+      let changed = false;
+      const next = { ...blockHeightsRef.current };
+
+      for (const entry of entries) {
+        const el = entry.target as HTMLElement;
+        const blockId = el.dataset.blockId;
+        if (!blockId) continue;
+
+        const measured = Math.round(entry.contentRect.height);
+        if (next[blockId] !== measured) {
+          next[blockId] = measured;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        blockHeightsRef.current = next;
+        onBlockHeightsChange(next);
+      }
+    });
+
+    root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+    // Re-attach whenever the actual set/order of blocks changes so
+    // newly added or removed blocks get observed/dropped correctly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorted.map((b) => b.id).join(","), onBlockHeightsChange]);
 
   // Only runs when editMode is true. Otherwise clicking anything on the
   // canvas does nothing — no selection, no panel.

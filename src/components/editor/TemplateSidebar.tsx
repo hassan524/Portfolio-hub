@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { GripVertical, Layers, Palette, Type } from "lucide-react";
+import { GripVertical, Layers, Palette, Plus, Type } from "lucide-react";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 
 type Props = {
@@ -24,10 +24,60 @@ const COLOR_FIELDS: { key: keyof Theme; label: string }[] = [
   { key: "surface", label: "Surface" },
 ];
 
+// "Corners" removed per request — spacing is the only structural
+// style knob left in this panel now.
 const STYLE_FIELDS: { key: keyof Theme; label: string; options: string[] }[] = [
-  { key: "corners", label: "Corners", options: ["sharp", "soft", "rounded", "pill"] },
   { key: "spacing", label: "Spacing", options: ["compact", "cozy", "airy"] },
 ];
+
+// ── Blank block insertion algorithm ───────────────────────────────
+// Figures out "3rd position" by meaning, not by a hardcoded index:
+// it looks for a navbar-ish block and a hero-ish block and inserts
+// right after whichever of those comes last. That way it still
+// lands in the right spot even if the site doesn't literally have
+// exactly 2 blocks before it, or if blocks get reordered later.
+//
+// ASSUMPTION: this matches against `block.props.kind` (the same
+// field already used everywhere else in this file, e.g. "hero",
+// "navbar"). If your kind strings differ, adjust the two regexes
+// below.
+function findInsertIndex(blocks: Block[]) {
+  const kindOf = (b: Block) => String(b.props.kind ?? "");
+  const isNav = (b: Block) => /^(nav|navbar|header)/i.test(kindOf(b));
+  const isHero = (b: Block) => /^hero/i.test(kindOf(b));
+
+  const heroIndex = blocks.findIndex(isHero);
+  if (heroIndex >= 0) return heroIndex + 1;
+
+  const navIndex = blocks.findIndex(isNav);
+  if (navIndex >= 0) return navIndex + 1;
+
+  // No recognizable navbar/hero yet — fall back to literal 3rd slot,
+  // or the end of the list if there aren't 2 blocks to sit after.
+  return Math.min(2, blocks.length);
+}
+
+// Creates a blank "spacer" block: no text, no image, nothing but a
+// background color pulled from the current theme. `order` is a
+// placeholder — onReorderBlocks renumbers every block's order right
+// after this gets spliced in, so the real value doesn't matter here.
+//
+// ASSUMPTION: Block only strictly requires `id`, `type`, `order`,
+// and `props.kind` based on how this file uses them elsewhere. If
+// your actual Block type has more required fields, this will need
+// a couple more defaults added.
+function createBlankBlock(theme: Theme): Block {
+  return {
+    id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: "spacer",
+    order: 0,
+    props: {
+      kind: "spacer",
+      height: 240,
+      backgroundColor: theme.bg,
+    },
+  } as Block;
+}
 
 export function TemplateSidebar({
   site,
@@ -45,6 +95,16 @@ export function TemplateSidebar({
     () => [...site.blocks].sort((a, b) => a.order - b.order),
     [site.blocks],
   );
+
+  function handleAddBlock() {
+    const insertIndex = findInsertIndex(sortedBlocks);
+    const next = [...sortedBlocks];
+    next.splice(insertIndex, 0, createBlankBlock(theme));
+    // Reuses the existing reorder callback — it already renumbers
+    // `order` for every block in the array, so inserting works the
+    // same way a drag-reorder does. No new prop needed.
+    onReorderBlocks(next);
+  }
 
   return (
     <aside className="w-[320px] shrink-0 border-r border-border bg-surface text-sm flex flex-col h-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -118,12 +178,23 @@ export function TemplateSidebar({
       <div className="p-4 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {activeTab === "blocks" && (
           <div className="space-y-3">
-            <SectionLabel>Blocks</SectionLabel>
+            <div className="flex items-center justify-between">
+              <SectionLabel>Blocks</SectionLabel>
+              <button
+                type="button"
+                onClick={handleAddBlock}
+                className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] font-semibold text-ink-soft transition-colors hover:text-foreground hover:border-foreground/40 cursor-pointer"
+              >
+                <Plus className="h-3 w-3" />
+                Add block
+              </button>
+            </div>
             <BlocksList
               blocks={sortedBlocks}
               activeSection={activeSection}
               onSectionChange={onSectionChange}
               onReorderBlocks={onReorderBlocks}
+              onUpdateBlock={onUpdateBlock}
             />
           </div>
         )}
@@ -167,11 +238,13 @@ function BlocksList({
   activeSection,
   onSectionChange,
   onReorderBlocks,
+  onUpdateBlock,
 }: {
   blocks: Block[];
   activeSection: string;
   onSectionChange: (id: string) => void;
   onReorderBlocks: (blocks: Block[]) => void;
+  onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
 }) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
@@ -191,6 +264,7 @@ function BlocksList({
       {blocks.map((block, index) => {
         const active = activeSection === block.props.kind;
         const isDragging = draggedId === block.id;
+        const height = block.props.height;
 
         return (
           <div
@@ -219,6 +293,29 @@ function BlocksList({
             >
               {index + 1}. {block.props.kind}
             </button>
+
+            {/* Editable block height, light text so it stays out of
+                the way of the block name. Stored on block.props.height
+                and written back via onUpdateBlock like any other
+                text-panel field. */}
+            <input
+              type="number"
+              value={typeof height === "number" ? height : ""}
+              placeholder="auto"
+              draggable={false}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                const raw = e.target.value;
+                onUpdateBlock(block.id, { height: raw === "" ? undefined : Number(raw) });
+              }}
+              className={`relative z-10 w-12 shrink-0 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                active ? "text-background/70 placeholder:text-background/40" : "text-ink-soft/60 placeholder:text-ink-soft/40"
+              }`}
+            />
+            <span className={`relative z-10 shrink-0 text-[9px] ${active ? "text-background/60" : "text-ink-soft/50"}`}>
+              px
+            </span>
           </div>
         );
       })}
@@ -277,7 +374,8 @@ function PalettePanel({
         })}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      {/* Corners removed — only Spacing left, so no grid needed */}
+      <div className="space-y-1">
         {STYLE_FIELDS.map((field) => (
           <label key={field.key} className="block space-y-1 cursor-pointer">
             <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft cursor-pointer">
