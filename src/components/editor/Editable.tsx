@@ -1,4 +1,5 @@
 import { useRef, type ElementType, type CSSProperties, type FocusEvent } from "react";
+import { handleEditableBlur } from "@/lib/functions/TemplateDialog";
 
 export function Editable({
   value,
@@ -21,10 +22,7 @@ export function Editable({
       data-editable="true"
       contentEditable
       suppressContentEditableWarning
-      // innerHTML instead of textContent — this is what lets bold/italic/
-      // underline/color survive. Plain typing still works exactly the
-      // same, this only matters once the selection toolbar applies a tag.
-      onBlur={(e: FocusEvent<HTMLElement>) => onChange(e.currentTarget.innerHTML ?? "")}
+      onBlur={(e: FocusEvent<HTMLElement>) => handleEditableBlur(e, onChange)}
       className={`${className ?? ""} outline-none focus:ring-2 focus:ring-offset-2 rounded-sm cursor-text`}
       style={style}
       dangerouslySetInnerHTML={{ __html: value }}

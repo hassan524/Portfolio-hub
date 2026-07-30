@@ -1,9 +1,23 @@
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
-import { Maximize2, Minimize2, Monitor, Save, Smartphone, X, PencilLine } from "lucide-react";
+import { Maximize2, Minimize2, Monitor, Save, Smartphone, X, PencilLine, Wand2 } from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
+import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "@/components/editor/DraggableBlockWrapper";
-import type { PreviewEditableSite, PreviewElementEdit, PreviewElementStyle } from "./previewEditTypes";
+import type { PreviewEditableSite, PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
 import type { SiteData, Block, BlockTypography } from "@/types/builder.schema";
+import { Dispatch, RefObject, SetStateAction } from "react";
+import {
+  calculateFrameResize,
+  calculateViewportScale,
+  tagAndApplyPreviewStyles,
+  handleMeasuredBlockHeight,
+  handlePreviewClick as handlePreviewClickFn,
+  toggleEditMode as toggleEditModeFn,
+  startFrameDrag,
+  endFrameDrag,
+  handleStartBlockResize as handleStartBlockResizeFn,
+  type FrameDragState,
+} from "@/lib/functions/TemplateDialog";
 
 type Device = "desktop" | "responsive";
 
@@ -28,10 +42,11 @@ export function TemplateLivePreview({
   onUpdateTypography,
   onReorderBlocks,
   isMaximized,
+  setIsMaximized,
+  dialogRef,
   onToggleMaximize,
   onClose,
   onSave,
-  onBlockHeightsChange,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -57,46 +72,47 @@ export function TemplateLivePreview({
 
   onReorderBlocks: (blocks: Block[]) => void;
   isMaximized: boolean;
-  onToggleMaximize: () => void;
+  setIsMaximized: Dispatch<SetStateAction<boolean>>;
+  dialogRef: RefObject<HTMLDivElement | null>;
+  onToggleMaximize: (
+    isMaximized: boolean,
+    setIsMaximized: Dispatch<SetStateAction<boolean>>,
+    dialogRef: RefObject<HTMLDivElement | null>
+  ) => void;
   onClose: () => void;
   onSave?: (site: SiteData) => void;
-
-  // Reports the real, DOM-measured height (px) of every rendered
-  // block, keyed by block id. Fired from a ResizeObserver, so it
-  // updates live whenever a block's actual rendered size changes —
-  // content edits, theme/font swaps, or switching device width.
-  onBlockHeightsChange?: (heights: Record<string, number>) => void;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
   const ink = theme.ink;
+
   const frameRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Frame-resize drag ONLY (dragging the edges of the responsive phone
-  // mockup to change its width/height). This has nothing to do with
-  // moving elements — it just resizes the preview viewport itself.
-  const dragState = useRef<{
-    edge: "left" | "right" | "bottom" | "corner";
-    startX: number;
-    startY: number;
-    startWidth: number;
-    startHeight: number;
-    startScale: number;
-  } | null>(null);
-
+  const dragState = useRef<FrameDragState | null>(null);
   const isDesktop = device === "desktop";
 
-  // ── EDIT MODE ────────────────────────────────────────────────────
   const [editMode, setEditMode] = useState(false);
-
   const [size, setSize] = useState({
     width: DEFAULT_RESPONSIVE_WIDTH,
     height: DEFAULT_RESPONSIVE_HEIGHT,
   });
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(1);
+  const [resizingBlock, setResizingBlock] = useState<{ id: string; startY: number; startHeight: number } | null>(null);
+
+  const resizingRef = useRef<typeof resizingBlock>(null);
+  useEffect(() => {
+    resizingRef.current = resizingBlock;
+  }, [resizingBlock]);
+
+  const handleStartBlockResize = useCallback(
+    (blockId: string, currentHeight: number, e: React.MouseEvent) => {
+      handleStartBlockResizeFn(blockId, currentHeight, e, onUpdateBlock, setResizingBlock);
+    },
+    [onUpdateBlock]
+  );
 
   useEffect(() => {
     if (!isDesktop) {
@@ -112,10 +128,14 @@ export function TemplateLivePreview({
       setScale(1);
       return;
     }
-    const availW = viewportRef.current.clientWidth - VIEWPORT_PADDING * 2;
-    const availH = viewportRef.current.clientHeight - VIEWPORT_PADDING * 2;
-    const next = Math.min(1, availW / width, availH / height);
-    setScale(Number.isFinite(next) && next > 0 ? next : 1);
+    const next = calculateViewportScale(
+      viewportRef.current.clientWidth,
+      viewportRef.current.clientHeight,
+      width,
+      height,
+      VIEWPORT_PADDING
+    );
+    setScale(next);
   }, [isDesktop, width, height]);
 
   useEffect(() => {
@@ -132,49 +152,24 @@ export function TemplateLivePreview({
   const handleDragMove = useCallback((e: MouseEvent) => {
     const drag = dragState.current;
     if (!drag) return;
-    const dx = (e.clientX - drag.startX) / drag.startScale;
-    const dy = (e.clientY - drag.startY) / drag.startScale;
-
-    let nextWidth = drag.startWidth;
-    let nextHeight = drag.startHeight;
-
-    if (drag.edge === "left") nextWidth = drag.startWidth - dx * 2;
-    else if (drag.edge === "right") nextWidth = drag.startWidth + dx * 2;
-    else if (drag.edge === "bottom") nextHeight = drag.startHeight + dy;
-    else if (drag.edge === "corner") {
-      nextWidth = drag.startWidth + dx * 2;
-      nextHeight = drag.startHeight + dy;
-    }
-
-    nextWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, nextWidth));
-    nextHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, nextHeight));
-    setSize({ width: nextWidth, height: nextHeight });
+    const nextSize = calculateFrameResize(
+      drag,
+      e.clientX,
+      e.clientY,
+      MIN_WIDTH,
+      MAX_WIDTH,
+      MIN_HEIGHT,
+      MAX_HEIGHT
+    );
+    setSize(nextSize);
   }, []);
 
   const handleDragEnd = useCallback(() => {
-    dragState.current = null;
-    setIsDragging(false);
-    window.removeEventListener("mousemove", handleDragMove);
-    window.removeEventListener("mouseup", handleDragEnd);
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
+    endFrameDrag(dragState, setIsDragging, handleDragMove, handleDragEnd);
   }, [handleDragMove]);
 
   function startDrag(edge: "left" | "right" | "bottom" | "corner", e: React.MouseEvent) {
-    e.preventDefault();
-    dragState.current = {
-      edge,
-      startX: e.clientX,
-      startY: e.clientY,
-      startWidth: width,
-      startHeight: height,
-      startScale: scale || 1,
-    };
-    setIsDragging(true);
-    document.body.style.cursor = edge === "bottom" ? "ns-resize" : "ew-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("mousemove", handleDragMove);
-    window.addEventListener("mouseup", handleDragEnd);
+    startFrameDrag(edge, e, width, height, scale, dragState, setIsDragging, handleDragMove, handleDragEnd);
   }
 
   useEffect(() => {
@@ -187,117 +182,36 @@ export function TemplateLivePreview({
   const sorted = [...blocks].sort((a, b) => a.order - b.order);
 
   useLayoutEffect(() => {
-    const root = contentRef.current;
-    if (!root) return;
-
-    root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
-      const blockId = blockRoot.dataset.blockId;
-      const block = blocks.find((candidate) => candidate.id === blockId);
-      if (!blockId || !block) return;
-
-      stampEditableElement(blockRoot, blockId, "root");
-      blockRoot.querySelectorAll<HTMLElement>("*").forEach((element) => {
-        const path = getElementPath(blockRoot, element);
-        if (path) stampEditableElement(element, blockId, path);
-      });
-    });
-
-    root.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((element) => {
-      element.classList.toggle(
-        "preview-edit-selected",
-        element.dataset.previewEditId === selectedElementId,
-      );
-      applyPreviewStyle(
-        element,
-        site.previewEdits?.elements[element.dataset.previewEditId ?? ""]?.style,
-      );
-    });
+    tagAndApplyPreviewStyles(contentRef.current, blocks, selectedElementId, site.previewEdits);
   }, [blocks, selectedElementId, site.previewEdits]);
 
-  // ── Real block height measurement ────────────────────────────────
-  // Watches every rendered `[data-block-id]` node with a
-  // ResizeObserver, which reports the browser's actual laid-out
-  // content height — not a stored number. Fires on mount (observer
-  // callbacks always run once for the initial size) and again any
-  // time a block's real size changes: text wrapping, image load,
-  // theme/font swap, or switching desktop/responsive width.
-  const blockHeightsRef = useRef<Record<string, number>>({});
-
   useEffect(() => {
-    if (!onBlockHeightsChange) return;
     const root = contentRef.current;
     if (!root) return;
 
     const observer = new ResizeObserver((entries) => {
-      let changed = false;
-      const next = { ...blockHeightsRef.current };
-
       for (const entry of entries) {
         const el = entry.target as HTMLElement;
         const blockId = el.dataset.blockId;
         if (!blockId) continue;
-
+        if (resizingRef.current?.id === blockId) continue; // don't fight the drag
         const measured = Math.round(entry.contentRect.height);
-        if (next[blockId] !== measured) {
-          next[blockId] = measured;
-          changed = true;
-        }
-      }
-
-      if (changed) {
-        blockHeightsRef.current = next;
-        onBlockHeightsChange(next);
+        handleMeasuredBlockHeight(blockId, measured, blocks, onUpdateBlock);
       }
     });
 
     root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-    // Re-attach whenever the actual set/order of blocks changes so
-    // newly added or removed blocks get observed/dropped correctly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorted.map((b) => b.id).join(","), onBlockHeightsChange]);
+  }, [sorted.map((b) => b.id).join(","), blocks, onUpdateBlock]);
 
-  // Only runs when editMode is true. Otherwise clicking anything on the
-  // canvas does nothing — no selection, no panel.
   function handlePreviewClick(e: React.MouseEvent) {
-    if (!editMode) return;
-
-    const target = e.target instanceof HTMLElement ? e.target : null;
-    const element = target?.closest<HTMLElement>("[data-preview-edit-id]");
-    const blockElement = target?.closest<HTMLElement>("[data-block-id]");
-    if (!element || !blockElement) return;
-
-    const block = blocks.find((candidate) => candidate.id === blockElement.dataset.blockId);
-    if (!block || !onSelectElement) return;
-
-    e.stopPropagation();
-    onSelectElement({
-      id: element.dataset.previewEditId ?? "",
-      blockId: block.id,
-      blockKind: block.props.kind,
-      label: getElementLabel(element),
-      style: site.previewEdits?.elements[element.dataset.previewEditId ?? ""]?.style ?? {},
-    });
+    handlePreviewClickFn(e, editMode, blocks, site, onSelectElement);
   }
-  function toggleEditMode() {
-    setEditMode((prev) => {
-      const next = !prev;
-      if (next && onSelectElement && sorted.length > 0) {
-        const firstBlock = sorted[0];
-        const elementId = `${firstBlock.id}:root`;
-        onSelectElement({
-          id: elementId,
-          blockId: firstBlock.id,
-          blockKind: firstBlock.props.kind,
-          label: firstBlock.props.kind,
-          style: site.previewEdits?.elements[elementId]?.style ?? {},
-        });
-      } else if (!next && onSelectElement) {
-        onSelectElement(null); 
-      }
-      return next;
-    });
+
+  function handleToggleEditMode() {
+    toggleEditModeFn(setEditMode, sorted, site, onSelectElement);
   }
 
   const content = (
@@ -307,7 +221,7 @@ export function TemplateLivePreview({
       style={{
         background: bg,
         color: ink,
-        pointerEvents: editMode ? "auto" : "none", // ← blocks all clicks/typing when off
+        pointerEvents: editMode ? "auto" : "none",
       }}
       onClick={handlePreviewClick}
     >
@@ -315,6 +229,18 @@ export function TemplateLivePreview({
         const variant = (block.props as { variant?: string }).variant;
         const Cmp = getBlockComponent(block.props.kind, variant);
         if (!Cmp) return null;
+
+        const isActive = activeSection === block.props.kind;
+        const isResizingThis = resizingBlock?.id === block.id;
+        const currentHeight = block.height ?? 200;
+        const displayName = block.label ?? block.name ?? block.props.kind;
+        const isNewBlock = Boolean(
+          block.isCustom ||
+          (block as Record<string, unknown>).isNew ||
+          (block.props as { isCustom?: boolean })?.isCustom ||
+          block.props?.kind === "spacer"
+        );
+
         return (
           <DraggableBlockWrapper
             key={block.id}
@@ -325,21 +251,83 @@ export function TemplateLivePreview({
           >
             <div
               data-block-id={block.id}
-              className={
-                activeSection === block.props.kind ? "outline outline-2 outline-offset-[-2px]" : ""
-              }
-              style={
-                activeSection === block.props.kind ? { outlineColor: theme.accent } : undefined
-              }
+              className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                }`}
+              style={{
+                ...(isActive ? { outlineColor: theme.accent } : undefined),
+                height: block.height ? `${block.height}px` : undefined,
+                overflow: "hidden",
+              }}
             >
-              <Cmp
-                id={block.id}
-                props={block.props}
-                theme={theme}
-                onChange={(patch: Record<string, unknown>) =>
-                  editMode ? onUpdateBlock(block.id, patch) : undefined
-                }
-              />
+              {/* Active / Selected Block Floating Controls Bar */}
+              {isActive && (
+                <div
+                  data-blend-ignore
+                  className="absolute top-2 right-2 z-30 flex items-center gap-1.5 rounded-full bg-foreground text-background px-2.5 py-1 text-[11px] font-semibold shadow-lift pointer-events-auto select-none"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="truncate max-w-[140px] capitalize">{displayName}</span>
+                  {isNewBlock && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const patch = blendBlockWithNeighbors(block.id, blocks, theme, site, contentRef.current);
+                        onUpdateBlock(block.id, patch);
+                      }}
+                      className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
+                      title="Blend block style & colors dynamically with portfolio"
+                    >
+                      <PencilLine className="h-3 w-3 text-accent" />
+                      Blend
+                    </button>
+                  )}
+                  {block.height && <span className="text-[10px] font-mono opacity-80">{block.height}px</span>}
+                </div>
+              )}
+
+              {isNewBlock ? (
+                <div style={{ height: "100%" }} className="[&>*]:h-full">
+                  <Cmp
+                    id={block.id}
+                    props={block.props}
+                    theme={theme}
+                    onChange={(patch: Record<string, unknown>) =>
+                      editMode ? onUpdateBlock(block.id, patch) : undefined
+                    }
+                  />
+                </div>
+              ) : (
+                <Cmp
+                  id={block.id}
+                  props={block.props}
+                  theme={theme}
+                  onChange={(patch: Record<string, unknown>) =>
+                    editMode ? onUpdateBlock(block.id, patch) : undefined
+                  }
+                />
+              )}
+
+              {/* Bottom Drag Height Resize Handle */}
+              <div
+                data-blend-ignore
+                onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
+                className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
+                title="Drag to resize block height smoothly"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+                  ? "bg-foreground shadow-md scale-110 opacity-100"
+                  : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                  }`}>
+                  <div className="h-0.5 w-6 rounded-full bg-background/80" />
+                </div>
+                {isResizingThis && (
+                  <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
+                    Height: {block.height}px
+                  </div>
+                )}
+              </div>
             </div>
           </DraggableBlockWrapper>
         );
@@ -402,9 +390,8 @@ export function TemplateLivePreview({
 
           <div className="ml-1" />
 
-          {/* Edit mode toggle */}
           <button
-            onClick={toggleEditMode}
+            onClick={handleToggleEditMode}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
               ? "border-foreground bg-foreground text-background"
               : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
@@ -429,7 +416,7 @@ export function TemplateLivePreview({
           )}
 
           <button
-            onClick={onToggleMaximize}
+            onClick={() => onToggleMaximize(isMaximized, setIsMaximized, dialogRef)}
             className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-ink-soft transition-colors hover:bg-secondary hover:text-ink"
             title={isMaximized ? "Exit Full Screen" : "Maximize"}
           >
@@ -521,47 +508,4 @@ export function TemplateLivePreview({
       `}</style>
     </main>
   );
-}
-
-function stampEditableElement(element: HTMLElement, blockId: string, path: string) {
-  element.dataset.previewEditId = `${blockId}:${path}`;
-}
-
-function getElementPath(root: HTMLElement, element: HTMLElement) {
-  const parts: number[] = [];
-  let current: HTMLElement | null = element;
-
-  while (current && current !== root) {
-    const parent: HTMLElement | null = current.parentElement;
-    if (!parent) return "";
-    parts.unshift(Array.from(parent.children).indexOf(current));
-    current = parent;
-  }
-
-  return parts.length ? parts.join(".") : "";
-}
-
-function getElementLabel(element: HTMLElement) {
-  const text = element.innerText?.replace(/\s+/g, " ").trim();
-  if (text) return text.slice(0, 48);
-  if (element instanceof HTMLImageElement) return element.alt || "Image";
-  return element.tagName.toLowerCase();
-}
-
-function applyPreviewStyle(element: HTMLElement, style?: PreviewElementStyle) {
-  element.style.fontWeight = style?.bold === undefined ? "" : style.bold ? "700" : "400";
-  element.style.fontStyle = style?.italic === undefined ? "" : style.italic ? "italic" : "normal";
-  element.style.textDecoration =
-    style?.underline === undefined ? "" : style.underline ? "underline" : "none";
-  element.style.color = style?.color || "";
-  element.style.backgroundColor = style?.backgroundColor || "";
-  element.style.borderRadius =
-    style?.borderRadius === undefined || style.borderRadius === null
-      ? ""
-      : `${style.borderRadius}px`;
-  element.style.padding =
-    style?.padding === undefined || style.padding === null ? "" : `${style.padding}px`;
-  element.style.width = style?.width || "";
-  element.style.height = style?.height || "";
-  element.style.display = style?.removed ? "none" : "";
 }

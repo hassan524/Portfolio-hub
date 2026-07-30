@@ -30,6 +30,7 @@ import {
   Testimonials16, Testimonials17, Testimonials18, Testimonials19, Testimonials20,
 } from "@/components/blocks/testimonials";
 import { StatsCounterRow } from "@/components/blocks/stats";
+import { SpacerBlock } from "@/components/blocks/spacer";
 
 type VariantMap = Record<string, ComponentType<BlockComponentProps<any>>>;
 
@@ -108,6 +109,9 @@ navbar: {
   },
   stats: {
     "counter-row": StatsCounterRow,
+  },
+  spacer: {
+    spacer: SpacerBlock,
   },
 };
 

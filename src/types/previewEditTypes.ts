@@ -6,6 +6,7 @@ export type PreviewElementStyle = {
   underline?: boolean;
   color?: string | null;
   backgroundColor?: string | null;
+  backgroundImage?: string | null;
   borderRadius?: number | null;
   padding?: number | null;
   fontSize?: number | null;

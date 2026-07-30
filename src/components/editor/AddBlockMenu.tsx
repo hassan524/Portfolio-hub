@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { Block } from "@/types/builder.schema";
-
-// ⚠️ Adjust this import to match whatever your real blockRegistry.ts
-// exports. It needs to give you a flat list of { kind, variant, label }
-// options to populate the picker. If your registry only exports
-// getBlockComponent(kind, variant), add a parallel BLOCK_CATALOG array
-// there — that's the one missing piece I don't have visibility into.
 import { BLOCK_CATALOG } from "@/lib/blockRegistry";
+import { filterBlockCatalog, handlePickBlock } from "@/lib/functions/TemplateDialog";
 
 type AddBlockMenuProps = {
   /** Insert the new block right after this existing block's order. Pass null to insert at the very top. */
@@ -26,39 +21,10 @@ export function AddBlockMenu({ afterOrder, blocks, onInsert }: AddBlockMenuProps
   const [query, setQuery] = useState("");
   const [height, setHeight] = useState<string>("");
 
-  const filtered = BLOCK_CATALOG.filter((entry) =>
-    entry.label.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  const filtered = filterBlockCatalog(BLOCK_CATALOG, query);
 
   function handlePick(entry: (typeof BLOCK_CATALOG)[number]) {
-    // Fractional ordering: insert between the two neighbouring order
-    // values instead of renumbering the whole array. TemplateLivePreview
-    // and the sidebar both already sort by `order`, so this just slots
-    // in visually without touching any other block's position.
-    const sorted = [...blocks].sort((a, b) => a.order - b.order);
-    const afterIndex = afterOrder === null ? -1 : sorted.findIndex((b) => b.order === afterOrder);
-    const prev = afterIndex >= 0 ? sorted[afterIndex] : null;
-    const next = sorted[afterIndex + 1] ?? null;
-    const prevOrder = prev?.order ?? 0;
-    const nextOrder = next?.order ?? prevOrder + 2;
-    const newOrder = (prevOrder + nextOrder) / 2;
-
-    const newBlock: Block = {
-      id: `block_${crypto.randomUUID().slice(0, 8)}`,
-      type: entry.componentType,
-      order: newOrder,
-      props: {
-        ...entry.defaultProps,
-        kind: entry.kind,
-        variant: entry.variant,
-        ...(height ? { sectionHeight: Number(height) } : {}),
-      },
-    } as Block;
-
-    onInsert(newBlock);
-    setOpen(false);
-    setQuery("");
-    setHeight("");
+    handlePickBlock(afterOrder, blocks, entry, height, onInsert, setOpen, setQuery, setHeight);
   }
 
   if (!open) {

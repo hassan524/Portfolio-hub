@@ -11,7 +11,8 @@ import {
   X,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import type { PreviewElementEdit, PreviewElementStyle } from "./previewEditTypes";
+import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
+import { isHexColor, stepStepperValue } from "@/lib/functions/TemplateDialog";
 
 type Props = {
   edit: PreviewElementEdit | null;
@@ -187,11 +188,11 @@ function ColorSwatch({
       {icon}
       <span
         className="pointer-events-none absolute bottom-0.5 left-1/2 h-1 w-3.5 -translate-x-1/2 rounded-full"
-        style={{ backgroundColor: isHex(value) ? value : "#ffffff" }}
+        style={{ backgroundColor: isHexColor(value) ? value : "#ffffff" }}
       />
       <input
         type="color"
-        value={isHex(value) ? value : "#ffffff"}
+        value={isHexColor(value) ? value : "#ffffff"}
         onChange={(e) => onChange(e.target.value)}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
       />
@@ -212,19 +213,13 @@ function NumberStepperField({
   max: number;
   onChange: (value: number) => void;
 }) {
-  const step = (dir: 1 | -1) => {
-    const next = value + dir;
-    if (next < min || next > max) return;
-    onChange(next);
-  };
-
   return (
     <label className="block space-y-0.5">
       <FieldLabel>{label}</FieldLabel>
       <div className="flex h-7 items-center rounded-md bg-secondary/50 focus-within:bg-background focus-within:ring-1 focus-within:ring-ring">
         <button
           type="button"
-          onClick={() => step(-1)}
+          onClick={() => stepStepperValue(value, -1, min, max, onChange)}
           className="grid h-7 w-6 shrink-0 cursor-pointer place-items-center text-ink-soft hover:text-foreground"
           aria-label={`Decrease ${label.toLowerCase()}`}
         >
@@ -240,7 +235,7 @@ function NumberStepperField({
         />
         <button
           type="button"
-          onClick={() => step(1)}
+          onClick={() => stepStepperValue(value, 1, min, max, onChange)}
           className="grid h-7 w-6 shrink-0 cursor-pointer place-items-center text-ink-soft hover:text-foreground"
           aria-label={`Increase ${label.toLowerCase()}`}
         >
@@ -273,8 +268,4 @@ function TextField({
       />
     </label>
   );
-}
-
-function isHex(value: string) {
-  return /^#[0-9a-f]{6}$/i.test(value);
 }

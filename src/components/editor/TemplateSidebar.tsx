@@ -1,6 +1,17 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { GripVertical, Layers, Palette, Plus, Type } from "lucide-react";
+import { GripVertical, Layers, Palette, Plus, PencilLine, Type } from "lucide-react";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
+import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
+import {
+  findInsertIndex,
+  createBlankBlock,
+  isPlainObject,
+  isHexColor,
+  handleAddBlock as handleAddBlockFn,
+  moveSidebarBlock,
+  handleBlockHeightChange,
+  handleArrayItemChange,
+} from "@/lib/functions/TemplateDialog";
 
 type Props = {
   site: SiteData;
@@ -24,60 +35,9 @@ const COLOR_FIELDS: { key: keyof Theme; label: string }[] = [
   { key: "surface", label: "Surface" },
 ];
 
-// "Corners" removed per request — spacing is the only structural
-// style knob left in this panel now.
 const STYLE_FIELDS: { key: keyof Theme; label: string; options: string[] }[] = [
   { key: "spacing", label: "Spacing", options: ["compact", "cozy", "airy"] },
 ];
-
-// ── Blank block insertion algorithm ───────────────────────────────
-// Figures out "3rd position" by meaning, not by a hardcoded index:
-// it looks for a navbar-ish block and a hero-ish block and inserts
-// right after whichever of those comes last. That way it still
-// lands in the right spot even if the site doesn't literally have
-// exactly 2 blocks before it, or if blocks get reordered later.
-//
-// ASSUMPTION: this matches against `block.props.kind` (the same
-// field already used everywhere else in this file, e.g. "hero",
-// "navbar"). If your kind strings differ, adjust the two regexes
-// below.
-function findInsertIndex(blocks: Block[]) {
-  const kindOf = (b: Block) => String(b.props.kind ?? "");
-  const isNav = (b: Block) => /^(nav|navbar|header)/i.test(kindOf(b));
-  const isHero = (b: Block) => /^hero/i.test(kindOf(b));
-
-  const heroIndex = blocks.findIndex(isHero);
-  if (heroIndex >= 0) return heroIndex + 1;
-
-  const navIndex = blocks.findIndex(isNav);
-  if (navIndex >= 0) return navIndex + 1;
-
-  // No recognizable navbar/hero yet — fall back to literal 3rd slot,
-  // or the end of the list if there aren't 2 blocks to sit after.
-  return Math.min(2, blocks.length);
-}
-
-// Creates a blank "spacer" block: no text, no image, nothing but a
-// background color pulled from the current theme. `order` is a
-// placeholder — onReorderBlocks renumbers every block's order right
-// after this gets spliced in, so the real value doesn't matter here.
-//
-// ASSUMPTION: Block only strictly requires `id`, `type`, `order`,
-// and `props.kind` based on how this file uses them elsewhere. If
-// your actual Block type has more required fields, this will need
-// a couple more defaults added.
-function createBlankBlock(theme: Theme): Block {
-  return {
-    id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    type: "spacer",
-    order: 0,
-    props: {
-      kind: "spacer",
-      height: 240,
-      backgroundColor: theme.bg,
-    },
-  } as Block;
-}
 
 export function TemplateSidebar({
   site,
@@ -88,6 +48,7 @@ export function TemplateSidebar({
   onSiteMetaChange,
   onUpdateBlock,
   onReorderBlocks,
+  onSave,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("blocks");
 
@@ -97,13 +58,7 @@ export function TemplateSidebar({
   );
 
   function handleAddBlock() {
-    const insertIndex = findInsertIndex(sortedBlocks);
-    const next = [...sortedBlocks];
-    next.splice(insertIndex, 0, createBlankBlock(theme));
-    // Reuses the existing reorder callback — it already renumbers
-    // `order` for every block in the array, so inserting works the
-    // same way a drag-reorder does. No new prop needed.
-    onReorderBlocks(next);
+    handleAddBlockFn(sortedBlocks, theme, onReorderBlocks);
   }
 
   return (
@@ -174,7 +129,7 @@ export function TemplateSidebar({
 
       <CenteredDivider />
 
-      {/* Tab Content Panel (Scrollable without visible scrollbar) */}
+      {/* Tab Content Panel */}
       <div className="p-4 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {activeTab === "blocks" && (
           <div className="space-y-3">
@@ -191,6 +146,7 @@ export function TemplateSidebar({
             </div>
             <BlocksList
               blocks={sortedBlocks}
+              theme={theme}
               activeSection={activeSection}
               onSectionChange={onSectionChange}
               onReorderBlocks={onReorderBlocks}
@@ -235,12 +191,14 @@ function CenteredDivider() {
 
 function BlocksList({
   blocks,
+  theme,
   activeSection,
   onSectionChange,
   onReorderBlocks,
   onUpdateBlock,
 }: {
   blocks: Block[];
+  theme: Theme;
   activeSection: string;
   onSectionChange: (id: string) => void;
   onReorderBlocks: (blocks: Block[]) => void;
@@ -249,14 +207,7 @@ function BlocksList({
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   function moveBlock(targetId: string) {
-    if (!draggedId || draggedId === targetId) return;
-    const from = blocks.findIndex((block) => block.id === draggedId);
-    const to = blocks.findIndex((block) => block.id === targetId);
-    if (from < 0 || to < 0) return;
-    const next = [...blocks];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    onReorderBlocks(next);
+    moveSidebarBlock(draggedId, targetId, blocks, onReorderBlocks);
   }
 
   return (
@@ -264,7 +215,14 @@ function BlocksList({
       {blocks.map((block, index) => {
         const active = activeSection === block.props.kind;
         const isDragging = draggedId === block.id;
-        const height = block.props.height;
+        const height = block.height;
+        const displayName = block.label ?? block.name ?? block.props.kind;
+        const isNewBlock = Boolean(
+          block.isCustom ||
+          (block as Record<string, unknown>).isNew ||
+          (block.props as { isCustom?: boolean })?.isCustom ||
+          block.props?.kind === "spacer"
+        );
 
         return (
           <div
@@ -274,7 +232,7 @@ function BlocksList({
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => moveBlock(block.id)}
             onDragEnd={() => setDraggedId(null)}
-            className={`relative flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-colors cursor-grab active:cursor-grabbing ${
+            className={`relative flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs transition-colors cursor-grab active:cursor-grabbing ${
               isDragging ? "opacity-40 border-dashed border-foreground" : ""
             } ${
               active
@@ -285,37 +243,70 @@ function BlocksList({
             <div className="relative z-10 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing">
               <GripVertical className="h-3.5 w-3.5 opacity-60 pointer-events-none" />
             </div>
-            <button
-              type="button"
-              onClick={() => onSectionChange(block.props.kind)}
-              className="relative z-0 min-w-0 flex-1 text-left capitalize font-medium cursor-pointer truncate"
-              title={block.type}
-            >
-              {index + 1}. {block.props.kind}
-            </button>
 
-            {/* Editable block height, light text so it stays out of
-                the way of the block name. Stored on block.props.height
-                and written back via onUpdateBlock like any other
-                text-panel field. */}
-            <input
-              type="number"
-              value={typeof height === "number" ? height : ""}
-              placeholder="auto"
-              draggable={false}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                const raw = e.target.value;
-                onUpdateBlock(block.id, { height: raw === "" ? undefined : Number(raw) });
-              }}
-              className={`relative z-10 w-12 shrink-0 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                active ? "text-background/70 placeholder:text-background/40" : "text-ink-soft/60 placeholder:text-ink-soft/40"
-              }`}
-            />
-            <span className={`relative z-10 shrink-0 text-[9px] ${active ? "text-background/60" : "text-ink-soft/50"}`}>
-              px
-            </span>
+            {/* Editable Block Label / Name */}
+            <div className="flex-1 min-w-0 flex items-center gap-1">
+              <span className={`shrink-0 font-medium text-[11px] ${active ? "opacity-70" : "opacity-50"}`}>
+                {index + 1}.
+              </span>
+              <input
+                type="text"
+                value={displayName}
+                draggable={false}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSectionChange(block.props.kind);
+                }}
+                onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
+                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-xs focus:ring-1 focus:ring-ring rounded px-1 ${
+                  active ? "text-background" : "text-foreground"
+                }`}
+                title="Click to rename block"
+              />
+            </div>
+
+            {/* Smart Blend Button - Only for newly added blocks */}
+            {isNewBlock && (
+              <button
+                type="button"
+                draggable={false}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const patch = blendBlockWithNeighbors(block.id, blocks, theme);
+                  onUpdateBlock(block.id, patch);
+                }}
+                className={`relative z-10 p-1 rounded transition-colors shrink-0 ${
+                  active
+                    ? "hover:bg-background/20 text-background"
+                    : "hover:bg-secondary text-ink-soft hover:text-foreground"
+                }`}
+                title="Blend block style and background dynamically with portfolio"
+              >
+                <PencilLine className="h-3.5 w-3.5" />
+              </button>
+            )}
+
+            {/* Height Control */}
+            <div className="flex items-center shrink-0 z-10">
+              <input
+                type="number"
+                value={typeof height === "number" ? height : ""}
+                placeholder="auto"
+                draggable={false}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => handleBlockHeightChange(block.id, e.target.value, onUpdateBlock)}
+                className={`w-11 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                  active ? "text-background/80 placeholder:text-background/40" : "text-ink-soft/70 placeholder:text-ink-soft/40"
+                }`}
+                title="Block height in pixels"
+              />
+              <span className={`text-[9px] ml-0.5 ${active ? "text-background/60" : "text-ink-soft/50"}`}>
+                px
+              </span>
+            </div>
           </div>
         );
       })}
@@ -374,7 +365,6 @@ function PalettePanel({
         })}
       </div>
 
-      {/* Corners removed — only Spacing left, so no grid needed */}
       <div className="space-y-1">
         {STYLE_FIELDS.map((field) => (
           <label key={field.key} className="block space-y-1 cursor-pointer">
@@ -486,11 +476,7 @@ function EditableValueList({
                     <input
                       key={`${label}.${index}`}
                       value={item}
-                      onChange={(e) => {
-                        const next = [...current];
-                        next[index] = e.target.value;
-                        onChange({ ...value, [key]: next });
-                      }}
+                      onChange={(e) => handleArrayItemChange(current, index, e.target.value, value, key, onChange)}
                       className={`${compactInputClass} cursor-text rounded-md`}
                     />
                   );
@@ -542,14 +528,6 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       {children}
     </label>
   );
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function isHexColor(value: string) {
-  return /^#[0-9a-f]{6}$/i.test(value);
 }
 
 const compactInputClass =
