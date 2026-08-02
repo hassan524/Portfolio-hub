@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bold, Italic, Underline } from "lucide-react";
-import { calculateSelectionPosition, applyFormat, applyColor } from "@/lib/functions/TemplateDialog";
+import { calculateSelectionPosition, applyFormat, applyColor } from "@/lib/functions/template";
 
 type ToolbarState = {
   top: number;

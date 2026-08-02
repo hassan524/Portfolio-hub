@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { GripVertical } from "lucide-react";
 import type { Block } from "@/types/builder.schema";
-import { handleBlockDrop, handleBlockDragStart } from "@/lib/functions/TemplateDialog";
+import { handleBlockDrop, handleBlockDragStart } from "@/lib/functions/template";
 
 export function DraggableBlockWrapper({
   block,

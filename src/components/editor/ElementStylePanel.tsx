@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
-import { isHexColor, stepStepperValue } from "@/lib/functions/TemplateDialog";
+import { isHexColor, stepStepperValue } from "@/lib/functions/template";
 
 type Props = {
   edit: PreviewElementEdit | null;
@@ -161,8 +161,9 @@ function IconToggle({
     <button
       type="button"
       onClick={onClick}
-      className={`grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md transition ${active ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
-        }`}
+      className={`grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md transition ${
+        active ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
+      }`}
     >
       {children}
     </button>

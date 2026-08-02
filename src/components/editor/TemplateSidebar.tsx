@@ -11,7 +11,7 @@ import {
   moveSidebarBlock,
   handleBlockHeightChange,
   handleArrayItemChange,
-} from "@/lib/functions/TemplateDialog";
+} from "@/lib/functions/template";
 
 type Props = {
   site: SiteData;
@@ -165,7 +165,11 @@ export function TemplateSidebar({
         {activeTab === "text" && (
           <div className="space-y-3">
             <SectionLabel>Text Content</SectionLabel>
-            <TextPanel blocks={sortedBlocks} onUpdateBlock={onUpdateBlock} onSectionChange={onSectionChange} />
+            <TextPanel
+              blocks={sortedBlocks}
+              onUpdateBlock={onUpdateBlock}
+              onSectionChange={onSectionChange}
+            />
           </div>
         )}
       </div>
@@ -221,7 +225,7 @@ function BlocksList({
           block.isCustom ||
           (block as Record<string, unknown>).isNew ||
           (block.props as { isCustom?: boolean })?.isCustom ||
-          block.props?.kind === "spacer"
+          block.props?.kind === "spacer",
         );
 
         return (
@@ -246,7 +250,9 @@ function BlocksList({
 
             {/* Editable Block Label / Name */}
             <div className="flex-1 min-w-0 flex items-center gap-1">
-              <span className={`shrink-0 font-medium text-[11px] ${active ? "opacity-70" : "opacity-50"}`}>
+              <span
+                className={`shrink-0 font-medium text-[11px] ${active ? "opacity-70" : "opacity-50"}`}
+              >
                 {index + 1}.
               </span>
               <input
@@ -299,11 +305,15 @@ function BlocksList({
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => handleBlockHeightChange(block.id, e.target.value, onUpdateBlock)}
                 className={`w-11 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                  active ? "text-background/80 placeholder:text-background/40" : "text-ink-soft/70 placeholder:text-ink-soft/40"
+                  active
+                    ? "text-background/80 placeholder:text-background/40"
+                    : "text-ink-soft/70 placeholder:text-ink-soft/40"
                 }`}
                 title="Block height in pixels"
               />
-              <span className={`text-[9px] ml-0.5 ${active ? "text-background/60" : "text-ink-soft/50"}`}>
+              <span
+                className={`text-[9px] ml-0.5 ${active ? "text-background/60" : "text-ink-soft/50"}`}
+              >
                 px
               </span>
             </div>
@@ -388,7 +398,9 @@ function PalettePanel({
 
       <div className="grid grid-cols-2 gap-2">
         <label className="block space-y-1">
-          <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">Heading font</span>
+          <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+            Heading font
+          </span>
           <input
             value={String(theme.fontHeading ?? "")}
             onChange={(e) => onThemeChange({ fontHeading: e.target.value })}
@@ -396,7 +408,9 @@ function PalettePanel({
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">Body font</span>
+          <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+            Body font
+          </span>
           <input
             value={String(theme.fontBody ?? "")}
             onChange={(e) => onThemeChange({ fontBody: e.target.value })}
@@ -469,14 +483,18 @@ function EditableValueList({
         if (Array.isArray(current)) {
           return (
             <div key={label} className="space-y-1.5">
-              <div className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">{label}</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+                {label}
+              </div>
               {current.map((item, index) => {
                 if (typeof item === "string") {
                   return (
                     <input
                       key={`${label}.${index}`}
                       value={item}
-                      onChange={(e) => handleArrayItemChange(current, index, e.target.value, value, key, onChange)}
+                      onChange={(e) =>
+                        handleArrayItemChange(current, index, e.target.value, value, key, onChange)
+                      }
                       className={`${compactInputClass} cursor-text rounded-md`}
                     />
                   );
@@ -524,7 +542,9 @@ function EditableValueList({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
+      <span className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+        {label}
+      </span>
       {children}
     </label>
   );

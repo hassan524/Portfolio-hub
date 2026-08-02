@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { Block } from "@/types/builder.schema";
 import { BLOCK_CATALOG } from "@/lib/blockRegistry";
-import { filterBlockCatalog, handlePickBlock } from "@/lib/functions/TemplateDialog";
+import { filterBlockCatalog, handlePickBlock } from "@/lib/functions/template";
 
 type AddBlockMenuProps = {
   /** Insert the new block right after this existing block's order. Pass null to insert at the very top. */

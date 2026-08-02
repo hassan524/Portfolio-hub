@@ -1,5 +1,5 @@
 import { useRef, type ElementType, type CSSProperties, type FocusEvent } from "react";
-import { handleEditableBlur } from "@/lib/functions/TemplateDialog";
+import { handleEditableBlur } from "@/lib/functions/template";
 
 export function Editable({
   value,

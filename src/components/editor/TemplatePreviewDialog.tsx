@@ -5,7 +5,6 @@ import { TemplateLivePreview } from "./TemplateLivePreview";
 import { ElementStylePanel } from "./ElementStylePanel";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
-
 import {
   toggleMaximize,
   updateBlockProps,
@@ -17,7 +16,7 @@ import {
   resetSelectedElement,
   syncTemplateState,
   handleFullscreenChange,
-} from "@/lib/functions/TemplateDialog";
+} from "@/lib/functions/template";
 
 interface Props {
   template: SiteData | null;
@@ -36,9 +35,6 @@ const FALLBACK_THEME: Theme = {
   spacing: "cozy",
 };
 
-/**
- * Modal dialog component for previewing and customizing portfolio templates in real time.
- */
 export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props) {
   const [activeSection, setActiveSection] = useState<string>("hero");
   const [site, setSite] = useState<SiteData | null>(null);
@@ -50,7 +46,14 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
 
   // Synchronize state when a new template target opens
   useEffect(() => {
-    syncTemplateState(template, setSite, setActiveSection, setDevice, setIsMaximized, setSelectedElement);
+    syncTemplateState(
+      template,
+      setSite,
+      setActiveSection,
+      setDevice,
+      setIsMaximized,
+      setSelectedElement,
+    );
   }, [template]);
 
   // Synchronize maximization state with native browser fullscreen state changes
@@ -75,7 +78,9 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
     updateTheme(setSite, patch, FALLBACK_THEME);
   };
 
-  const handleUpdateSiteMeta = (patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>) => {
+  const handleUpdateSiteMeta = (
+    patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>,
+  ) => {
     updateSiteMeta(setSite, patch);
   };
 
@@ -89,7 +94,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
 
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
-      changeElementStyle(setSite, setSelectedElement, elementId, patch)
+      changeElementStyle(setSite, setSelectedElement, elementId, patch),
     );
   };
 

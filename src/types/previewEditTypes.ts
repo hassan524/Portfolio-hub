@@ -12,6 +12,9 @@ export type PreviewElementStyle = {
   fontSize?: number | null;
   width?: string | null;
   height?: string | null;
+  freePositioned?: boolean;
+  desktop?: { x: number; y: number };
+  mobile?: { x: number; y: number };
   x?: number;
   y?: number;
   removed?: boolean;
