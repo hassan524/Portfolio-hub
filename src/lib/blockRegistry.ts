@@ -10,6 +10,7 @@ import {
 import {
   Projects1, Projects2, Projects3, Projects4, Projects5, Projects6, Projects7, Projects8, Projects9, Projects10,
   Projects11, Projects12, Projects13, Projects14, Projects15, Projects16, Projects17, Projects18, Projects19, Projects20,
+  Projects21, Projects22, Projects23, Projects24, Projects25, Projects26, Projects27, Projects28, Projects29, Projects30,
 } from "@/components/blocks/projects";
 import {
   About1, About2, About3, About4, About5, About6, About7, About8, About9, About10,
@@ -44,14 +45,12 @@ export type BlockCatalogEntry = {
 
 export const BLOCK_REGISTRY: Partial<Record<BlockKind, VariantMap>> = {
 navbar: {
-  // Legacy aliases
   minimal: Navbar1,
   "centered-logo": Navbar2,
   split: Navbar3,
   mega: Navbar4,
   sidebar: Navbar5,
 
-  // New variants
   navbar1: Navbar1,
   navbar2: Navbar2,
   navbar3: Navbar3,
@@ -73,6 +72,8 @@ navbar: {
     "projects-6": Projects6, "projects-7": Projects7, "projects-8": Projects8, "projects-9": Projects9, "projects-10": Projects10,
     "projects-11": Projects11, "projects-12": Projects12, "projects-13": Projects13, "projects-14": Projects14, "projects-15": Projects15,
     "projects-16": Projects16, "projects-17": Projects17, "projects-18": Projects18, "projects-19": Projects19, "projects-20": Projects20,
+    "projects-21": Projects21, "projects-22": Projects22, "projects-23": Projects23, "projects-24": Projects24, "projects-25": Projects25,
+    "projects-26": Projects26, "projects-27": Projects27, "projects-28": Projects28, "projects-29": Projects29, "projects-30": Projects30,
   },
   about: {
     "two-column": About1, timeline: About2, "stats-side": About3,
@@ -118,6 +119,16 @@ navbar: {
 export function getBlockComponent(kind: string, variant?: string) {
   const variants = BLOCK_REGISTRY[kind as BlockKind];
   if (!variants) return null;
+
+  if (variant && variant in variants) {
+    return variants[variant];
+  }
+
+  if (variant && variant.startsWith("projects-")) {
+    const fallback = variants["projects-1"] ?? Object.values(variants)[0] ?? null;
+    return fallback;
+  }
+
   return variants[variant ?? ""] ?? Object.values(variants)[0] ?? null;
 }
 
