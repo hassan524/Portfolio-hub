@@ -75,7 +75,6 @@ export function TemplatePreview({ t }: { t: SiteData }) {
   }, []);
 
   const sorted = [...(t.blocks ?? [])].sort((a, b) => a.order - b.order);
-  const hasNavbar = sorted.some((b) => b.props.kind === "navbar");
 
   return (
     <div ref={wrapperRef} className="absolute inset-0 overflow-hidden pointer-events-none select-none">
@@ -88,7 +87,6 @@ export function TemplatePreview({ t }: { t: SiteData }) {
           color: theme.ink,
         }}
       >
-        {!hasNavbar && <DefaultNavStrip theme={theme} name={t.name} />}
 
         {sorted.map((b) => {
           const variant = (b.props as any).variant as string | undefined;

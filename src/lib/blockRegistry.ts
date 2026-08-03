@@ -168,7 +168,7 @@ export const BLOCK_CATALOG: BlockCatalogEntry[] = [
       variant: "projects-1",
       eyebrow: "Selected work",
       heading: "Projects",
-      items: [{ title: "Project name", desc: "Short project description.", tags: ["Design"] }],
+      items: [{ title: "Project name", desc: "Short project description.", tags: "Design" }],
     },
   },
   {
