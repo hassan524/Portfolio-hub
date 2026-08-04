@@ -8,7 +8,7 @@ import type {
   PreviewElementEdit,
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
-import type { SiteData, Block, BlockTypography } from "@/types/builder.schema";
+import type { SiteData, Block } from "@/types/builder.schema";
 import { Dispatch, RefObject, SetStateAction } from "react";
 import {
   calculateFrameResize,
@@ -26,7 +26,7 @@ import {
 } from "@/lib/functions/template";
 import PreviewIframe from "./PreviewIframe";
 import { GuideOverlay } from "@/components/editor/GuideOverlay";
-import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
+import { useConfirm } from "@/context/ConfirmationContext";
 
 type Device = "desktop" | "responsive";
 
@@ -68,7 +68,7 @@ export function TemplateLivePreview({
   onDeviceChange: (device: Device) => void;
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
 
-  onUpdateTypography?: (blockId: string, patch: Partial<BlockTypography>) => void;
+  onUpdateTypography?: (blockId: string, patch: any) => void;
 
   onReorderBlocks: (blocks: Block[]) => void;
   isMaximized: boolean;
@@ -96,10 +96,9 @@ export function TemplateLivePreview({
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null);
   const isDesktop = device === "desktop";
 
+  const confirm = useConfirm();
   const [editMode, setEditMode] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
-  const [confirmMoveOpen, setConfirmMoveOpen] = useState(false);
-  const [confirmRootOpen, setConfirmRootOpen] = useState(false);
   const [pendingRootSelection, setPendingRootSelection] = useState<PreviewElementEdit | null>(null);
   const [size, setSize] = useState({
     width: DEFAULT_RESPONSIVE_WIDTH,
@@ -299,7 +298,15 @@ export function TemplateLivePreview({
 
     if (elementId.endsWith(":root")) {
       setPendingRootSelection(nextSelection);
-      setConfirmRootOpen(true);
+      confirm({
+        type: "warning",
+        title: "Select full section?",
+        description: "This will edit the whole section container instead of only the text, image, or button you clicked.",
+        confirmLabel: "Select section",
+      }).then((ok) => {
+        if (ok && nextSelection) onSelectElement?.(nextSelection);
+        setPendingRootSelection(null);
+      });
       return;
     }
 
@@ -337,12 +344,21 @@ export function TemplateLivePreview({
     toggleEditModeFn(setEditMode, sorted, site, onSelectElement);
   }
 
-  function handleToggleMoveMode() {
+  async function handleToggleMoveMode() {
     if (moveMode) {
       setMoveMode(false);
       return;
     }
-    setConfirmMoveOpen(true);
+    const ok = await confirm({
+      type: "allow",
+      title: "Turn on move mode?",
+      description: "Elements can be freely moved. Alignment guides only appear when an element is close to another element.",
+      confirmLabel: "Allow moving",
+    });
+    if (ok) {
+      setEditMode(true);
+      setMoveMode(true);
+    }
   }
 
   const content = (
@@ -671,31 +687,7 @@ export function TemplateLivePreview({
         }
       `}</style>
 
-      <ConfirmationDialog
-        open={confirmMoveOpen}
-        type="allow"
-        title="Turn on move mode?"
-        description="Elements can be freely moved. Alignment guides only appear when an element is close to another element."
-        confirmLabel="Allow moving"
-        onOpenChange={setConfirmMoveOpen}
-        onConfirm={() => {
-          setEditMode(true);
-          setMoveMode(true);
-        }}
-      />
 
-      <ConfirmationDialog
-        open={confirmRootOpen}
-        type="warning"
-        title="Select full section?"
-        description="This will edit the whole section container instead of only the text, image, or button you clicked."
-        confirmLabel="Select section"
-        onOpenChange={setConfirmRootOpen}
-        onConfirm={() => {
-          if (pendingRootSelection) onSelectElement?.(pendingRootSelection);
-          setPendingRootSelection(null);
-        }}
-      />
     </main>
   );
 }

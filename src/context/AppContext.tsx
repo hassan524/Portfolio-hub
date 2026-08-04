@@ -29,6 +29,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      console.log("Session data:", data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
     });

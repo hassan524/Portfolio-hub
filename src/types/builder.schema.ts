@@ -198,6 +198,9 @@ export type Block = {
   type: BlockKind;
   order: number;
   props: BlockProps;
+  height?: number;
+  label?: string;
+  isCustom?: boolean;
 };
 
 /* =========================

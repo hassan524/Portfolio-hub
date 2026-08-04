@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Globe, ExternalLink, CheckCircle } from "lucide-react";
+import { useConfirm } from "@/context/ConfirmationContext";
 import { type Portfolio } from "./types";
 
 interface DomainPanelProps {
@@ -9,6 +10,7 @@ interface DomainPanelProps {
 }
 
 export function DomainPanel({ portfolio, onUpdate }: DomainPanelProps) {
+  const confirm = useConfirm();
   const [customDomain, setCustomDomain] = useState(portfolio.domain || "");
   const [connected, setConnected] = useState(!!portfolio.domain && portfolio.domain !== "Not connected");
   const [saving, setSaving] = useState(false);
@@ -28,8 +30,14 @@ export function DomainPanel({ portfolio, onUpdate }: DomainPanelProps) {
     }, 1000);
   };
 
-  const handleRemove = () => {
-    if (confirm("Disconnect custom domain? Your site will fall back to your subdomain.")) {
+  const handleRemove = async () => {
+    const ok = await confirm({
+      type: "disconnect",
+      title: "Disconnect custom domain?",
+      description: "Your site will fall back to your subdomain.",
+      confirmLabel: "Disconnect",
+    });
+    if (ok) {
       onUpdate({
         ...portfolio,
         domain: "Not connected",

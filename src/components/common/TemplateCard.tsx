@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import type { SiteData, Theme } from "@/types/builder.schema";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "@/context/AppContext";
+
 
 const FALLBACK_THEME: Theme = {
   bg: "#ffffff",
@@ -24,7 +27,19 @@ export function TemplateCard({
   index?: number;
   onPreview?: (template: SiteData) => void;
 }) {
+
   const theme = t.theme ?? FALLBACK_THEME;
+  const navigate = useNavigate();
+  const { user } = useAppContext();
+
+  function handleClick() {
+    if (!user) {
+      setTimeout(() => {
+        navigate("/auth/signup");
+      }, 500);
+    }
+    else onPreview?.(t);
+  }
 
   return (
     <motion.div
@@ -36,7 +51,7 @@ export function TemplateCard({
     >
       <button
         type="button"
-        onClick={() => onPreview?.(t)}
+        onClick={handleClick}
         className="block w-full overflow-hidden rounded-2xl border border-border bg-card text-left shadow-soft hover:shadow-lift transition-all duration-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <div className="relative aspect-[4/3] overflow-hidden" style={{ backgroundColor: theme.bg }}>
@@ -92,7 +107,7 @@ export function TemplatePreview({ t }: { t: SiteData }) {
           const variant = (b.props as any).variant as string | undefined;
           const Cmp = getBlockComponent(b.props.kind, variant);
           if (!Cmp) return null;
-          return <Cmp key={b.id} id={b.id} props={b.props} theme={theme} onChange={() => {}} />;
+          return <Cmp key={b.id} id={b.id} props={b.props} theme={theme} onChange={() => { }} />;
         })}
       </div>
     </div>

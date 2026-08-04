@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppProvider } from "@/context/AppContext";
+import { ConfirmationProvider } from "@/context/ConfirmationContext";
 import { LandingPage } from "@/components/individual/home/LandingPage";
 import { AboutPage } from "@/components/individual/about/AboutPage";
 import { ContactPage } from "@/components/individual/contact/ContactPage";
@@ -53,48 +54,50 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/cookies" element={<CookiesPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/portfolios" element={<PortfoliosPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/status" element={<StatusPage />} />
-            <Route path="/templates" element={<TemplatesPage />} />
-            <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route
-              path="/auth"
-              element={
-                <AuthRoute>
-                  <LoginPage />
-                </AuthRoute>
-              }
-            />
-            <Route
-              path="/auth/login"
-              element={
-                <AuthRoute>
-                  <LoginPage />
-                </AuthRoute>
-              }
-            />
-            <Route
-              path="/auth/signup"
-              element={
-                <AuthRoute>
-                  <SignupPage />
-                </AuthRoute>
-              }
-            />
-            <Route path="/social/*" element={<SocialRoute />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </BrowserRouter>
+        <ConfirmationProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/cookies" element={<CookiesPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/portfolios" element={<PortfoliosPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/status" element={<StatusPage />} />
+              <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route
+                path="/auth"
+                element={
+                  <AuthRoute>
+                    <LoginPage />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="/auth/login"
+                element={
+                  <AuthRoute>
+                    <LoginPage />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="/auth/signup"
+                element={
+                  <AuthRoute>
+                    <SignupPage />
+                  </AuthRoute>
+                }
+              />
+              <Route path="/social/*" element={<SocialRoute />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </BrowserRouter>
+        </ConfirmationProvider>
       </AppProvider>
     </QueryClientProvider>
   );

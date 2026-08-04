@@ -15,6 +15,7 @@ import {
   LogOut
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import { useConfirm } from "@/context/ConfirmationContext";
 import { type Portfolio } from "./types";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
@@ -64,6 +65,7 @@ function TabLoadingSkeleton() {
 
 export function DashboardPage() {
   const { session, signOut, user } = useAppContext();
+  const confirm = useConfirm();
   const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -188,7 +190,13 @@ export function DashboardPage() {
   };
 
   const handleDeletePortfolio = async (id: string) => {
-    if (confirm("Are you sure you want to delete this portfolio? This cannot be undone.")) {
+    const ok = await confirm({
+      type: "delete",
+      title: "Delete this portfolio?",
+      description: "Are you sure you want to delete this portfolio? This cannot be undone.",
+      confirmLabel: "Delete",
+    });
+    if (ok) {
       await deletePortfolio(id);
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
