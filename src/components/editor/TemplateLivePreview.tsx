@@ -56,6 +56,7 @@ export function TemplateLivePreview({
   onToggleMaximize,
   onClose,
   onSave,
+  hasChanges,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -81,10 +82,12 @@ export function TemplateLivePreview({
   ) => void;
   onClose: () => void;
   onSave?: (site: SiteData) => void;
+  hasChanges?: boolean;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
   const ink = theme.ink;
+  const isChanged = hasChanges ?? false;
 
   const frameRef = useRef<HTMLDivElement>(null);
   const responsiveFrameRef = useRef<HTMLIFrameElement>(null);
@@ -587,14 +590,25 @@ export function TemplateLivePreview({
           <div className="h-5 w-px bg-border" />
 
           {onSave && (
-            <button
-              onClick={() => onSave(site)}
-              className="flex h-8 cursor-pointer items-center gap-2 rounded-md bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90"
-              title="Save"
-            >
-              <Save className="h-4 w-4" />
-              Save
-            </button>
+            isChanged ? (
+              <button
+                onClick={() => onSave(site)}
+                className="flex h-8 cursor-pointer items-center gap-2 rounded-md bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90"
+                title="Save changes"
+              >
+                <Save className="h-4 w-4" />
+                Save
+              </button>
+            ) : (
+              <button
+                disabled
+                className="flex h-8 items-center gap-2 rounded-md border border-border bg-secondary px-3 text-xs font-medium text-ink-soft opacity-50 cursor-not-allowed select-none"
+                title="Make a change first to enable saving"
+              >
+                <Save className="h-4 w-4" />
+                Choose
+              </button>
+            )
           )}
 
           <button

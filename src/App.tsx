@@ -15,6 +15,7 @@ import { SocialRedirectPage } from "@/components/individual/social/SocialRedirec
 import { StatusPage } from "@/components/individual/status/StatusPage";
 import { TemplatesPage } from "@/components/individual/templates/TemplatesPage";
 import { TermsPage } from "@/components/individual/terms/TermsPage";
+import { PricingPage } from "@/components/individual/pricing/PricingPage";
 import { AuthLayout } from "@/components/individual/auth/AuthLayout";
 import { LoginPage } from "@/components/individual/auth/LoginPage";
 import { SignupPage } from "@/components/individual/auth/SignupPage";
@@ -67,6 +68,7 @@ export default function App() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route

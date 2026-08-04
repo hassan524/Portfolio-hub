@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { TemplateSidebar } from "./TemplateSidebar";
 import { TemplateLivePreview } from "./TemplateLivePreview";
 import { ElementStylePanel } from "./ElementStylePanel";
 import { SaveDeployModal } from "@/components/common/SaveDeployModal";
+import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
 import {
@@ -38,6 +40,9 @@ const FALLBACK_THEME: Theme = {
 
 export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props) {
 
+  const navigate = useNavigate();
+  const { profile } = useAppContext();
+
   const [activeSection, setActiveSection] = useState<string>("hero");
 
   const [site, setSite] = useState<SiteData | null>(null);
@@ -48,9 +53,13 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
 
+  // ── Change tracking ────────────────────────────────────────────────────
+  // Starts false when a template is opened. Flips to true on any mutation.
+  const [hasChanges, setHasChanges] = useState(false);
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Synchronize state when a new template target opens
+  // Synchronize state when a new template target opens — also resets hasChanges
   useEffect(() => {
     syncTemplateState(
       template,
@@ -60,6 +69,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
       setIsMaximized,
       setSelectedElement,
     );
+    setHasChanges(false);
   }, [template]);
 
   // Synchronize maximization state with native browser fullscreen state changes
@@ -78,44 +88,56 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   // ── State Handler Delegates ──────────────────────────────────────────
   const handleUpdateBlockProps = (blockId: string, patch: Record<string, unknown>) => {
     updateBlockProps(setSite, blockId, patch);
+    setHasChanges(true);
   };
 
   const handleUpdateTheme = (patch: Partial<Theme>) => {
     updateTheme(setSite, patch, FALLBACK_THEME);
+    setHasChanges(true);
   };
 
   const handleUpdateSiteMeta = (
     patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>,
   ) => {
     updateSiteMeta(setSite, patch);
+    setHasChanges(true);
   };
 
   const handleReorderBlocks = (nextBlocks: Block[]) => {
     reorderBlocks(setSite, nextBlocks);
+    setHasChanges(true);
   };
 
   const handleChangeElementStyle = (elementId: string, patch: Partial<PreviewElementStyle>) => {
     changeElementStyle(setSite, setSelectedElement, elementId, patch);
+    setHasChanges(true);
   };
 
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
       changeElementStyle(setSite, setSelectedElement, elementId, patch),
     );
+    setHasChanges(true);
   };
 
   const handleResetSelectedElement = () => {
     resetSelectedElement(selectedElement, setSite, setSelectedElement);
+    setHasChanges(true);
   };
 
-  // Thin wrapper so child components that expect (site: SiteData) => void still work
   const handleSaveClick = (_site?: SiteData) => {
+    const isPaid = profile?.is_paid === true;
+
+    if (!isPaid) {
+      onClose();
+      setTimeout(() => navigate("/pricing"), 320);
+      return;
+    }
+
     setSaveModalOpen(true);
   };
 
   // Called by SaveDeployModal once the user confirms a target (vercel/netlify).
-  // Previously this ignored the `deploymentTarget` argument entirely, so
-  // `deployedPlatform` never actually updated when a platform was picked.
   const handleConfirmSave = (deploymentTarget?: string) => {
     if (deploymentTarget === "vercel" || deploymentTarget === "netlify") {
       setdeployedPlatform(deploymentTarget);
@@ -180,6 +202,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
                 onToggleMaximize={toggleMaximize}
                 onClose={onClose}
                 onSave={handleSaveClick}
+                hasChanges={hasChanges}
               />
 
               {/* Element Fine-Tuning Panel */}
