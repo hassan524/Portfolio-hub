@@ -11,6 +11,7 @@ import { DashboardPage } from "@/components/individual/dashboard/DashboardPage";
 import { HelpPage } from "@/components/individual/help/HelpPage";
 import { PortfoliosPage } from "@/components/individual/dashboard/PortfoliosPage";
 import { PrivacyPage } from "@/components/individual/privacy/PrivacyPage";
+import { RefundPage } from "@/components/individual/refund/RefundPage";
 import { SocialRedirectPage } from "@/components/individual/social/SocialRedirectPage";
 import { StatusPage } from "@/components/individual/status/StatusPage";
 import { TemplatesPage } from "@/components/individual/templates/TemplatesPage";
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/portfolios" element={<PortfoliosPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/refund" element={<RefundPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
               <Route path="/pricing" element={<PricingPage />} />

@@ -58,6 +58,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/refund" className="text-sm text-ink hover:text-ink-soft transition-colors">
+                  Refunds
+                </Link>
+              </li>
+              <li>
                 <Link to="/cookies" className="text-sm text-ink hover:text-ink-soft transition-colors">
                   Cookies
                 </Link>

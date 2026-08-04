@@ -47,6 +47,13 @@ export function AuthFooter({ mode }: AuthFooterProps) {
           className="underline underline-offset-2 hover:text-ink-soft"
         >
           Privacy Policy
+        </Link>{" "}
+        and{" "}
+        <Link
+          to="/refund"
+          className="underline underline-offset-2 hover:text-ink-soft"
+        >
+          Refund Policy
         </Link>
         .
       </p>
