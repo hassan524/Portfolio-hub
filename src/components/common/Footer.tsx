@@ -58,7 +58,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/refund" className="text-sm text-ink hover:text-ink-soft transition-colors">
+                <Link to="/refunds" className="text-sm text-ink hover:text-ink-soft transition-colors">
                   Refunds
                 </Link>
               </li>

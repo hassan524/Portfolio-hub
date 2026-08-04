@@ -67,7 +67,7 @@ export default function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/portfolios" element={<PortfoliosPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/refund" element={<RefundPage />} />
+              <Route path="/refunds" element={<RefundPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
               <Route path="/pricing" element={<PricingPage />} />

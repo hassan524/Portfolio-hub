@@ -50,7 +50,7 @@ export function AuthFooter({ mode }: AuthFooterProps) {
         </Link>{" "}
         and{" "}
         <Link
-          to="/refund"
+          to="/refunds"
           className="underline underline-offset-2 hover:text-ink-soft"
         >
           Refund Policy
