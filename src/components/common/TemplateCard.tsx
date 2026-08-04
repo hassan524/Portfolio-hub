@@ -30,10 +30,10 @@ export function TemplateCard({
 
   const theme = t.theme ?? FALLBACK_THEME;
   const navigate = useNavigate();
-  const { user } = useAppContext();
+  const { profile } = useAppContext();
 
   function handleClick() {
-    if (!user) {
+    if (!profile) {
       setTimeout(() => {
         navigate("/auth/signup");
       }, 500);
