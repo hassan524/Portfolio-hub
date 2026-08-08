@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { AppProvider } from "@/context/AppContext";
 import { ConfirmationProvider } from "@/context/ConfirmationContext";
 import { LandingPage } from "@/components/individual/home/LandingPage";
@@ -17,9 +17,10 @@ import { StatusPage } from "@/components/individual/status/StatusPage";
 import { TemplatesPage } from "@/components/individual/templates/TemplatesPage";
 import { TermsPage } from "@/components/individual/terms/TermsPage";
 import { PricingPage } from "@/components/individual/pricing/PricingPage";
-import { AuthLayout } from "@/components/individual/auth/AuthLayout";
 import { LoginPage } from "@/components/individual/auth/LoginPage";
 import { SignupPage } from "@/components/individual/auth/SignupPage";
+import { useAppContext } from "@/context/AppContext";
+import { ScrollToTop } from "./components/common/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -43,8 +44,44 @@ function NotFoundPage() {
   );
 }
 
+/**
+ * Gate for pages that require an active session — dashboard, portfolios,
+ * templates. Anyone without a session gets bounced to login instead of
+ * seeing the page flash before redirecting. The current location is
+ * passed along in state so LoginPage/SignupPage can send them back to
+ * exactly where they were trying to go once they sign in.
+ */
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { session } = useAppContext();
+  const location = useLocation();
+
+  if (!session) {
+    return <Navigate to="/auth/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * Gate for auth-only pages — login, signup. A user who's already signed
+ * in has no reason to see these, so send them straight to the dashboard.
+ */
+function GuestRoute({ children }: { children: ReactNode }) {
+  const { session } = useAppContext();
+
+  if (session) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AuthRoute({ children }: { children: ReactNode }) {
-  return <AuthLayout>{children}</AuthLayout>;
+  return (
+    <GuestRoute>
+     {children}
+    </GuestRoute>
+  );
 }
 
 function SocialRoute() {
@@ -58,18 +95,40 @@ export default function App() {
       <AppProvider>
         <ConfirmationProvider>
           <BrowserRouter>
+          <ScrollToTop />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/cookies" element={<CookiesPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/help" element={<HelpPage />} />
-              <Route path="/portfolios" element={<PortfoliosPage />} />
+              <Route
+                path="/portfolios"
+                element={
+                  <ProtectedRoute>
+                    <PortfoliosPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/refunds" element={<RefundPage />} />
               <Route path="/status" element={<StatusPage />} />
-              <Route path="/templates" element={<TemplatesPage />} />
+              <Route
+                path="/templates"
+                element={
+                  <ProtectedRoute>
+                    <TemplatesPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
               <Route path="/terms" element={<TermsPage />} />

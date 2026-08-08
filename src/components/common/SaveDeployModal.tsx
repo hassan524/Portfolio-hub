@@ -14,22 +14,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import {
-  isPlatformAuthorized,
-  setPlatformAuthorized,
-  openPlatformAuth,
-  type DeployPlatform,
-} from "@/api/deployApi";
 import { useTypewriter } from "@/utils/type";
 
+export type DeployPlatform = "vercel" | "netlify";
 
 export interface SaveDeployModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmSave: (deploymentTarget?: string) => void;
   siteName?: string;
-  deployedPlatform?: "vercel" | "netlify";
-  setDeployedPlatform?: (platform: "vercel" | "netlify") => void;
+  deployedPlatform?: DeployPlatform;
+  setDeployedPlatform?: (platform: DeployPlatform) => void;
+  // Optional custom handlers for you to wire up your API later
+  isPlatformAuthorized?: (platform: DeployPlatform) => boolean;
+  onOpenPlatformAuth?: (platform: DeployPlatform) => void;
 }
 
 type DeployTarget = {
@@ -57,12 +55,8 @@ const TARGETS: DeployTarget[] = [
   },
 ];
 
-
-
-
 const DEPLOY_EXPLANATION =
   "Vercel and Netlify are free hosting platforms. They take your site and put it live on the internet in seconds — no server setup needed. Authorize once and deploy anytime.";
-
 
 export function SaveDeployModal({
   open,
@@ -71,22 +65,20 @@ export function SaveDeployModal({
   siteName = "My Portfolio",
   deployedPlatform,
   setDeployedPlatform,
+  isPlatformAuthorized = () => false, // Replace with your API check later
+  onOpenPlatformAuth = () => {},     // Replace with your API auth opener later
 }: SaveDeployModalProps) {
-
-  // Steps: confirm → saving → deploy → authorize → deploying
   const [step, setStep] = useState<"confirm" | "saving" | "deploy" | "authorize">("confirm");
   const [isDeploying, setIsDeploying] = useState(false);
   const [selected, setSelected] = useState<DeployPlatform>(deployedPlatform ?? "vercel");
 
-  // Per-platform authorization tracking (persisted in localStorage via deployApi)
+  // Local authorization state tracker
   const [authorized, setAuthorized] = useState<Record<DeployPlatform, boolean>>({
     vercel: isPlatformAuthorized("vercel"),
     netlify: isPlatformAuthorized("netlify"),
   });
 
-  // Polling ref for when OAuth window is open
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const typedText = useTypewriter(DEPLOY_EXPLANATION, 22, step === "deploy");
 
   useEffect(() => {
@@ -99,10 +91,8 @@ export function SaveDeployModal({
         netlify: isPlatformAuthorized("netlify"),
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, deployedPlatform, isPlatformAuthorized]);
 
-  // Cleanup poll on unmount
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -121,18 +111,15 @@ export function SaveDeployModal({
     setDeployedPlatform?.(id);
   };
 
-  // ── Authorization flow ───────────────────────────────────────────────
+  // ── Authorization flow placeholder ──────────────────────────────────
   const handleAuthorize = (platform: DeployPlatform) => {
-    // Open OAuth popup
-    openPlatformAuth(platform);
+    // Call your custom auth opener prop
+    onOpenPlatformAuth(platform);
 
-    // Poll localStorage every 1.5s for the authorized flag
-    // (In production the callback page would set this before closing the window)
     if (pollRef.current) clearInterval(pollRef.current);
 
-    // For demo: after 4 s we simulate a successful auth if no real callback
+    // Simulation timer for demo purposes (remove or update when integrating real API)
     const demoTimer = setTimeout(() => {
-      setPlatformAuthorized(platform, true);
       setAuthorized((prev) => ({ ...prev, [platform]: true }));
       toast.success(`${platform === "vercel" ? "Vercel" : "Netlify"} authorized!`);
       if (pollRef.current) clearInterval(pollRef.current);
@@ -151,7 +138,6 @@ export function SaveDeployModal({
   const handleDeploy = () => {
     const target = TARGETS.find((x) => x.id === selected);
 
-    // If the selected platform isn't authorized yet, go to authorize step first
     if (!authorized[selected]) {
       setStep("authorize");
       return;
@@ -284,7 +270,6 @@ export function SaveDeployModal({
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="p-5"
                   >
-                    {/* Header */}
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
                         <Rocket className="h-4 w-4" />
@@ -292,7 +277,6 @@ export function SaveDeployModal({
                       <h2 className="text-sm font-bold text-ink">Deploy your site</h2>
                     </div>
 
-                    {/* Typewriter explanation */}
                     <div className="mt-3 min-h-[52px] rounded-lg bg-secondary/50 px-3 py-2.5">
                       <p className="text-[11px] leading-[1.6] text-ink-soft">
                         {typedText}
@@ -300,7 +284,6 @@ export function SaveDeployModal({
                       </p>
                     </div>
 
-                    {/* Target cards */}
                     <div className="mt-4 space-y-2">
                       {TARGETS.map((t) => {
                         const active = selected === t.id;
@@ -353,7 +336,6 @@ export function SaveDeployModal({
                       })}
                     </div>
 
-                    {/* Actions */}
                     <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
                       <button
                         type="button"
@@ -401,7 +383,6 @@ export function SaveDeployModal({
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="p-5"
                   >
-                    {/* Header */}
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
                         <ShieldCheck className="h-4 w-4" />
@@ -416,7 +397,6 @@ export function SaveDeployModal({
                       </div>
                     </div>
 
-                    {/* Explanation */}
                     <div className="mt-4 rounded-xl border border-border bg-secondary/40 px-4 py-3.5 space-y-1.5">
                       <p className="text-[11px] leading-relaxed text-ink-soft">
                         We need permission to deploy to your{" "}
@@ -428,7 +408,6 @@ export function SaveDeployModal({
                       </p>
                     </div>
 
-                    {/* Waiting indicator — shown after clicking Authorize */}
                     {authorized[selected] ? (
                       <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -448,7 +427,6 @@ export function SaveDeployModal({
                       </button>
                     )}
 
-                    {/* Actions */}
                     <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
                       <button
                         type="button"

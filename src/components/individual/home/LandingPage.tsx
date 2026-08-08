@@ -39,6 +39,7 @@ export function LandingPage() {
       <Testimonials />
       <FAQ />
       <FinalCTA />
+
       <TemplatePreviewDialog
         template={dialogTemplate}
         open={dialogOpen}

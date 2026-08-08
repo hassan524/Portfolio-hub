@@ -45,7 +45,7 @@ export function HowItWorks() {
               className="relative rounded-2xl border border-border bg-surface-elevated p-8 shadow-soft"
             >
               <div className="flex items-center justify-between">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-foreground text-background">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">
                   <s.icon className="h-5 w-5" />
                 </span>
                 <span className="font-display text-3xl italic text-ink-soft">{s.n}</span>

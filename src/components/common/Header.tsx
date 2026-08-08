@@ -1,10 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Sparkles, LayoutDashboard } from "lucide-react";
+import { Menu, X, Sparkles, LayoutDashboard, ChevronRight } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
-const NAV_LINKS = [
+const PUBLIC_NAV_LINKS = [
+  { label: "Templates", to: "/templates" as const },
+  { label: "Features", to: "/features" as const },
+  { label: "Pricing", to: "/pricing" as const },
+  { label: "About", to: "/about" as const },
+  { label: "Help", to: "/help" as const },
+  { label: "Contact", to: "/contact" as const },
+];
+
+const AUTH_NAV_LINKS = [
   { label: "Templates", to: "/templates" as const },
   { label: "About", to: "/about" as const },
   { label: "Help", to: "/help" as const },
@@ -16,10 +25,13 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
-  const { user, session, signOut } = useAppContext();
+  const { profile, session, signOut } = useAppContext();
+
   const navigate = useNavigate();
 
   const isLoggedIn = !!session;
+
+  const NAV_LINKS = isLoggedIn ? AUTH_NAV_LINKS : PUBLIC_NAV_LINKS;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -40,34 +52,40 @@ export function Header() {
     }
   }, [avatarOpen]);
 
-  const displayName =
-    user?.user_metadata?.full_name || user?.email || "User";
+  const displayName = profile?.full_name || profile?.email || "User";
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
   const handleSignOut = async () => {
     setAvatarOpen(false);
+    setOpen(false);
     await signOut();
     navigate("/");
   };
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-[0_1px_3px_oklch(0.2_0.02_260_/_0.06)]"
-          : "border-b border-transparent bg-background/60 backdrop-blur-md"
-      }`}
+    // Mobile: plain sticky-to-top bar, full width, no rounding, no side gutters.
+    // Desktop (md+): unchanged floating pill behavior.
+    <div
+      className="sticky top-0 z-50 px-0 md:top-4 md:px-3 sm:md:px-4"
+      style={{ fontFamily: "'Open Sans', sans-serif" }}
     >
-      <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-6">
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`flex h-14 w-full items-center justify-between border-b px-5 sm:px-6 backdrop-blur-xl transition-all duration-300
+          md:mx-auto md:max-w-6xl md:w-auto md:rounded-2xl md:border-t md:border-x md:px-5 ${
+          scrolled
+            ? "bg-surface-elevated/90 border-border/50 md:bg-surface-elevated/40 md:shadow-lift"
+            : "bg-surface-elevated/90 border-border/40 md:border-border/25 md:bg-surface-elevated/15 md:shadow-none"
+        }`}
+      >
         {/* ─── Logo ─── */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand shadow-soft transition-transform duration-300 group-hover:scale-105">
-            <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
+        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+          <span className="grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-lg bg-gradient-brand shadow-soft transition-transform duration-300 group-hover:scale-105">
+            <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" strokeWidth={2.5} />
           </span>
-          <span className="text-[17px] font-semibold tracking-tight">
+          <span className="text-[13px] sm:text-[15px] font-semibold tracking-tight">
             PortfolioHub
           </span>
         </Link>
@@ -78,7 +96,7 @@ export function Header() {
             <Link
               key={link.label}
               to={link.to}
-              className="relative px-3.5 py-2 text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors rounded-lg hover:bg-secondary/60"
+              className="relative px-3.5 py-2 text-[13px] font-medium text-ink-soft hover:text-ink transition-colors rounded-lg hover:bg-white/5"
             >
               {link.label}
             </Link>
@@ -91,16 +109,16 @@ export function Header() {
             <>
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2 rounded-lg hover:bg-secondary/60"
+                className="inline-flex items-center gap-2 text-[13px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                My portfolios
+                My Portfolio
               </Link>
               {/* Avatar dropdown */}
               <div ref={avatarRef} className="relative">
                 <button
                   onClick={() => setAvatarOpen((v) => !v)}
-                  className="group relative grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-white text-sm font-semibold shadow-soft hover:shadow-lift transition-all duration-300 hover:scale-105"
+                  className="group relative grid h-8 w-8 place-items-center rounded-full bg-gradient-brand text-white text-sm font-semibold shadow-soft hover:shadow-lift transition-all duration-300 hover:scale-105"
                 >
                   {avatarLetter}
                 </button>
@@ -111,17 +129,17 @@ export function Header() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute right-0 top-12 w-64 rounded-2xl border border-border bg-surface-elevated shadow-lift overflow-hidden z-50"
+                      className="absolute right-0 top-11 w-64 rounded-2xl border border-border/50 bg-surface-elevated/90 backdrop-blur-xl shadow-lift overflow-hidden z-50"
                     >
                       {/* User info */}
-                      <div className="px-4 py-4 border-b border-border">
+                      <div className="px-4 py-4 border-b border-border/50">
                         <div className="flex items-center gap-3">
                           <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-white text-sm font-semibold shrink-0">
                             {avatarLetter}
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-medium truncate">
-                              {user?.user_metadata?.full_name || "User"}
+                              {profile?.full_name || "User"}
                             </div>
                           </div>
                         </div>
@@ -131,11 +149,17 @@ export function Header() {
                         <Link
                           to="/dashboard"
                           onClick={() => setAvatarOpen(false)}
-                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-secondary/60 transition-colors"
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-white/5 transition-colors"
                         >
                           <LayoutDashboard className="h-4 w-4 text-ink-soft" />
                           My portfolios
                         </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-white/5 transition-colors"
+                        >
+                          Sign out
+                        </button>
                       </div>
                     </motion.div>
                   )}
@@ -146,15 +170,15 @@ export function Header() {
             <>
               <Link
                 to="/auth/login"
-                className="text-[13.5px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2"
+                className="text-[13px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2"
               >
                 Sign in
               </Link>
               <Link
                 to="/auth/signup"
-                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[13.5px] font-semibold text-background hover:opacity-90 transition-all shadow-soft hover:shadow-lift"
+                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold text-background hover:opacity-90 transition-all"
               >
-                Get Started
+                Get started
                 <svg
                   className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
                   fill="none"
@@ -173,9 +197,9 @@ export function Header() {
           )}
         </div>
 
-        {/* ─── Mobile Hamburger ─── */}
+        {/* ─── Mobile Hamburger — the ONLY close control ─── */}
         <button
-          className="md:hidden p-2 -mr-2 rounded-lg hover:bg-secondary/60 transition-colors"
+          className="md:hidden p-2 -mr-2 rounded-lg hover:bg-white/5 transition-colors"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -203,9 +227,9 @@ export function Header() {
             )}
           </AnimatePresence>
         </button>
-      </div>
+      </motion.header>
 
-      {/* ─── Mobile Menu ─── */}
+      {/* ─── Mobile Menu — row list with dividers, full width under the fixed bar ─── */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -213,31 +237,32 @@ export function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden border-t border-border overflow-hidden"
+            className="md:hidden absolute left-0 right-0 top-full mx-auto w-full overflow-hidden border-b border-border/40 bg-surface-elevated/95 backdrop-blur-xl shadow-lift md:mt-2 md:max-w-6xl md:rounded-2xl md:border"
           >
-            <div className="px-6 py-5 flex flex-col gap-1 bg-surface/95 backdrop-blur-xl">
+            <div className="flex flex-col px-2">
               {NAV_LINKS.map((link, i) => (
                 <motion.div
                   key={link.label}
-                  initial={{ opacity: 0, x: -16 }}
+                  initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.3 }}
+                  className={i !== NAV_LINKS.length - 1 ? "border-b border-border/30" : ""}
                 >
                   <Link
                     to={link.to}
                     onClick={() => setOpen(false)}
-                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors"
+                    className="flex items-center justify-between px-3 py-4 text-base font-semibold text-ink hover:text-ink-soft transition-colors"
                   >
                     {link.label}
+                    <ChevronRight className="h-4 w-4 text-ink-soft" />
                   </Link>
                 </motion.div>
               ))}
 
-              <div className="mt-3 pt-3 border-t border-border space-y-2">
+              <div className="mt-4 mb-3 px-3 space-y-3">
                 {isLoggedIn ? (
                   <>
-                    {/* User info in mobile */}
-                    <div className="flex items-center gap-3 px-3 py-2">
+                    <div className="flex items-center gap-3 pb-1">
                       <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-brand text-white text-xs font-semibold shrink-0">
                         {avatarLetter}
                       </div>
@@ -248,27 +273,33 @@ export function Header() {
                     <Link
                       to="/dashboard"
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-secondary/60 transition-colors"
+                      className="flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       My portfolios
                     </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
+                    >
+                      Sign out
+                    </button>
                   </>
                 ) : (
                   <>
                     <Link
                       to="/auth/login"
                       onClick={() => setOpen(false)}
-                      className="block text-center rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
+                      className="flex items-center justify-center rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
                     >
-                      Sign in
+                      Sign In
                     </Link>
                     <Link
                       to="/auth/signup"
                       onClick={() => setOpen(false)}
-                      className="block text-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
+                      className="flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
                     >
-                      Get Started
+                      Get started
                     </Link>
                   </>
                 )}
@@ -277,6 +308,6 @@ export function Header() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </div>
   );
 }

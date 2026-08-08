@@ -29,7 +29,7 @@ export function FeatureGrid() {
             transition={{ delay: i * 0.05 }}
             className="group bg-background p-8 hover:bg-surface transition-colors"
           >
-            <f.icon className="h-6 w-6" strokeWidth={1.5} />
+            <f.icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
             <h3 className="mt-6 text-lg font-medium">{f.t}</h3>
             <p className="mt-2 text-sm text-ink-soft leading-relaxed">{f.d}</p>
           </motion.div>

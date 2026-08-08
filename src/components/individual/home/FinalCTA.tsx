@@ -32,14 +32,14 @@ export function FinalCTA() {
           {isLoggedIn ? (
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
+              className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-6 py-3.5 text-sm font-semibold shadow-lift hover:opacity-90 transition-all"
             >
               Open Dashboard <ArrowRight className="h-4 w-4" />
             </Link>
           ) : (
             <Link
               to="/auth/signup"
-              className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3.5 text-sm font-medium shadow-lift"
+              className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-6 py-3.5 text-sm font-semibold shadow-lift hover:opacity-90 transition-all"
             >
               Get Started — it's free <ArrowRight className="h-4 w-4" />
             </Link>

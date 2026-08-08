@@ -27,10 +27,10 @@ export interface UserProfile {
 
   id: string;
 
-  fullName: string;
+  full_name: string;
   username: string;
   avatarUrl: string | null;
-
+  email: string
   is_paid: boolean;
 
   createdPortfolios: number;

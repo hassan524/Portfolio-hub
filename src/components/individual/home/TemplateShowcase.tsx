@@ -33,14 +33,14 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: SiteData) => vo
           </div>
           <div className="flex items-center gap-5">
             <span className="inline-flex items-center gap-2 text-sm text-ink-soft">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-background text-xs font-semibold">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
                 {templates.length}
               </span>
               templates
             </span>
             <Link
               to="/templates"
-              className="group inline-flex items-center gap-1.5 text-sm font-medium hover:gap-3 transition-all"
+              className="group inline-flex items-center gap-1.5 text-sm font-medium hover:text-primary hover:gap-3 transition-all"
             >
               See all templates{" "}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -83,7 +83,7 @@ export function TemplateShowcase({ onPreview }: { onPreview: (t: SiteData) => vo
         <div className="flex items-center justify-center">
           <Link
             to="/templates"
-            className="group inline-flex items-center gap-3 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300 shadow-soft hover:shadow-lift"
+            className="group inline-flex items-center gap-3 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-medium hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all duration-300 shadow-soft hover:shadow-lift"
           >
             <span>Show all {templates.length} templates</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
