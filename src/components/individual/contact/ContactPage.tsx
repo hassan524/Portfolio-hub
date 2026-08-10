@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageShell } from "@/components/common/PageShell";
+import { PageShell } from "@/components/individual/PageShell";
 export function ContactPage() {
   const [sent, setSent] = useState(false);
   return (
@@ -35,15 +35,15 @@ export function ContactPage() {
         <div className="space-y-6 text-sm">
           <div>
             <div className="text-xs uppercase tracking-widest text-ink-soft">General</div>
-            <div className="mt-1">hello@portfoliohub.app</div>
+            <div className="mt-1">hello@portflu.app</div>
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-ink-soft">Support</div>
-            <div className="mt-1">support@portfoliohub.app</div>
+            <div className="mt-1">support@portflu.app</div>
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-ink-soft">Press</div>
-            <div className="mt-1">press@portfoliohub.app</div>
+            <div className="mt-1">press@portflu.app</div>
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-ink-soft">Office</div>

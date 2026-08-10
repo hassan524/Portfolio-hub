@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { SiteLayout } from "@/components/common/Layout";
+import { SiteLayout } from "@/components/individual/Layout";
 import { TemplateCard } from "@/components/common/TemplateCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";

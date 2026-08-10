@@ -11,7 +11,7 @@ export function Footer() {
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-brand">
                 <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
               </span>
-              <span className="text-lg font-semibold">PortfolioHub</span>
+              <span className="text-lg font-semibold">Portflu</span>
             </Link>
             <p className="mt-4 max-w-sm text-sm text-ink-soft leading-relaxed">
               The fastest way to publish a portfolio you're proud of. Free, forever — with
@@ -73,7 +73,7 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-t border-border pt-6">
           <p className="text-xs text-ink-soft">
-            © {new Date().getFullYear()} PortfolioHub. Crafted for creators everywhere.
+            © {new Date().getFullYear()} Portflu. Crafted for creators everywhere.
           </p>
         </div>
       </div>

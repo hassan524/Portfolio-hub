@@ -44,7 +44,7 @@ export function LogoStrip() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -14 }}
                   transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className="font-display text-2xl sm:text-3xl italic text-ink text-center px-4"
+                  className="font-display text-2xl text-ink text-center px-4"
                 >
                   {TAGLINES[index]}
                 </motion.p>

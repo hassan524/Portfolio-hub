@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { SiteLayout } from "@/components/common/Layout";
+import { SiteLayout } from "@/components/individual/Layout";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import type { SiteData } from "@/types/builder.schema";
 
 // Subcomponents
-import { Hero } from "./Hero";
-import { LogoStrip } from "./LogoStrip";
-import { TemplateShowcase } from "./TemplateShowcase";
-import { HowItWorks } from "./HowItWorks";
-import { FeatureGrid } from "./FeatureGrid";
-import { LiveEditorPreview } from "./LiveEditorPreview";
-import { Testimonials } from "./Testimonials";
-import { FAQ } from "./FAQ";
-import { FinalCTA } from "./FinalCTA";
+import { Hero } from "./ui/Hero";
+import { LogoStrip } from "./ui/LogoStrip";
+import { TemplateShowcase } from "./ui/TemplateShowcase";
+import { HowItWorks } from "./ui/HowItWorks";
+import { FeatureGrid } from "./ui/FeatureGrid";
+import { LiveEditorPreview } from "./ui/LiveEditorPreview";
+import { Testimonials } from "./ui/Testimonials";
+import { FAQ } from "./ui/FAQ";
+import { FinalCTA } from "./ui/FinalCTA";
 
 export function LandingPage() {
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PageShell } from "@/components/common/PageShell";
+import { PageShell } from "@/components/individual/PageShell";
 
 export function SocialRedirectPage({ splat }: { splat: string }) {
   const name = splat ? splat.charAt(0).toUpperCase() + splat.slice(1) : "Social";
@@ -11,7 +11,7 @@ export function SocialRedirectPage({ splat }: { splat: string }) {
     >
       <div className="flex flex-wrap gap-3">
         <a
-          href={`https://${splat}.com/portfoliohub`}
+          href={`https://${splat}.com/portflu`}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-3 text-sm font-medium"

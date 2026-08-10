@@ -31,8 +31,8 @@ export function Hero() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
             className="font-display text-[40px] leading-[1.05] sm:text-[40px] sm:leading-[0.95] md:text-[65px] md:leading-[1] tracking-[-0.03em]"
           >
-            <span className="block open-sans">Everything you need</span>
-            <span className="block italic text-gradient-brand">to create stunning websites</span>
+            <span className="block">Everything you need</span>
+            <span className="block italic text-gradient-brand font-instrument">to create stunning websites</span>
           </motion.h1>
 
           <motion.p
@@ -82,7 +82,7 @@ export function Hero() {
               <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-              <span className="ml-3 text-[11px] text-ink-soft">portfoliohub.app/dashboard</span>
+              <span className="ml-3 text-[11px] text-ink-soft">portflu.app/dashboard</span>
             </div>
             <video
               src={VIDEO_SRC}

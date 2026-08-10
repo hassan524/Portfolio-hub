@@ -4,8 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export function FinalCTA() {
-  const { session } = useAppContext();
+  const { session, authUser, profile } = useAppContext();
   const isLoggedIn = !!session;
+  const userId = authUser?.id || profile?.id || "";
+  const portfoliosUrl = userId ? `/portfolios?userId=${encodeURIComponent(userId)}` : "/portfolios";
 
   return (
     <section className="relative overflow-hidden border-t border-border">
@@ -31,10 +33,10 @@ export function FinalCTA() {
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
           {isLoggedIn ? (
             <Link
-              to="/dashboard"
+              to={portfoliosUrl}
               className="inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-6 py-3.5 text-sm font-semibold shadow-lift hover:opacity-90 transition-all"
             >
-              Open Dashboard <ArrowRight className="h-4 w-4" />
+              Open Portfolios <ArrowRight className="h-4 w-4" />
             </Link>
           ) : (
             <Link

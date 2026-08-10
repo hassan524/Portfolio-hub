@@ -47,7 +47,7 @@ export function AuthBrandPanel() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand shadow-soft">
             <Sparkles className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
           </span>
-          <span className="text-xl font-semibold tracking-tight text-background">PortfolioHub</span>
+          <span className="text-xl font-semibold tracking-tight text-background">Portflu</span>
         </Link>
       </div>
 
@@ -76,7 +76,7 @@ export function AuthBrandPanel() {
           transition={{ delay: 0.45, duration: 0.6 }}
           className="mt-6 text-lg text-background/60 leading-relaxed"
         >
-          Join thousands of creators who use PortfolioHub to showcase their work with premium, hand-designed templates. No code, no design skills needed.
+          Join thousands of creators who use Portflu to showcase their work with premium, hand-designed templates. No code, no design skills needed.
         </motion.p>
 
         <motion.div
@@ -116,7 +116,7 @@ export function AuthBrandPanel() {
           </div>
           <div>
             <div className="text-sm font-medium text-background/80">12,000+ creators</div>
-            <div className="text-xs text-background/40">already building with PortfolioHub</div>
+            <div className="text-xs text-background/40">already building with Portflu</div>
           </div>
         </div>
       </motion.div>

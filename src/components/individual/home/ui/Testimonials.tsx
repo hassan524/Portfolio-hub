@@ -13,7 +13,7 @@ export function Testimonials() {
       r: "Freelance developer, London",
     },
     {
-      q: "I've been putting this off for two years. PortfolioHub made it feel embarrassingly easy.",
+      q: "I've been putting this off for two years. Portflu made it feel embarrassingly easy.",
       n: "Rin O.",
       r: "Illustrator, Osaka",
     },

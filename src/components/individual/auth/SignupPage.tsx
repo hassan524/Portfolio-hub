@@ -2,9 +2,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, ArrowRight, AlertCircle } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
-import { AuthBrandPanel } from "./AuthBrandPanel";
+import { AuthBrandPanel } from "./ui/AuthBrandPanel";
+import { signupSchema, type SignupInput } from "@/schemas/auth.schemas";
+
+type FieldErrors = Partial<Record<keyof SignupInput, string>>;
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -13,11 +16,35 @@ export function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const clearFieldError = (field: keyof SignupInput) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    const ok = await signUp(email, password, fullName);
+
+    const result = signupSchema.safeParse({ fullName, email, password });
+
+    if (!result.success) {
+      const errors: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof SignupInput;
+        if (!errors[field]) errors[field] = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    const ok = await signUp(result.data.email, result.data.password, result.data.fullName);
     if (ok) navigate("/");
   };
 
@@ -96,6 +123,7 @@ export function SignupPage() {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="space-y-4"
             onSubmit={handleSubmit}
+            noValidate
           >
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-soft">Full name</label>
@@ -106,12 +134,25 @@ export function SignupPage() {
                 <input
                   type="text"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    clearFieldError("fullName");
+                  }}
                   placeholder="Hassan Mughal"
-                  required
-                  className="w-full rounded-xl border border-border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  aria-invalid={!!fieldErrors.fullName}
+                  className={`w-full rounded-xl border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${
+                    fieldErrors.fullName
+                      ? "border-red-500/60 focus:ring-red-500/20"
+                      : "border-border focus:ring-foreground/20"
+                  }`}
                 />
               </div>
+              {fieldErrors.fullName && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {fieldErrors.fullName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -123,12 +164,25 @@ export function SignupPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearFieldError("email");
+                  }}
                   placeholder="you@example.com"
-                  required
-                  className="w-full rounded-xl border border-border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  aria-invalid={!!fieldErrors.email}
+                  className={`w-full rounded-xl border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${
+                    fieldErrors.email
+                      ? "border-red-500/60 focus:ring-red-500/20"
+                      : "border-border focus:ring-foreground/20"
+                  }`}
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -140,10 +194,17 @@ export function SignupPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clearFieldError("password");
+                  }}
                   placeholder="••••••••"
-                  required
-                  className="w-full rounded-xl border border-border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  aria-invalid={!!fieldErrors.password}
+                  className={`w-full rounded-xl border bg-surface-elevated pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${
+                    fieldErrors.password
+                      ? "border-red-500/60 focus:ring-red-500/20"
+                      : "border-border focus:ring-foreground/20"
+                  }`}
                 />
                 <button
                   type="button"
@@ -153,9 +214,20 @@ export function SignupPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <p className="flex items-center gap-1.5 text-sm text-red-500">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
+              </p>
+            )}
 
             <motion.button
               type="submit"

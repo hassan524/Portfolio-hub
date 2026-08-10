@@ -85,7 +85,7 @@ export function CreatePortfolioModal({
                       className="flex-1 px-3 py-2.5 text-sm focus:outline-none bg-surface"
                     />
                     <span className="bg-secondary px-3 py-2.5 text-xs text-ink-soft border-l border-border flex items-center font-mono">
-                      .portfoliohub.app
+                      .portflu.app
                     </span>
                   </div>
                 </div>

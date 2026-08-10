@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { DEFAULT_PORTFOLIOS, type Portfolio } from "@/components/individual/dashboard/types";
+import { DEFAULT_PORTFOLIOS, type Portfolio } from "@/components/individual/dashboard/ui/types";
 
-const STORAGE_KEY = "portfoliohub:dashboard-portfolios";
+const STORAGE_KEY = "portflu:dashboard-portfolios";
 
 function readPortfolios() {
   try {

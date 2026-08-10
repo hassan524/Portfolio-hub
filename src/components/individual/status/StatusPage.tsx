@@ -1,8 +1,8 @@
-import { PageShell } from "@/components/common/PageShell";
+import { PageShell } from "@/components/individual/PageShell";
 
 export function StatusPage() {
   return (
-    <PageShell eyebrow="System" title="All systems normal." subtitle="Live status of every part of PortfolioHub.">
+    <PageShell eyebrow="System" title="All systems normal." subtitle="Live status of every part of Portflu.">
       <div className="rounded-2xl border border-border overflow-hidden">
         {[
           { s: "Editor & dashboard", u: "99.99%" },

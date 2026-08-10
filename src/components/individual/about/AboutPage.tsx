@@ -1,11 +1,11 @@
-import { PageShell } from "@/components/common/PageShell";
+import { PageShell } from "@/components/individual/PageShell";
 
 export function AboutPage() {
   return (
     <PageShell
       eyebrow="About"
       title="Portfolios shouldn't take a weekend."
-      subtitle="PortfolioHub is a small tool built by a small team who kept meeting talented people with no portfolio online. We got tired of hearing 'I'll set one up soon.' So we made it a five-minute job."
+      subtitle="Portflu is a small tool built by a small team who kept meeting talented people with no portfolio online. We got tired of hearing 'I'll set one up soon.' So we made it a five-minute job."
     >
       <div className="grid md:grid-cols-2 gap-10 max-w-4xl">
         <div>

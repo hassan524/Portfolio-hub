@@ -511,7 +511,7 @@ export function TemplateLivePreview({
         >
           <span>© 2026 {site.name}</span>
           <span>
-            Built with <span style={{ color: theme.accent }}>PortfolioHub</span>
+            Built with <span style={{ color: theme.accent }}>Portflu</span>
           </span>
         </div>
       )}

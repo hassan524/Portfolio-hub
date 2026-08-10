@@ -1,11 +1,11 @@
-import { PageShell, Prose } from "@/components/common/PageShell";
+import { PageShell, Prose } from "@/components/individual/PageShell";
 
 export function TermsPage() {
   return (
     <PageShell eyebrow="Legal" title="Terms of service" subtitle="Last updated: July 2026">
       <Prose>
         <h2>Your content stays yours</h2>
-        <p>Everything you upload to PortfolioHub — text, images, layouts — belongs to you. We store it, serve it, and let you export it. That's the whole deal.</p>
+        <p>Everything you upload to Portflu — text, images, layouts — belongs to you. We store it, serve it, and let you export it. That's the whole deal.</p>
         <h2>Acceptable use</h2>
         <p>Don't publish anything illegal, don't impersonate other people, don't host phishing or malware. We reserve the right to suspend accounts that do.</p>
         <h2>Uptime</h2>

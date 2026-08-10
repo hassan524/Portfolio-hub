@@ -19,27 +19,24 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+const PREFERRED_PROVIDER_KEY = "preferredAuthProvider";
+
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 
 export interface UserProfile {
-
   id: string;
-
   full_name: string;
   username: string;
   avatarUrl: string | null;
-  email: string
+  email: string;
   is_paid: boolean;
-
   createdPortfolios: number;
   publishedPortfolios: number;
   draftPortfolios: number;
-
   createdAt: string;
   updatedAt: string;
-
 }
 
 interface AppContextValue {
@@ -49,6 +46,9 @@ interface AppContextValue {
 
   loading: boolean;
   error: string | null;
+
+  /** "google" | "facebook" | null — last non-password provider the user signed in with, on this device */
+  preferredProvider: string | null;
 
   clearError: () => void;
 
@@ -93,6 +93,13 @@ export function AppProvider({
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
+
+  const [preferredProvider, setPreferredProvider] = useState<string | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+      return localStorage.getItem(PREFERRED_PROVIDER_KEY);
+    }
+  );
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -152,6 +159,16 @@ export function AppProvider({
 
         if (session?.user) {
           await loadProfile(session.user.id);
+
+          // Remember which OAuth provider they used, so the login page
+          // can personalize itself ("Welcome back, continue with Google")
+          // next time they land there. We deliberately ignore "email" —
+          // password login doesn't need this treatment.
+          const provider = session.user.app_metadata?.provider;
+          if (provider && provider !== "email") {
+            localStorage.setItem(PREFERRED_PROVIDER_KEY, provider);
+            setPreferredProvider(provider);
+          }
         } else {
           setProfile(null);
         }
@@ -183,6 +200,8 @@ export function AppProvider({
           },
         },
       });
+
+      console.log('error signup', error)
 
       setLoading(false);
 
@@ -285,6 +304,15 @@ export function AppProvider({
     if (error) {
       setError(error.message);
     }
+
+    // NOTE: preferredProvider is intentionally kept after sign-out.
+    // This is the same behavior GitHub/Notion/Linear use — it lets the
+    // login screen still greet a signed-out user with "Welcome back,
+    // continue with Google" instead of forgetting them entirely.
+    // If this app will run on shared/public devices and that's a concern,
+    // uncomment the two lines below:
+    // localStorage.removeItem(PREFERRED_PROVIDER_KEY);
+    // setPreferredProvider(null);
   }, []);
 
   return (
@@ -296,6 +324,8 @@ export function AppProvider({
 
         loading,
         error,
+
+        preferredProvider,
 
         clearError,
 

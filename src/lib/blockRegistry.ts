@@ -230,7 +230,7 @@ export const BLOCK_CATALOG: BlockCatalogEntry[] = [
       kind: "footer",
       variant: "footer-1",
       heading: "Portfolio",
-      message: "Built with PortfolioHub.",
+      message: "Built with Portflu.",
     },
   },
 ];

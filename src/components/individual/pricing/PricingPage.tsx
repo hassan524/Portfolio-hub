@@ -1,6 +1,6 @@
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
 import { useState, type MouseEvent } from "react";
-import { SiteLayout } from "@/components/common/Layout";
+import { SiteLayout } from "@/components/individual/Layout";
 import { toast } from "sonner";
 import PricingApi from "@/api/pricingApi";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
       "SEO title & description",
       "Works on any device",
       "Secure (SSL) hosting",
-      "No PortfolioHub branding",
+      "No Portflu branding",
       "Unlimited edits",
       "Standard support",
     ],

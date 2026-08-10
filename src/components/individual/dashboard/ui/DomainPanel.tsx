@@ -56,7 +56,7 @@ export function DomainPanel({ portfolio, onUpdate }: DomainPanelProps) {
       className="space-y-6"
     >
       {/* Subdomain settings */}
-      <div className="rounded-3xl border border-border bg-surface-elevated p-6 shadow-soft">
+      <div className="rounded-2xl border border-border bg-surface-elevated p-6 shadow-soft">
         <h3 className="text-lg font-bold font-display mb-1">Standard Subdomain</h3>
         <p className="text-xs text-ink-soft mb-5">Your website is always available on our free subdomain hosting.</p>
 
@@ -81,7 +81,7 @@ export function DomainPanel({ portfolio, onUpdate }: DomainPanelProps) {
       </div>
 
       {/* Custom Domain setup */}
-      <div className="rounded-3xl border border-border bg-surface-elevated p-6 shadow-soft">
+      <div className="rounded-2xl border border-border bg-surface-elevated p-6 shadow-soft">
         <div className="flex items-center gap-2.5 mb-1">
           <h3 className="text-lg font-bold font-display">Custom Domain</h3>
           <span className="inline-flex items-center rounded-full bg-foreground text-background px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">

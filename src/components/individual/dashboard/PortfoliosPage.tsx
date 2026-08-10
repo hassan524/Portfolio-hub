@@ -1,27 +1,44 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Sparkles, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { PortfoliosOverview } from "./PortfoliosOverview";
-import { CreatePortfolioModal } from "./CreatePortfolioModal";
-import { type Portfolio } from "./types";
+import { PortfoliosOverview } from "./ui/PortfoliosOverview";
+import { CreatePortfolioModal } from "./ui/CreatePortfolioModal";
+import { type Portfolio } from "./ui/types";
 
 export function PortfoliosPage() {
-  const { session, user } = useAppContext();
+  const { session, authUser: user, profile } = useAppContext();
   const navigate = useNavigate();
-  
+  const [searchParams, setSearchParams] = useSearchParams();
   const { portfolios, createPortfolio } = useDashboardData(null, "analytics");
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  const userId = searchParams.get("userId");
+  const currentUserId = user?.id || profile?.id;
+
+  useEffect(() => {
+    if (session && currentUserId && !userId) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("userId", currentUserId);
+        return next;
+      }, { replace: true });
+    }
+  }, [session, currentUserId, userId, setSearchParams]);
 
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-brand mx-auto shadow-lift animate-pulse">
-            <Sparkles className="h-7 w-7 text-white" />
-          </div>
+          <Link to="/" className="flex items-center shrink-0">
+            <img
+              src="/logo.png"
+              alt="Portflu"
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
           <h1 className="mt-6 font-display text-3xl">Sign in to continue</h1>
           <p className="mt-3 text-ink-soft">You need to be logged in to access your portfolios.</p>
           <div className="mt-8 flex gap-3 justify-center">
@@ -46,7 +63,7 @@ export function PortfoliosPage() {
     const newPortfolio: Portfolio = {
       id: `portfolio-${Date.now()}`,
       name: name,
-      url: `${formattedSub}.portfoliohub.app`,
+      url: `${formattedSub}.portflu.app`,
       subdomain: formattedSub,
       status: "Draft",
       template: template,
@@ -63,7 +80,7 @@ export function PortfoliosPage() {
     navigate(`/dashboard?portfolioId=${encodeURIComponent(newPortfolio.id)}&tab=edit`);
   };
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Member";
+
 
   return (
     <div className="min-h-screen bg-background flex text-foreground">
@@ -73,17 +90,16 @@ export function PortfoliosPage() {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-foreground text-background shadow-lift transition-all duration-300 group-hover:scale-105">
               <Sparkles className="h-4 w-4" />
             </span>
-            <span className="text-base font-bold tracking-tight font-display">PortfolioHub</span>
+            <span className="text-base font-bold tracking-tight font-display">Portflu</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-ink text-sm font-bold border border-border">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-              <div className="hidden sm:block text-left">
-                <div className="text-xs font-bold truncate max-w-[120px]">{displayName}</div>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/templates")}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-foreground text-background px-4 py-2 text-[11px] font-bold shadow-soft hover:shadow-lift transition-all cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Create
+            </button>
           </div>
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

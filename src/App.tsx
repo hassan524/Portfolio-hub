@@ -84,6 +84,20 @@ function AuthRoute({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Gate for pricing page — if a user is logged in and has already paid (is_paid === true),
+ * prevent them from accessing the pricing page and redirect them to dashboard.
+ */
+function PricingRoute({ children }: { children: ReactNode }) {
+  const { session, profile } = useAppContext();
+
+  if (session && profile?.is_paid) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function SocialRoute() {
   const params = useParams();
   return <SocialRedirectPage splat={params["*"] ?? ""} />;
@@ -129,7 +143,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/pricing" element={<PricingPage />} />
+              <Route
+                path="/pricing"
+                element={
+                  <PricingRoute>
+                    <PricingPage />
+                  </PricingRoute>
+                }
+              />
               <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route

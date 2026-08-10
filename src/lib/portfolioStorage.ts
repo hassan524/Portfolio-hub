@@ -2,7 +2,7 @@ import {
   DEFAULT_PORTFOLIOS,
   type Portfolio,
   type Project,
-} from "@/components/individual/dashboard/types";
+} from "@/components/individual/dashboard/ui/types";
 import type { ProjectItem, SiteData } from "@/types/builder.schema";
 
 const PORTFOLIOS_STORAGE_KEY = "portfolios_list";
@@ -37,7 +37,7 @@ export function createPortfolioFromSite(site: SiteData): Portfolio {
   return {
     id: `portfolio-${Date.now()}`,
     name: site.name,
-    url: `${subdomain}.portfoliohub.app`,
+    url: `${subdomain}.portflu.app`,
     subdomain,
     status: "Draft",
     template: site.id,
