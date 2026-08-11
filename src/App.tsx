@@ -9,7 +9,7 @@ import { ContactPage } from "@/components/individual/contact/ContactPage";
 import { CookiesPage } from "@/components/individual/cookies/CookiesPage";
 import { DashboardPage } from "@/components/individual/dashboard/DashboardPage";
 import { HelpPage } from "@/components/individual/help/HelpPage";
-import { PortfoliosPage } from "@/components/individual/dashboard/PortfoliosPage";
+import { PortfoliosPage } from "./components/individual/portfolios/PortfoliosPage";
 import { PrivacyPage } from "@/components/individual/privacy/PrivacyPage";
 import { RefundPage } from "@/components/individual/refund/RefundPage";
 import { SocialRedirectPage } from "@/components/individual/social/SocialRedirectPage";
@@ -52,11 +52,19 @@ function NotFoundPage() {
  * exactly where they were trying to go once they sign in.
  */
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { session } = useAppContext();
+  const { session, loading } = useAppContext();
   const location = useLocation();
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   if (!session) {
-    return <Navigate to="/auth/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/auth/login" replace state={{ from: location.pathname + location.search }} />;
   }
 
   return <>{children}</>;
@@ -64,13 +72,23 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
 /**
  * Gate for auth-only pages — login, signup. A user who's already signed
- * in has no reason to see these, so send them straight to the dashboard.
+ * in has no reason to see these, so send them straight to the destination or dashboard.
  */
 function GuestRoute({ children }: { children: ReactNode }) {
-  const { session } = useAppContext();
+  const { session, loading } = useAppContext();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (session) {
-    return <Navigate to="/dashboard" replace />;
+    const from = (location.state as { from?: string })?.from || "/portfolios";
+    return <Navigate to={from} replace />;
   }
 
   return <>{children}</>;
@@ -89,7 +107,15 @@ function AuthRoute({ children }: { children: ReactNode }) {
  * prevent them from accessing the pricing page and redirect them to dashboard.
  */
 function PricingRoute({ children }: { children: ReactNode }) {
-  const { session, profile } = useAppContext();
+  const { session, profile, loading } = useAppContext();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (session && profile?.is_paid) {
     return <Navigate to="/dashboard" replace />;
@@ -117,6 +143,14 @@ export default function App() {
               <Route path="/cookies" element={<CookiesPage />} />
               <Route
                 path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/:portfolioId"
                 element={
                   <ProtectedRoute>
                     <DashboardPage />

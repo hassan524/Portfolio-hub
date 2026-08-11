@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SiteLayout } from "@/components/individual/Layout";
+import { PageShell } from "@/components/individual/PageShell";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import type { SiteData } from "@/types/builder.schema";
 
@@ -29,7 +29,7 @@ export function LandingPage() {
   };
 
   return (
-    <SiteLayout>
+    <PageShell>
       <Hero />
       <LogoStrip />
       <TemplateShowcase onPreview={openPreview} />
@@ -45,6 +45,6 @@ export function LandingPage() {
         open={dialogOpen}
         onClose={closePreview}
       />
-    </SiteLayout>
+    </PageShell>
   );
-}
+}

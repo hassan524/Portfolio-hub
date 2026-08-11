@@ -1,6 +1,6 @@
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
 import { useState, type MouseEvent } from "react";
-import { SiteLayout } from "@/components/individual/Layout";
+import { PageShell } from "@/components/individual/PageShell";
 import { toast } from "sonner";
 import PricingApi from "@/api/pricingApi";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
@@ -296,7 +296,7 @@ export function PricingPage() {
   }
 
   return (
-    <SiteLayout>
+    <PageShell>
       <section className="bg-background">
         <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:pt-20 md:pb-24">
           <div className="text-center">
@@ -341,6 +341,6 @@ export function PricingPage() {
           </div>
         </div>
       </section>
-    </SiteLayout>
+    </PageShell>
   );
 }

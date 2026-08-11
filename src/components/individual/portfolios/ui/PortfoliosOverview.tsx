@@ -1,5 +1,5 @@
 import { Globe, ChevronRight } from "lucide-react";
-import type { Portfolio } from "./types";
+import type { Portfolio } from "@/components/individual/dashboard/ui/types";
 import { TEMPLATES } from "@/lib/templates";
 import { TemplateCard } from "@/components/common/TemplateCard";
 import { DataListView } from "@/components/common/Datalistview";

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, LayoutDashboard, ChevronRight } from "lucide-react";
+import { Menu, X, LayoutDashboard, ChevronRight, Settings } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export function Header() {
@@ -19,14 +19,26 @@ export function Header() {
   const isLoggedIn = !!session;
   const hasPaid = profile?.is_paid;
 
-  const NAV_LINKS = [
+  // Public (logged-out) nav — full marketing set
+  const PUBLIC_NAV_LINKS = [
     { label: "Templates", to: "/templates" as const },
     { label: "Features", to: "/features" as const },
-    ...(!hasPaid ? [{ label: "Pricing", to: "/pricing" as const }] : []),
+    { label: "Pricing", to: "/pricing" as const },
     { label: "About", to: "/about" as const },
     { label: "Help", to: "/help" as const },
     { label: "Contact", to: "/contact" as const },
   ];
+
+  // App (logged-in) nav — trimmed to what a user actually needs,
+  // Pricing stays visible only if they haven't upgraded yet
+  const APP_NAV_LINKS = [
+    { label: "Dashboard", to: portfoliosUrl },
+    { label: "Templates", to: "/templates" as const },
+    ...(!hasPaid ? [{ label: "Pricing", to: "/pricing" as const }] : []),
+    { label: "Help", to: "/help" as const },
+  ];
+
+  const NAV_LINKS = isLoggedIn ? APP_NAV_LINKS : PUBLIC_NAV_LINKS;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -71,54 +83,46 @@ export function Header() {
 
   return (
     <div
-      className="sticky top-0 z-50 px-0 md:top-4 md:px-3 sm:md:px-4"
+      className="sticky top-0 z-50 w-full"
       style={{ fontFamily: "'Open Sans', sans-serif" }}
     >
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className={`flex h-14 w-full items-center justify-between border-b px-5 sm:px-6 backdrop-blur-xl transition-all duration-300
-          md:mx-auto md:max-w-6xl md:w-auto md:rounded-2xl md:border-t md:border-x md:px-5 ${
-            scrolled
-              ? "bg-surface-elevated/90 border-border/50 md:bg-surface-elevated/40 md:shadow-lift"
-              : "bg-surface-elevated/90 border-border/40 md:border-border/25 md:bg-surface-elevated/15 md:shadow-none"
-          }`}
+        className={`flex h-16 w-full items-center justify-between border-b px-5 sm:px-8 backdrop-blur-xl transition-all duration-300 ${
+          scrolled
+            ? "bg-surface-elevated/90 border-border/50 shadow-lift"
+            : "bg-surface-elevated/90 border-border/40"
+        }`}
       >
-        {/* ─── Logo ─── */}
-        <Link to="/" className="flex items-center shrink-0">
-          <img
-            src="/logo.png"
-            alt="Portflu"
-            className="h-8 w-auto object-contain"
-          />
-        </Link>
+        {/* ─── Logo + Desktop Nav ─── */}
+        <div className="flex items-center gap-10">
+          <Link to="/" className="flex items-center shrink-0">
+            <img
+              src="/logo.png"
+              alt="Portflu"
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
 
-        {/* ─── Desktop Nav ─── */}
-        <nav className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.label}
-              to={link.to}
-              className="relative px-3.5 py-2 text-[13px] font-medium text-ink-soft hover:text-ink transition-colors rounded-lg hover:bg-white/5"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                to={link.to}
+                className="relative px-3 py-2 text-[14px] font-medium text-ink-soft hover:text-ink transition-colors rounded-lg hover:bg-white/5"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
         {/* ─── Desktop CTA ─── */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
             <>
-              <Link
-                to={portfoliosUrl}
-                className="inline-flex items-center gap-2 text-[13px] font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                SaaS
-              </Link>
-
               {/* Avatar dropdown */}
               <div ref={avatarRef} className="relative">
                 <button
@@ -163,6 +167,11 @@ export function Header() {
                             <div className="text-sm font-medium truncate">
                               {profile?.full_name || "User"}
                             </div>
+                            {profile?.email && (
+                              <div className="text-xs text-ink-soft truncate">
+                                {profile.email}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -175,7 +184,16 @@ export function Header() {
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-white/5 transition-colors"
                         >
                           <LayoutDashboard className="h-4 w-4 text-ink-soft" />
-                          SaaS
+                          My Portfolios
+                        </Link>
+
+                        <Link
+                          to="/settings"
+                          onClick={() => setAvatarOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-white/5 transition-colors"
+                        >
+                          <Settings className="h-4 w-4 text-ink-soft" />
+                          Settings
                         </Link>
 
                         <button
@@ -266,7 +284,7 @@ export function Header() {
               duration: 0.3,
               ease: "easeInOut",
             }}
-            className="md:hidden absolute left-0 right-0 top-full mx-auto w-full overflow-hidden border-b border-border/40 bg-surface-elevated/95 backdrop-blur-xl shadow-lift md:mt-2 md:max-w-6xl md:rounded-2xl md:border"
+            className="md:hidden absolute left-0 right-0 top-full w-full overflow-hidden border-b border-border/40 bg-surface-elevated/95 backdrop-blur-xl shadow-lift"
           >
             <div className="flex flex-col px-2">
               {NAV_LINKS.map((link, i) => (
@@ -310,18 +328,9 @@ export function Header() {
                       </div>
                     </div>
 
-                    <Link
-                      to={portfoliosUrl}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      SaaS
-                    </Link>
-
                     <button
                       onClick={handleSignOut}
-                      className="w-full rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
+                      className="w-full rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
                     >
                       Sign out
                     </button>

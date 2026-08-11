@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { SiteLayout } from "@/components/individual/Layout";
+import { PageShell } from "@/components/individual/PageShell";
 import { TemplateCard } from "@/components/common/TemplateCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";
@@ -46,8 +46,8 @@ export function TemplatesPage() {
   };
 
   return (
-    <SiteLayout>
-      <section className="border-b border-border bg-hero-glow">
+    <PageShell>
+      <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -132,6 +132,6 @@ export function TemplatesPage() {
         onClose={closePreview}
         onSave={savePreviewToPortfolios}
       />
-    </SiteLayout>
+    </PageShell>
   );
 }
