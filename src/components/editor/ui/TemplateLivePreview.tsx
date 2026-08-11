@@ -1,43 +1,42 @@
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback, Dispatch, RefObject, SetStateAction } from "react";
 import { Maximize2, Minimize2, Monitor, Move, Save, Smartphone, X, PencilLine } from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
-import { DraggableBlockWrapper } from "@/components/editor/DraggableBlockWrapper";
+import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
 import type {
   PreviewEditableSite,
   PreviewElementEdit,
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
 import type { SiteData, Block } from "@/types/builder.schema";
-import { Dispatch, RefObject, SetStateAction } from "react";
 import {
-  calculateFrameResize,
   calculateViewportScale,
   tagAndApplyPreviewStyles,
-  getElementLabel,
   handleMeasuredBlockHeight,
-  toggleEditMode as toggleEditModeFn,
   startFrameDrag,
   endFrameDrag,
   handleStartBlockResize as handleStartBlockResizeFn,
-  startElementFreeDrag,
+  handleInteractiveToggleEditMode,
+  handleToggleMoveMode,
+  handleInteractivePreviewClick,
+  handleFrameResizeMove,
+  handleContentFreeDragStart,
   type FrameDragState,
   type GuideLine,
+  type ConfirmationCopy,
+  type ConfirmationType,
 } from "@/lib/functions/template";
 import PreviewIframe from "./PreviewIframe";
-import { GuideOverlay } from "@/components/editor/GuideOverlay";
-import { useConfirm } from "@/context/ConfirmationContext";
+import { GuideOverlay } from "./GuideOverlay";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
 type Device = "desktop" | "responsive";
 
-const MIN_WIDTH = 280;
-const MAX_WIDTH = 1400;
-const MIN_HEIGHT = 400;
-const MAX_HEIGHT = 1400;
-const VIEWPORT_PADDING = 40;
-
 const DEFAULT_RESPONSIVE_WIDTH = 390;
 const DEFAULT_RESPONSIVE_HEIGHT = 844;
+const VIEWPORT_PADDING = 40;
+
+type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
 
 export function TemplateLivePreview({
   site,
@@ -48,7 +47,6 @@ export function TemplateLivePreview({
   onChangeElementStyle,
   onDeviceChange,
   onUpdateBlock,
-  onUpdateTypography,
   onReorderBlocks,
   isMaximized,
   setIsMaximized,
@@ -99,10 +97,33 @@ export function TemplateLivePreview({
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null);
   const isDesktop = device === "desktop";
 
-  const confirm = useConfirm();
+  /* ---------------------------------------------------------------------- */
+  /*                    LOCAL CONFIRM MODAL (context-free)                   */
+  /* ---------------------------------------------------------------------- */
+
+  const [confirmState, setConfirmState] = useState<
+    (ConfirmOptions & { open: boolean }) | null
+  >(null);
+
+  const confirmResolveRef = useRef<((value: boolean) => void) | null>(null);
+
+  // Same async signature the old context `confirm` had: call it, await a boolean.
+  const confirm = useCallback((options: ConfirmOptions = {}) => {
+    return new Promise<boolean>((resolve) => {
+      confirmResolveRef.current = resolve;
+      setConfirmState({ ...options, open: true });
+    });
+  }, []);
+
+  const resolveConfirm = useCallback((value: boolean) => {
+    setConfirmState((prev) => (prev ? { ...prev, open: false } : prev));
+    confirmResolveRef.current?.(value);
+    confirmResolveRef.current = null;
+  }, []);
+
   const [editMode, setEditMode] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
-  const [pendingRootSelection, setPendingRootSelection] = useState<PreviewElementEdit | null>(null);
+  const [, setPendingRootSelection] = useState<PreviewElementEdit | null>(null);
   const [size, setSize] = useState({
     width: DEFAULT_RESPONSIVE_WIDTH,
     height: DEFAULT_RESPONSIVE_HEIGHT,
@@ -168,39 +189,17 @@ export function TemplateLivePreview({
   }, [recalcScale]);
 
   const handleDragMove = useCallback((e: MouseEvent) => {
-    const drag = dragState.current;
-    if (!drag) return;
-    // Record the latest pointer position, but only schedule one resize
-    // calculation per animation frame — firing setSize on every raw
-    // mousemove forces a full layout/reflow of the iframe's document each
-    // time, which is what made dragging feel laggy.
-    dragPointerRef.current = { x: e.clientX, y: e.clientY };
-    if (dragRafRef.current !== null) return;
-    dragRafRef.current = requestAnimationFrame(() => {
-      dragRafRef.current = null;
-      const pos = dragPointerRef.current;
-      const currentDrag = dragState.current;
-      if (!pos || !currentDrag) return;
-      const nextSize = calculateFrameResize(
-        currentDrag,
-        pos.x,
-        pos.y,
-        MIN_WIDTH,
-        MAX_WIDTH,
-        MIN_HEIGHT,
-        MAX_HEIGHT,
-      );
-      setSize(nextSize);
-    });
+    handleFrameResizeMove(e, dragState, dragPointerRef, dragRafRef, setSize);
   }, []);
 
   function handleContentMouseDown(e: React.MouseEvent) {
-    startElementFreeDrag(
+    handleContentFreeDragStart(
       e,
-      editMode && moveMode,
+      editMode,
+      moveMode,
       device,
       scale,
-      (elementId, patch) => onChangeElementStyle?.(elementId, patch),
+      onChangeElementStyle,
       setDragGuides,
       setDraggingElementId,
     );
@@ -248,24 +247,14 @@ export function TemplateLivePreview({
     const root = contentRef.current;
     if (!root) return;
 
-    // Use the ResizeObserver from whichever window actually owns `root`.
-    // In responsive mode `root` now lives inside the preview iframe's
-    // document — same-origin cross-document observation generally works in
-    // evergreen browsers, but grabbing the owning window's constructor is
-    // the spec-correct way to do it and avoids edge-case browser quirks.
     const ownerWindow = root.ownerDocument?.defaultView ?? window;
     const observer = new ownerWindow.ResizeObserver((entries: ResizeObserverEntry[]) => {
-      // block.height is a single field shared across devices, used to size
-      // the DESKTOP layout. If we let mobile's naturally-taller measurement
-      // flow back into it here, it silently overwrites the desktop height
-      // too — breaking desktop the next time you switch back. Only ever
-      // persist measurements taken on desktop.
       if (!isDesktop) return;
       for (const entry of entries) {
         const el = entry.target as HTMLElement;
         const blockId = el.dataset.blockId;
         if (!blockId) continue;
-        if (resizingRef.current?.id === blockId) continue; // don't fight the drag
+        if (resizingRef.current?.id === blockId) continue;
         const measured = Math.round(entry.contentRect.height);
         handleMeasuredBlockHeight(blockId, measured, blocks, onUpdateBlock);
       }
@@ -274,94 +263,35 @@ export function TemplateLivePreview({
     root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorted.map((b) => b.id).join(","), blocks, onUpdateBlock, device, isDesktop]);
 
   function handlePreviewClick(e: React.MouseEvent) {
-    if (!editMode) return;
-
-    const target = e.target instanceof HTMLElement ? e.target : null;
-    const element = target?.closest<HTMLElement>("[data-preview-edit-id]");
-    const blockElement = target?.closest<HTMLElement>("[data-block-id]");
-    if (!element || !blockElement || !onSelectElement) return;
-
-    const block = blocks.find((candidate) => candidate.id === blockElement.dataset.blockId);
-    if (!block) return;
-
-    const elementId = element.dataset.previewEditId ?? "";
-    const nextSelection = {
-      id: elementId,
-      blockId: block.id,
-      blockKind: block.props.kind,
-      label: getElementLabel(element),
-      style: site.previewEdits?.elements[elementId]?.style ?? {},
-    };
-
-    e.stopPropagation();
-
-    if (elementId.endsWith(":root")) {
-      setPendingRootSelection(nextSelection);
-      confirm({
-        type: "warning",
-        title: "Select full section?",
-        description: "This will edit the whole section container instead of only the text, image, or button you clicked.",
-        confirmLabel: "Select section",
-      }).then((ok) => {
-        if (ok && nextSelection) onSelectElement?.(nextSelection);
-        setPendingRootSelection(null);
-      });
-      return;
-    }
-
-    onSelectElement(nextSelection);
+    handleInteractivePreviewClick(
+      e,
+      editMode,
+      blocks,
+      site,
+      onSelectElement,
+      setPendingRootSelection,
+      confirm,
+    );
   }
 
   function handleToggleEditMode() {
-    if (!editMode && onSelectElement) {
-      const activeBlock =
-        sorted.find((block) => block.props.kind === activeSection) ?? sorted.find(Boolean);
-      const blockRoot = activeBlock
-        ? contentRef.current?.querySelector<HTMLElement>(`[data-block-id="${activeBlock.id}"]`)
-        : null;
-      const firstChild =
-        blockRoot?.querySelector<HTMLElement>(
-          '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
-        ) ?? null;
-
-      if (activeBlock && firstChild) {
-        const elementId = firstChild.dataset.previewEditId ?? "";
-        onSelectElement({
-          id: elementId,
-          blockId: activeBlock.id,
-          blockKind: activeBlock.props.kind,
-          label: getElementLabel(firstChild),
-          style: site.previewEdits?.elements[elementId]?.style ?? {},
-        });
-      }
-    }
-
-    if (editMode) {
-      setMoveMode(false);
-      onSelectElement?.(null);
-    }
-    toggleEditModeFn(setEditMode, sorted, site, onSelectElement);
+    handleInteractiveToggleEditMode(
+      editMode,
+      setEditMode,
+      setMoveMode,
+      sorted,
+      site,
+      contentRef,
+      activeSection,
+      onSelectElement,
+    );
   }
 
-  async function handleToggleMoveMode() {
-    if (moveMode) {
-      setMoveMode(false);
-      return;
-    }
-    const ok = await confirm({
-      type: "allow",
-      title: "Turn on move mode?",
-      description: "Elements can be freely moved. Alignment guides only appear when an element is close to another element.",
-      confirmLabel: "Allow moving",
-    });
-    if (ok) {
-      setEditMode(true);
-      setMoveMode(true);
-    }
+  function handleToggleMoveModeClick() {
+    handleToggleMoveMode(moveMode, setMoveMode, setEditMode, confirm);
   }
 
   const content = (
@@ -398,15 +328,10 @@ export function TemplateLivePreview({
           >
             <div
               data-block-id={block.id}
-              className={`relative group/block ${
-                isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-              }`}
+              className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                }`}
               style={{
                 ...(isActive ? { outlineColor: theme.accent } : undefined),
-                // block.height is measured/authored against the desktop
-                // layout. Forcing that same pixel height on the responsive
-                // frame clips content — mobile text wraps to more lines and
-                // needs more room. Let mobile size itself naturally instead.
                 height: isDesktop && block.height ? `${block.height}px` : undefined,
                 overflow: "hidden",
                 position: "relative",
@@ -473,8 +398,7 @@ export function TemplateLivePreview({
                 <GuideOverlay guides={dragGuides} />
               )}
 
-              {/* Bottom Drag Height Resize Handle — desktop-only, since
-                  mobile no longer uses a fixed block height */}
+              {/* Bottom Drag Height Resize Handle — desktop-only */}
               {isDesktop && (
                 <div
                   data-blend-ignore
@@ -484,11 +408,10 @@ export function TemplateLivePreview({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
-                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${
-                      isResizingThis
+                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
                         ? "bg-foreground shadow-md scale-110 opacity-100"
                         : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                    }`}
+                      }`}
                   >
                     <div className="h-0.5 w-6 rounded-full bg-background/80" />
                   </div>
@@ -536,11 +459,10 @@ export function TemplateLivePreview({
           <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
             <button
               onClick={() => onDeviceChange("desktop")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                isDesktop
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
                   ? "bg-foreground text-background"
                   : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+                }`}
               title="Desktop Preview"
             >
               <Monitor className="h-4 w-4" />
@@ -548,11 +470,10 @@ export function TemplateLivePreview({
 
             <button
               onClick={() => onDeviceChange("responsive")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                !isDesktop
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
                   ? "bg-foreground text-background"
                   : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+                }`}
               title="Responsive Preview"
             >
               <Smartphone className="h-4 w-4" />
@@ -563,11 +484,10 @@ export function TemplateLivePreview({
 
           <button
             onClick={handleToggleEditMode}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              editMode
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
                 ? "border-foreground bg-foreground text-background"
                 : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
+              }`}
             title={editMode ? "Exit edit mode" : "Enter edit mode"}
             aria-label={editMode ? "Exit edit mode" : "Enter edit mode"}
           >
@@ -575,12 +495,11 @@ export function TemplateLivePreview({
           </button>
 
           <button
-            onClick={handleToggleMoveMode}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              moveMode
+            onClick={handleToggleMoveModeClick}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
                 ? "border-foreground bg-foreground text-background"
                 : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
+              }`}
             title={moveMode ? "Turn off move mode" : "Turn on move mode"}
             aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
           >
@@ -690,6 +609,20 @@ export function TemplateLivePreview({
         </div>
       )}
 
+      <ConfirmationDialog
+        open={!!confirmState?.open}
+        type={confirmState?.type}
+        title={confirmState?.title}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.confirmLabel}
+        cancelLabel={confirmState?.cancelLabel}
+        onOpenChange={(open) => {
+          if (!open) resolveConfirm(false);
+        }}
+        onConfirm={() => resolveConfirm(true)}
+        onCancel={() => resolveConfirm(false)}
+      />
+
       <style>{`
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -700,8 +633,6 @@ export function TemplateLivePreview({
           outline-offset: 2px;
         }
       `}</style>
-
-
     </main>
   );
 }

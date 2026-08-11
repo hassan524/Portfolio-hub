@@ -39,11 +39,17 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+export interface AuthResult {
+  success: boolean;
+  error: string | null;
+}
+
 interface AppContextValue {
   authUser: User | null;
   profile: UserProfile | null;
   session: Session | null;
 
+  isInitializing: boolean;
   loading: boolean;
   error: string | null;
 
@@ -56,12 +62,12 @@ interface AppContextValue {
     email: string,
     password: string,
     fullName?: string
-  ) => Promise<boolean>;
+  ) => Promise<AuthResult>;
 
   signIn: (
     email: string,
     password: string
-  ) => Promise<boolean>;
+  ) => Promise<AuthResult>;
 
   signInWithGoogle: () => Promise<void>;
 
@@ -90,7 +96,8 @@ export function AppProvider({
 
   const [session, setSession] = useState<Session | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -141,6 +148,7 @@ export function AppProvider({
         await loadProfile(session.user.id);
       }
 
+      setIsInitializing(false);
       setLoading(false);
     };
 
@@ -187,7 +195,7 @@ export function AppProvider({
       email: string,
       password: string,
       fullName?: string
-    ) => {
+    ): Promise<AuthResult> => {
       setLoading(true);
       setError(null);
 
@@ -201,16 +209,14 @@ export function AppProvider({
         },
       });
 
-      console.log('error signup', error)
-
       setLoading(false);
 
       if (error) {
         setError(error.message);
-        return false;
+        return { success: false, error: error.message };
       }
 
-      return true;
+      return { success: true, error: null };
     },
     []
   );
@@ -223,7 +229,7 @@ export function AppProvider({
     async (
       email: string,
       password: string
-    ) => {
+    ): Promise<AuthResult> => {
       setLoading(true);
       setError(null);
 
@@ -237,10 +243,11 @@ export function AppProvider({
 
       if (error) {
         setError(error.message);
-        return false;
+        return { success: false, error: error.message };
+        console.log('error signin', error)
       }
 
-      return true;
+      return { success: true, error: null };
     },
     []
   );
@@ -322,6 +329,7 @@ export function AppProvider({
         profile,
         session,
 
+        isInitializing,
         loading,
         error,
 

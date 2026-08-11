@@ -52,10 +52,10 @@ function NotFoundPage() {
  * exactly where they were trying to go once they sign in.
  */
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { session, loading } = useAppContext();
+  const { session, isInitializing } = useAppContext();
   const location = useLocation();
 
-  if (loading) {
+  if (isInitializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -75,10 +75,10 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
  * in has no reason to see these, so send them straight to the destination or dashboard.
  */
 function GuestRoute({ children }: { children: ReactNode }) {
-  const { session, loading } = useAppContext();
+  const { session, isInitializing } = useAppContext();
   const location = useLocation();
 
-  if (loading) {
+  if (isInitializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -107,9 +107,9 @@ function AuthRoute({ children }: { children: ReactNode }) {
  * prevent them from accessing the pricing page and redirect them to dashboard.
  */
 function PricingRoute({ children }: { children: ReactNode }) {
-  const { session, profile, loading } = useAppContext();
+  const { session, profile, isInitializing } = useAppContext();
 
-  if (loading) {
+  if (isInitializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

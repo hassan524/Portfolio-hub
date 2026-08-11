@@ -201,6 +201,7 @@ export type Block = {
   height?: number;
   label?: string;
   isCustom?: boolean;
+  name?: string;
 };
 
 /* =========================

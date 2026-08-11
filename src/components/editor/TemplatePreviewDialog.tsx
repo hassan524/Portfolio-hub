@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { TemplateSidebar } from "./TemplateSidebar";
-import { TemplateLivePreview } from "./TemplateLivePreview";
-import { ElementStylePanel } from "./ElementStylePanel";
+import { TemplateSidebar } from "./ui/TemplateSidebar";
+import { TemplateLivePreview } from "./ui/TemplateLivePreview";
+import { ElementStylePanel } from "./ui/ElementStylePanel";
 import { SaveDeployModal } from "@/components/common/SaveDeployModal";
 import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
@@ -19,6 +19,8 @@ import {
   resetSelectedElement,
   syncTemplateState,
   handleFullscreenChange,
+  handleSaveClick as handleSaveClickFn,
+  handleConfirmSave as handleConfirmSaveFn,
 } from "@/lib/functions/template";
 
 interface Props {
@@ -39,7 +41,6 @@ const FALLBACK_THEME: Theme = {
 };
 
 export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props) {
-
   const navigate = useNavigate();
   const { profile } = useAppContext();
 
@@ -126,23 +127,12 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   };
 
   const handleSaveClick = (_site?: SiteData) => {
-    const isPaid = profile?.is_paid === true;
-
-    if (!isPaid) {
-      onClose();
-      setTimeout(() => navigate("/pricing"), 320);
-      return;
-    }
-
-    setSaveModalOpen(true);
+    handleSaveClickFn(profile, onClose, navigate, setSaveModalOpen);
   };
 
   // Called by SaveDeployModal once the user confirms a target (vercel/netlify).
   const handleConfirmSave = (deploymentTarget?: string) => {
-    if (deploymentTarget === "vercel" || deploymentTarget === "netlify") {
-      setdeployedPlatform(deploymentTarget);
-    }
-    onSave?.(site);
+    handleConfirmSaveFn(deploymentTarget, setdeployedPlatform, onSave, site);
   };
 
   return (

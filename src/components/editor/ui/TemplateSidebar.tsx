@@ -3,9 +3,6 @@ import { GripVertical, Layers, Palette, Plus, PencilLine, Type } from "lucide-re
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import {
-  findInsertIndex,
-  createBlankBlock,
-  isPlainObject,
   isHexColor,
   handleAddBlock as handleAddBlockFn,
   moveSidebarBlock,
@@ -31,8 +28,6 @@ const COLOR_FIELDS: { key: keyof Theme; label: string }[] = [
   { key: "bg", label: "Background" },
   { key: "ink", label: "Text" },
   { key: "accent", label: "Accent" },
-  { key: "accent2", label: "Accent 2" },
-  { key: "surface", label: "Surface" },
 ];
 
 const STYLE_FIELDS: { key: keyof Theme; label: string; options: string[] }[] = [
@@ -48,7 +43,6 @@ export function TemplateSidebar({
   onSiteMetaChange,
   onUpdateBlock,
   onReorderBlocks,
-  onSave,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("blocks");
 
@@ -548,6 +542,10 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       {children}
     </label>
   );
+}
+
+function isPlainObject(val: unknown): val is Record<string, unknown> {
+  return typeof val === "object" && val !== null && !Array.isArray(val);
 }
 
 const compactInputClass =

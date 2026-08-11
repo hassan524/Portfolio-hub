@@ -164,8 +164,9 @@ function PreviewIframe({
     <iframe
       ref={iframeRef}
       title="Responsive preview"
-      className={`no-scrollbar absolute top-0 left-0 origin-top-left overflow-y-auto overflow-x-hidden border border-border bg-background shadow-lift ${isDragging ? "" : "transition-transform duration-200"
-        }`}
+      className={`no-scrollbar absolute top-0 left-0 origin-top-left overflow-y-auto overflow-x-hidden border border-border bg-background shadow-lift ${
+        isDragging ? "" : "transition-transform duration-200"
+      }`}
       style={{
         width,
         height,

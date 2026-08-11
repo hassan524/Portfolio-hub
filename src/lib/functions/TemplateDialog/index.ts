@@ -226,6 +226,213 @@ export function handleFullscreenChange(setIsMaximized: Dispatch<SetStateAction<b
   }
 }
 
+export function handleSaveClick(
+  profile: { is_paid?: boolean } | null | undefined,
+  onClose: () => void,
+  navigate: (path: string) => void,
+  setSaveModalOpen: Dispatch<SetStateAction<boolean>>,
+): void {
+  const isPaid = profile?.is_paid === true;
+
+  if (!isPaid) {
+    onClose();
+    setTimeout(() => navigate("/pricing"), 320);
+    return;
+  }
+
+  setSaveModalOpen(true);
+}
+
+export function handleConfirmSave(
+  deploymentTarget: string | undefined,
+  setDeployedPlatform: Dispatch<SetStateAction<"vercel" | "netlify" | undefined>>,
+  onSave?: (site: SiteData) => void,
+  site?: SiteData | null,
+): void {
+  if (deploymentTarget === "vercel" || deploymentTarget === "netlify") {
+    setDeployedPlatform(deploymentTarget);
+  }
+  if (site) {
+    onSave?.(site);
+  }
+}
+
+export async function handleToggleMoveMode(
+  moveMode: boolean,
+  setMoveMode: Dispatch<SetStateAction<boolean>>,
+  setEditMode: Dispatch<SetStateAction<boolean>>,
+  confirm: (options: {
+    type: "allow";
+    title: string;
+    description: string;
+    confirmLabel: string;
+  }) => Promise<boolean>,
+): Promise<void> {
+  if (moveMode) {
+    setMoveMode(false);
+    return;
+  }
+  const ok = await confirm({
+    type: "allow",
+    title: "Turn on move mode?",
+    description:
+      "Elements can be freely moved. Alignment guides only appear when an element is close to another element.",
+    confirmLabel: "Allow moving",
+  });
+  if (ok) {
+    setEditMode(true);
+    setMoveMode(true);
+  }
+}
+
+export function handleInteractivePreviewClick(
+  e: ReactMouseEvent,
+  editMode: boolean,
+  blocks: Block[],
+  site: PreviewEditableSite,
+  onSelectElement: ((edit: PreviewElementEdit | null) => void) | undefined,
+  setPendingRootSelection: Dispatch<SetStateAction<PreviewElementEdit | null>>,
+  confirm: (options: {
+    type: "warning";
+    title: string;
+    description: string;
+    confirmLabel: string;
+  }) => Promise<boolean>,
+): void {
+  if (!editMode) return;
+
+  const target = e.target instanceof HTMLElement ? e.target : null;
+  const element = target?.closest<HTMLElement>("[data-preview-edit-id]");
+  const blockElement = target?.closest<HTMLElement>("[data-block-id]");
+  if (!element || !blockElement || !onSelectElement) return;
+
+  const block = blocks.find((candidate) => candidate.id === blockElement.dataset.blockId);
+  if (!block) return;
+
+  const elementId = element.dataset.previewEditId ?? "";
+  const nextSelection: PreviewElementEdit = {
+    id: elementId,
+    blockId: block.id,
+    blockKind: block.props.kind,
+    label: getElementLabel(element),
+    style: site.previewEdits?.elements[elementId]?.style ?? {},
+  };
+
+  e.stopPropagation();
+
+  if (elementId.endsWith(":root")) {
+    setPendingRootSelection(nextSelection);
+    confirm({
+      type: "warning",
+      title: "Select full section?",
+      description:
+        "This will edit the whole section container instead of only the text, image, or button you clicked.",
+      confirmLabel: "Select section",
+    }).then((ok) => {
+      if (ok && nextSelection) onSelectElement?.(nextSelection);
+      setPendingRootSelection(null);
+    });
+    return;
+  }
+
+  onSelectElement(nextSelection);
+}
+
+export function handleInteractiveToggleEditMode(
+  editMode: boolean,
+  setEditMode: Dispatch<SetStateAction<boolean>>,
+  setMoveMode: Dispatch<SetStateAction<boolean>>,
+  sortedBlocks: Block[],
+  site: PreviewEditableSite,
+  contentRef: RefObject<HTMLElement | null>,
+  activeSection: string,
+  onSelectElement?: (edit: PreviewElementEdit | null) => void,
+): void {
+  if (!editMode && onSelectElement) {
+    const activeBlock =
+      sortedBlocks.find((block) => block.props.kind === activeSection) ?? sortedBlocks.find(Boolean);
+    const blockRoot = activeBlock
+      ? contentRef.current?.querySelector<HTMLElement>(`[data-block-id="${activeBlock.id}"]`)
+      : null;
+    const firstChild =
+      blockRoot?.querySelector<HTMLElement>(
+        '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
+      ) ?? null;
+
+    if (activeBlock && firstChild) {
+      const elementId = firstChild.dataset.previewEditId ?? "";
+      onSelectElement({
+        id: elementId,
+        blockId: activeBlock.id,
+        blockKind: activeBlock.props.kind,
+        label: getElementLabel(firstChild),
+        style: site.previewEdits?.elements[elementId]?.style ?? {},
+      });
+    }
+  }
+
+  if (editMode) {
+    setMoveMode(false);
+    onSelectElement?.(null);
+  }
+  toggleEditMode(setEditMode, sortedBlocks, site, onSelectElement);
+}
+
+export function handleFrameResizeMove(
+  e: MouseEvent,
+  dragStateRef: { current: FrameDragState | null },
+  dragPointerRef: { current: { x: number; y: number } | null },
+  dragRafRef: { current: number | null },
+  setSize: Dispatch<SetStateAction<{ width: number; height: number }>>,
+  minWidth = 280,
+  maxWidth = 1400,
+  minHeight = 400,
+  maxHeight = 1400,
+): void {
+  const drag = dragStateRef.current;
+  if (!drag) return;
+  dragPointerRef.current = { x: e.clientX, y: e.clientY };
+  if (dragRafRef.current !== null) return;
+
+  dragRafRef.current = requestAnimationFrame(() => {
+    dragRafRef.current = null;
+    const pos = dragPointerRef.current;
+    const currentDrag = dragStateRef.current;
+    if (!pos || !currentDrag) return;
+    const nextSize = calculateFrameResize(
+      currentDrag,
+      pos.x,
+      pos.y,
+      minWidth,
+      maxWidth,
+      minHeight,
+      maxHeight,
+    );
+    setSize(nextSize);
+  });
+}
+
+export function handleContentFreeDragStart(
+  e: ReactMouseEvent,
+  editMode: boolean,
+  moveMode: boolean,
+  device: "desktop" | "responsive",
+  scale: number,
+  onChangeElementStyle?: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
+  setDragGuides?: (guides: GuideLine[]) => void,
+  setDraggingElementId?: (id: string | null) => void,
+): void {
+  startElementFreeDrag(
+    e,
+    editMode && moveMode,
+    device,
+    scale,
+    (elementId, patch) => onChangeElementStyle?.(elementId, patch),
+    setDragGuides ?? (() => {}),
+    setDraggingElementId ?? (() => {}),
+  );
+}
+
 // ============================================================
 // TemplateLivePreview
 // ============================================================

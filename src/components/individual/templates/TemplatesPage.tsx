@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PageShell } from "@/components/individual/PageShell";
-import { TemplateCard } from "@/components/common/TemplateCard";
+import { PortfolioCard } from "@/components/common/PortfolioCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";
 import { saveSiteAsPortfolio } from "@/lib/portfolioStorage";
@@ -85,13 +85,12 @@ export function TemplatesPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {visible.map((t, i) => (
-            <TemplateCard
+          {visible.map((t) => (
+            <PortfolioCard
               key={t.id}
+              id={t.id}
               t={t}
-              // index % PAGE_SIZE keeps the stagger delay short and resets each
-              // batch, instead of climbing forever as more rows get appended.
-              index={i % PAGE_SIZE}
+              isCreated={false}
               onPreview={openPreview}
             />
           ))}
