@@ -107,9 +107,7 @@ export function LoginPage() {
         >
           {/* Logo + title */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <img src="/logo.png" alt="Portflu" className="h-10 w-auto object-contain" />
-            </div>
+      
             <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
               Sign in to Portflu
             </h1>

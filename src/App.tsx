@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { AppProvider } from "@/context/AppContext";
-import { ConfirmationProvider } from "@/context/ConfirmationContext";
+// import { ConfirmationProvider } from "@/context/ConfirmationContext"; 
 import { LandingPage } from "@/components/individual/home/LandingPage";
 import { AboutPage } from "@/components/individual/about/AboutPage";
 import { ContactPage } from "@/components/individual/contact/ContactPage";
@@ -17,6 +17,7 @@ import { StatusPage } from "@/components/individual/status/StatusPage";
 import { TemplatesPage } from "@/components/individual/templates/TemplatesPage";
 import { TermsPage } from "@/components/individual/terms/TermsPage";
 import { PricingPage } from "@/components/individual/pricing/PricingPage";
+import { FeaturesPage } from "@/components/individual/features/FeaturesPage";
 import { LoginPage } from "@/components/individual/auth/LoginPage";
 import { SignupPage } from "@/components/individual/auth/SignupPage";
 import { useAppContext } from "@/context/AppContext";
@@ -133,12 +134,12 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <ConfirmationProvider>
           <BrowserRouter>
           <ScrollToTop />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/features" element={<FeaturesPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/cookies" element={<CookiesPage />} />
               <Route
@@ -215,7 +216,6 @@ export default function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>
-        </ConfirmationProvider>
       </AppProvider>
     </QueryClientProvider>
   );

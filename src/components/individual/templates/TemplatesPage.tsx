@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { PageShell } from "@/components/individual/PageShell";
 import { PortfolioCard } from "@/components/common/PortfolioCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
@@ -46,44 +45,29 @@ export function TemplatesPage() {
   };
 
   return (
-    <PageShell>
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-3xl"
+    <PageShell
+      eyebrow="Templates"
+      title="Choose a template"
+      subtitle="Hand-designed layouts tuned for specific kinds of work. Production-ready on day one — pick one and start editing."
+      containerClassName="mx-auto max-w-7xl px-6 py-10 md:py-14"
+    >
+      <div className="mb-8 flex flex-wrap gap-2">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCat(c)}
+            className={`rounded-full px-4 py-2 text-sm transition-all ${
+              cat === c
+                ? "bg-foreground text-background"
+                : "border border-border bg-surface-elevated hover:bg-secondary"
+            }`}
           >
-            <span className="text-xs tracking-[0.2em] uppercase text-ink-soft">Templates</span>
-            <h1 className="mt-3 font-display text-5xl md:text-7xl leading-[0.95]">
-              Choose a template
-            </h1>
-            <p className="mt-6 text-lg text-ink-soft max-w-xl">
-              Every template is designed by hand, tuned for a specific kind of work, and
-              production-ready on day one.
-            </p>
-          </motion.div>
+            {c}
+          </button>
+        ))}
+      </div>
 
-          <div className="mt-10 flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCat(c)}
-                className={`rounded-full px-4 py-2 text-sm transition-all ${
-                  cat === c
-                    ? "bg-foreground text-background"
-                    : "border border-border bg-surface-elevated hover:bg-secondary"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+      <section>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {visible.map((t) => (
             <PortfolioCard
@@ -111,14 +95,16 @@ export function TemplatesPage() {
           </div>
         )}
 
-        <div className="mt-24 rounded-3xl border border-border bg-surface p-10 text-center">
-          <h2 className="font-display text-3xl md:text-4xl">Don't see the one?</h2>
-          <p className="mt-3 text-ink-soft max-w-lg mx-auto">
-            We ship new templates every month. Request one and we'll notify you when it lands.
-          </p>
+        <div className="mt-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-border bg-surface px-5 py-5 md:px-6">
+          <div>
+            <h2 className="text-[15px] font-semibold">Don't see the one?</h2>
+            <p className="mt-1 text-sm text-ink-soft">
+              We ship new templates monthly. Request one and we'll notify you.
+            </p>
+          </div>
           <Link
             to="/contact"
-            className="mt-6 inline-flex items-center rounded-full bg-foreground text-background px-5 py-3 text-sm font-medium"
+            className="inline-flex shrink-0 items-center rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Request a template
           </Link>

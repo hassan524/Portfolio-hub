@@ -1,5 +1,6 @@
-import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
-import { useState, type MouseEvent } from "react";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Check } from "lucide-react";
 import { PageShell } from "@/components/individual/PageShell";
 import { toast } from "sonner";
 import PricingApi from "@/api/pricingApi";
@@ -30,23 +31,17 @@ const PLANS: Plan[] = [
     yearlySavings: "Save $10",
     features: [
       "1 live portfolio",
-      "Single-page layout",
       "All premium templates",
-      "Free subdomain",
-      "Custom domain support",
-      "Basic visitor analytics",
-      "SEO title & description",
-      "Works on any device",
-      "Secure (SSL) hosting",
-      "No Portflu branding",
+      "Custom domain + subdomain",
+      "Basic analytics & SEO",
+      "SSL hosting, no branding",
       "Unlimited edits",
-      "Standard support",
     ],
   },
   {
     id: "professional",
     name: "Professional",
-    badge: "⭐ Most Popular",
+    badge: "Most popular",
     monthlyPrice: "$10",
     yearlyPrice: "$100",
     yearlyOriginal: "$120",
@@ -56,19 +51,19 @@ const PLANS: Plan[] = [
     features: [
       "Up to 10 portfolios",
       "Multi-page layouts",
-      "Advanced analytics (traffic, devices & location)",
+      "Advanced analytics",
       "Search engine insights",
       "Priority support",
     ],
   },
 ];
 
-/**
- * The pricing card: tilts gently toward the cursor and shows a soft
- * spotlight where the mouse is. Both effects are driven by the same
- * pointer position, spring-smoothed so they never feel jittery, and
- * both reset to neutral on mouse leave.
- */
+const FAQ = [
+  { q: "Can I cancel anytime?", a: "Yes. Cancel from your dashboard — no questions asked." },
+  { q: "Do I need a card to start?", a: "No. Sign up free and upgrade when you're ready." },
+  { q: "What happens when I downgrade?", a: "Your sites stay live. Pro-only features pause until you upgrade again." },
+];
+
 function PricingCard({
   plan,
   billing,
@@ -80,144 +75,74 @@ function PricingCard({
   loading: boolean;
   onCta: (planId: Plan["id"]) => void;
 }) {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useSpring(useMotionValue(0), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useMotionValue(0), { stiffness: 150, damping: 20 });
-  const spotlight = useMotionTemplate`radial-gradient(280px circle at ${mouseX}px ${mouseY}px, oklch(0.7 0.15 145 / 0.12), transparent 75%)`;
-
-  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - bounds.left;
-    const y = e.clientY - bounds.top;
-    mouseX.set(x);
-    mouseY.set(y);
-
-    const percentX = x / bounds.width - 0.5;
-    const percentY = y / bounds.height - 0.5;
-    rotateY.set(percentX * 10);
-    rotateX.set(percentY * -10);
-  }
-
-  function handleMouseLeave() {
-    rotateX.set(0);
-    rotateY.set(0);
-  }
-
   const isYearly = billing === "yearly";
   const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
   const period = isYearly ? "/yr" : "/mo";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24, rotate: -1 }}
-      animate={{ opacity: 1, y: 0, rotate: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{ perspective: 1000 }}
-      // Fixed width, natural height — this card sizes itself, it never
-      // stretches to fill its parent's height or width.
-      className="w-full max-w-sm shrink-0"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className={`relative flex h-full w-full max-w-[320px] flex-col rounded-2xl border p-5 sm:p-6 ${
+        plan.highlighted
+          ? "border-primary/40 bg-surface-elevated shadow-[0_0_0_1px_oklch(0.77_0.20_131/0.15),var(--shadow-soft)]"
+          : "border-border bg-surface"
+      }`}
     >
-      <motion.div
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className={`relative overflow-hidden rounded-3xl border bg-surface-elevated shadow-lift ${
-          plan.highlighted ? "border-accent" : "border-border"
+      {plan.highlighted && (
+        <div className="absolute -top-px left-1/2 h-px w-24 -translate-x-1/2 bg-gradient-to-r from-transparent via-primary to-transparent" />
+      )}
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-semibold">{plan.name}</span>
+        {plan.badge && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            {plan.badge}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex items-baseline gap-1">
+        <span className="font-display text-3xl font-bold tracking-tight">{price}</span>
+        <span className="text-xs text-ink-soft">{period}</span>
+      </div>
+
+      {isYearly && plan.yearlyOriginal && (
+        <p className="mt-1 text-xs text-ink-soft">
+          <span className="line-through">{plan.yearlyOriginal}/yr</span>{" "}
+          <span className="font-medium text-primary">{plan.yearlySavings}</span>
+        </p>
+      )}
+
+      <p className="mt-2 text-xs text-ink-soft">
+        {isYearly ? "Billed annually" : "Billed monthly"} · cancel anytime
+      </p>
+
+      {plan.featuresIntro && (
+        <p className="mt-5 text-xs font-medium text-ink-soft">{plan.featuresIntro}</p>
+      )}
+
+      <ul className={`space-y-2.5 ${plan.featuresIntro ? "mt-2" : "mt-5"} flex-1`}>
+        {plan.features.map((item) => (
+          <li key={item} className="flex items-start gap-2 text-[13px] text-foreground/90">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2.5} />
+            <span className="leading-snug">{item}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => onCta(plan.id)}
+        disabled={loading}
+        className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-60 ${
+          plan.highlighted
+            ? "bg-secondary text-secondary-foreground hover:brightness-105"
+            : "bg-foreground text-background hover:opacity-90"
         }`}
       >
-        <motion.div
-          aria-hidden="true"
-          style={{ background: spotlight }}
-          className="pointer-events-none absolute inset-0"
-        />
-
-        <div className="relative">
-          <div className="flex items-center justify-between px-7 pt-7">
-            <span className="font-display text-lg font-semibold tracking-tight">
-              {plan.name}
-            </span>
-            {plan.badge && (
-              <span className="shrink-0 whitespace-nowrap rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                {plan.badge}
-              </span>
-            )}
-          </div>
-
-          <div className="px-7 pt-3">
-            <span className="flex items-end gap-1">
-              <span className="text-gradient-brand font-display text-3xl font-bold leading-none">
-                {price}
-              </span>
-              <span className="pb-0.5 text-sm text-ink-soft">{period}</span>
-            </span>
-            {isYearly && plan.yearlyOriginal && (
-              <p className="mt-1 flex items-center gap-2 text-xs text-ink-soft">
-                <span className="line-through">{plan.yearlyOriginal}/yr</span>
-                <span className="font-semibold text-accent">{plan.yearlySavings}</span>
-              </p>
-            )}
-          </div>
-
-          <p className="px-7 pt-1 text-xs text-ink-soft">
-            {isYearly ? "Billed annually. Cancel anytime." : "Billed monthly. Cancel anytime, no questions asked."}
-          </p>
-
-          <div className="mx-7 mt-6 border-t border-dashed border-border" />
-
-          {plan.featuresIntro && (
-            <p className="px-7 pt-4 text-xs font-semibold text-ink-soft">
-              {plan.featuresIntro}
-            </p>
-          )}
-
-          <ul className="px-7 py-3 text-[14px]">
-            {plan.features.map((item, i) => (
-              <motion.li
-                key={item}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 + i * 0.04 }}
-                className="flex items-start gap-2.5 py-1.5 text-ink"
-              >
-                <span aria-hidden="true" className="mt-0.5 shrink-0 text-accent">
-                  ✓
-                </span>
-                <span className="leading-snug">{item}</span>
-              </motion.li>
-            ))}
-          </ul>
-
-          <div className="mx-7 border-t border-border" />
-          <div className="flex items-center justify-between px-7 py-4 font-mono text-sm">
-            <span className="font-semibold">Total</span>
-            <span className="font-semibold">
-              {price}.00 {period}
-            </span>
-          </div>
-
-          <div className="px-7 pb-7">
-            <motion.button
-              onClick={() => onCta(plan.id)}
-              disabled={loading}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className={`w-full cursor-pointer rounded-2xl py-4 text-base font-bold shadow-md transition-shadow hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 ${
-                plan.highlighted
-                  ? "bg-accent text-background hover:shadow-accent/40"
-                  : "bg-foreground text-background hover:shadow-foreground/30"
-              }`}
-            >
-              {loading ? "Starting checkout…" : `Get started — ${price}${period}`}
-            </motion.button>
-            <p className="mt-2.5 text-center text-xs text-ink-soft">
-              No credit card required to sign up
-            </p>
-          </div>
-        </div>
-      </motion.div>
+        {loading ? "Starting…" : "Get started"}
+      </button>
     </motion.div>
   );
 }
@@ -230,12 +155,12 @@ function BillingToggle({
   onChange: (b: Billing) => void;
 }) {
   return (
-    <div className="mx-auto flex w-fit items-center gap-1 rounded-full border border-border bg-surface-elevated p-1">
+    <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1">
       {(["monthly", "yearly"] as Billing[]).map((option) => (
         <button
           key={option}
           onClick={() => onChange(option)}
-          className={`relative cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+          className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition-colors sm:px-5 sm:py-2 sm:text-sm ${
             billing === option ? "text-background" : "text-ink-soft hover:text-ink"
           }`}
         >
@@ -250,13 +175,13 @@ function BillingToggle({
             {option === "monthly" ? "Monthly" : "Yearly"}
             {option === "yearly" && (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold sm:text-[10px] ${
                   billing === "yearly"
                     ? "bg-background/20 text-background"
-                    : "bg-accent/10 text-accent"
+                    : "bg-primary/10 text-primary"
                 }`}
               >
-                Save 20%
+                −20%
               </span>
             )}
           </span>
@@ -273,19 +198,13 @@ export function PricingPage() {
   async function handleCta(planId: Plan["id"]) {
     try {
       setLoading(true);
-
       const response = await PricingApi.createCheckout({ planId, billing });
       const transactionId = response.data.transactionId;
-
       const paddleInstance: Paddle | undefined = await initializePaddle({
         environment: "sandbox",
         token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
       });
-
-      if (!paddleInstance) {
-        throw new Error("Paddle failed to initialize");
-      }
-
+      if (!paddleInstance) throw new Error("Paddle failed to initialize");
       paddleInstance.Checkout.open({ transactionId });
     } catch (err) {
       console.error("Payment initialization failed:", err);
@@ -296,51 +215,45 @@ export function PricingPage() {
   }
 
   return (
-    <PageShell>
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:pt-20 md:pb-24">
-          <div className="text-center">
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-accent"
-            >
-              Pricing
-            </motion.p>
+    <PageShell
+      align="center"
+      eyebrow="Pricing"
+      title="Plans that grow with you"
+      subtitle="Premium templates, custom domains, analytics, and SEO — included on every plan. Start free, upgrade when you need more."
+      containerClassName="mx-auto max-w-5xl px-6 py-10 md:py-14"
+    >
+      <div className="flex flex-col items-center">
+        <BillingToggle billing={billing} onChange={setBilling} />
 
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="mt-3 font-display text-3xl leading-tight tracking-tight md:text-4xl"
-            >
-              Simple plans. Everything you need.
-            </motion.h1>
+        <div className="mt-8 grid w-full max-w-2xl grid-cols-1 place-items-center gap-5 sm:grid-cols-2 sm:items-stretch sm:gap-4">
+          {PLANS.map((plan) => (
+            <PricingCard
+              key={plan.id}
+              plan={plan}
+              billing={billing}
+              loading={loading}
+              onCta={handleCta}
+            />
+          ))}
+        </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="mt-5"
-            >
-              <BillingToggle billing={billing} onChange={setBilling} />
-            </motion.div>
-          </div>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-8 md:flex-row md:items-start">
-            {PLANS.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                billing={billing}
-                loading={loading}
-                onCta={handleCta}
-              />
+        <div className="mt-14 w-full max-w-xl">
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-ink-soft">
+            Common questions
+          </p>
+          <div className="mt-4 space-y-3">
+            {FAQ.map((item) => (
+              <div
+                key={item.q}
+                className="rounded-xl border border-border bg-surface px-4 py-3 text-left sm:px-5 sm:py-4"
+              >
+                <p className="text-sm font-medium">{item.q}</p>
+                <p className="mt-1 text-xs text-ink-soft leading-relaxed">{item.a}</p>
+              </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
     </PageShell>
   );
 }

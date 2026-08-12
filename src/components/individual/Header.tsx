@@ -21,7 +21,7 @@ export function Header() {
 
   // Public (logged-out) nav — full marketing set
   const PUBLIC_NAV_LINKS = [
-    { label: "Templates", to: "/templates" as const },
+    // { label: "Templates", to: "/templates" as const }, 
     { label: "Features", to: "/features" as const },
     { label: "Pricing", to: "/pricing" as const },
     { label: "About", to: "/about" as const },

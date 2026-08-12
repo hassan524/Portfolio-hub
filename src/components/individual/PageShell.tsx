@@ -9,6 +9,7 @@ export interface PageShellProps {
   subtitle?: ReactNode;
   children?: ReactNode;
   containerClassName?: string;
+  align?: "left" | "center";
 }
 
 export function PageShell({
@@ -17,8 +18,10 @@ export function PageShell({
   subtitle,
   children,
   containerClassName,
+  align = "left",
 }: PageShellProps) {
   const hasBanner = Boolean(eyebrow || title || subtitle);
+  const centered = align === "center";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -26,24 +29,29 @@ export function PageShell({
       <main className="flex-1">
         {hasBanner && (
           <section className="border-b border-border">
-            <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
+            <div className="mx-auto max-w-5xl px-6 py-10 md:py-14">
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5 }}
+                className={centered ? "text-center mx-auto" : undefined}
               >
                 {eyebrow && (
-                  <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-ink-soft">
+                  <span className="inline-block text-[11px] font-semibold tracking-[0.18em] uppercase text-accent">
                     {eyebrow}
                   </span>
                 )}
                 {title && (
-                  <h1 className="mt-3 font-display text-5xl md:text-7xl leading-[0.95]">
+                  <h1 className="mt-2 font-display text-3xl md:text-4xl leading-tight tracking-tight">
                     {title}
                   </h1>
                 )}
                 {subtitle && (
-                  <p className="mt-6 max-w-2xl text-lg text-ink-soft leading-relaxed">
+                  <p
+                    className={`mt-3 max-w-2xl text-sm md:text-[15px] text-ink-soft leading-relaxed ${
+                      centered ? "mx-auto" : ""
+                    }`}
+                  >
                     {subtitle}
                   </p>
                 )}
@@ -51,15 +59,16 @@ export function PageShell({
             </div>
           </section>
         )}
-        {children && (
-          hasBanner ? (
-            <section className={containerClassName ?? "mx-auto max-w-5xl px-6 py-16 md:py-20"}>
+        {children &&
+          (hasBanner ? (
+            <section
+              className={containerClassName ?? "mx-auto max-w-5xl px-6 py-10 md:py-14"}
+            >
               {children}
             </section>
           ) : (
             children
-          )
-        )}
+          ))}
       </main>
       <Footer />
     </div>
@@ -70,9 +79,8 @@ export const SiteLayout = PageShell;
 
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="max-w-2xl space-y-5 text-[15px] leading-[1.75] text-ink [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-2 [&_p]:text-ink-soft [&_a]:underline">
+    <div className="max-w-2xl space-y-6 text-sm leading-relaxed text-ink [&_h2]:font-display [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-0 [&_p]:text-ink-soft [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2">
       {children}
     </div>
   );
 }
-
