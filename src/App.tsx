@@ -23,6 +23,8 @@ import { SignupPage } from "@/components/individual/auth/SignupPage";
 import { useAppContext } from "@/context/AppContext";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 
+import { Toaster } from "sonner";
+
 const queryClient = new QueryClient();
 
 function NotFoundPage() {
@@ -98,7 +100,7 @@ function GuestRoute({ children }: { children: ReactNode }) {
 function AuthRoute({ children }: { children: ReactNode }) {
   return (
     <GuestRoute>
-     {children}
+      {children}
     </GuestRoute>
   );
 }
@@ -134,88 +136,89 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-          <BrowserRouter>
+        <Toaster />
+        <BrowserRouter>
           <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/features" element={<FeaturesPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/cookies" element={<CookiesPage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/:portfolioId"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/help" element={<HelpPage />} />
-              <Route
-                path="/portfolios"
-                element={
-                  <ProtectedRoute>
-                    <PortfoliosPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/refunds" element={<RefundPage />} />
-              <Route path="/status" element={<StatusPage />} />
-              <Route
-                path="/templates"
-                element={
-                  <ProtectedRoute>
-                    <TemplatesPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pricing"
-                element={
-                  <PricingRoute>
-                    <PricingPage />
-                  </PricingRoute>
-                }
-              />
-              <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route
-                path="/auth"
-                element={
-                  <AuthRoute>
-                    <LoginPage />
-                  </AuthRoute>
-                }
-              />
-              <Route
-                path="/auth/login"
-                element={
-                  <AuthRoute>
-                    <LoginPage />
-                  </AuthRoute>
-                }
-              />
-              <Route
-                path="/auth/signup"
-                element={
-                  <AuthRoute>
-                    <SignupPage />
-                  </AuthRoute>
-                }
-              />
-              <Route path="/social/*" element={<SocialRoute />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/cookies" element={<CookiesPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/:portfolioId"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/help" element={<HelpPage />} />
+            <Route
+              path="/portfolios"
+              element={
+                <ProtectedRoute>
+                  <PortfoliosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/refunds" element={<RefundPage />} />
+            <Route path="/status" element={<StatusPage />} />
+            <Route
+              path="/templates"
+              element={
+                <ProtectedRoute>
+                  <TemplatesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pricing"
+              element={
+                <PricingRoute>
+                  <PricingPage />
+                </PricingRoute>
+              }
+            />
+            <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route
+              path="/auth"
+              element={
+                <AuthRoute>
+                  <LoginPage />
+                </AuthRoute>
+              }
+            />
+            <Route
+              path="/auth/login"
+              element={
+                <AuthRoute>
+                  <LoginPage />
+                </AuthRoute>
+              }
+            />
+            <Route
+              path="/auth/signup"
+              element={
+                <AuthRoute>
+                  <SignupPage />
+                </AuthRoute>
+              }
+            />
+            <Route path="/social/*" element={<SocialRoute />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
       </AppProvider>
     </QueryClientProvider>
   );

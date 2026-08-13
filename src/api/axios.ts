@@ -2,14 +2,14 @@ import axios from "axios";
 
 export const api = axios.create({
   baseURL: import.meta.env.DEV
-    ? "https://9f50-2401-ba80-a387-4a62-d22-457b-9c67-3bf1.ngrok-free.app/api"
+     ? "http://localhost:5000/api"
     : import.meta.env.VITE_BACKEND_URL,
   timeout: 30000, 
   withCredentials: true, 
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true", // Bypasses ngrok warning page
+    "ngrok-skip-browser-warning": "true", 
   },
 });
 

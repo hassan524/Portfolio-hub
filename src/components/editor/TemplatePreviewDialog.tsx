@@ -7,7 +7,9 @@ import { ElementStylePanel } from "./ui/ElementStylePanel";
 import { SaveDeployModal } from "@/components/common/SaveDeployModal";
 import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
+import { SaveMode } from "@/components/common/SaveDeployModal";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
+import portfolioApi from "@/api/portfolioApi";
 import {
   toggleMaximize,
   updateBlockProps,
@@ -19,9 +21,9 @@ import {
   resetSelectedElement,
   syncTemplateState,
   handleFullscreenChange,
-  handleSaveClick as handleSaveClickFn,
-  handleConfirmSave as handleConfirmSaveFn,
 } from "@/lib/functions/template";
+import { DeployModal } from "../common/Deploymodal";
+import { toast } from "sonner";
 
 interface Props {
   template: SiteData | null;
@@ -45,7 +47,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   const { profile } = useAppContext();
 
   const [activeSection, setActiveSection] = useState<string>("hero");
-
+  const [isSaving, setIsSaving] = useState(false);
   const [site, setSite] = useState<SiteData | null>(null);
   const [deployedPlatform, setdeployedPlatform] = useState<"vercel" | "netlify">();
 
@@ -53,14 +55,23 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
+  const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
 
-  // ── Change tracking ────────────────────────────────────────────────────
-  // Starts false when a template is opened. Flips to true on any mutation.
   const [hasChanges, setHasChanges] = useState(false);
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Synchronize state when a new template target opens — also resets hasChanges
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   useEffect(() => {
     syncTemplateState(
       template,
@@ -73,7 +84,6 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
     setHasChanges(false);
   }, [template]);
 
-  // Synchronize maximization state with native browser fullscreen state changes
   useEffect(() => {
     function onFullscreenChange() {
       handleFullscreenChange(setIsMaximized);
@@ -126,13 +136,47 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
     setHasChanges(true);
   };
 
-  const handleSaveClick = (_site?: SiteData) => {
-    handleSaveClickFn(profile, onClose, navigate, setSaveModalOpen);
+
+
+  // ----------------------------------------- SAVING FUNCTIONS ----------------------------------------- 
+
+  const handleSaveClick = () => {
+    const isPaid = profile?.is_paid === true;
+
+    if (!isPaid) {
+      onClose();
+      setTimeout(() => navigate("/pricing"), 320);
+      return;
+    }
+
+    setSaveModalOpen(true);
   };
 
-  // Called by SaveDeployModal once the user confirms a target (vercel/netlify).
-  const handleConfirmSave = (deploymentTarget?: string) => {
-    handleConfirmSaveFn(deploymentTarget, setdeployedPlatform, onSave, site);
+
+  const handleConfirmSave = async (mode: SaveMode, name: string, description: string) => {
+    setIsSaving(true);
+    try {
+      const response = await portfolioApi.createPortfolio(name, description, site, template.id, mode);
+      const portfolio = response.data;
+      console.log('response', response)
+
+      setSaveModalOpen(false);
+
+      if (portfolio.isdraft) {
+        toast.success("Saved as draft!");
+        navigate(`/dashboard/${portfolio.id}`);
+      } else {
+        toast.success("Portfolio saved!");
+        setDeployModalOpen(true);
+      }
+    } catch (error) {
+
+      console.error("Create portfolio error:", error);
+      toast.error("Failed to save portfolio. Please try again.");
+
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -156,11 +200,11 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className={`relative border border-border bg-background shadow-lift overflow-hidden flex ${
-                isMaximized
-                  ? "h-screen w-screen rounded-none"
-                  : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl"
-              }`}
+              onWheel={(e) => e.stopPropagation()}
+              className={`relative border border-border bg-background shadow-lift overflow-hidden flex ${isMaximized
+                ? "h-screen w-screen rounded-none"
+                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl"
+                }`}
             >
               {/* Sidebar Controls */}
               <TemplateSidebar
@@ -217,7 +261,21 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
         onConfirmSave={handleConfirmSave}
         deployedPlatform={deployedPlatform}
         setDeployedPlatform={setdeployedPlatform}
+        saving={isSaving}
       />
+
+      <DeployModal
+        open={DeployModalOpen}
+        onOpenChange={setDeployModalOpen}
+        onConfirmDeploy={(platform) => {
+          console.log("deploying to", platform);
+        }}
+        name={site.name}
+        description={site.tagline}
+        deployedPlatform={deployedPlatform}
+        setDeployedPlatform={setdeployedPlatform}
+      />
+
     </>
   );
 }
