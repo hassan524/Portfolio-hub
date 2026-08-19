@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Briefcase, ChevronDown } from "lucide-react";
-import { Editable } from "@/components/editor/Editable";
+import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "../types";
 import type { HeroProps } from "@/types/builder.schema";
 

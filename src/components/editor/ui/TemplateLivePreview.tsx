@@ -64,6 +64,7 @@ export function TemplateLivePreview({
   onClose,
   onSave,
   hasChanges,
+  contentRef,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -71,25 +72,36 @@ export function TemplateLivePreview({
 
   selectedElementId?: string | null;
   onSelectElement?: (edit: PreviewElementEdit | null) => void;
-  onChangeElementStyle?: (elementId: string, patch: Partial<PreviewElementStyle>) => void;
+  onChangeElementStyle?: (
+    elementId: string,
+    patch: Partial<PreviewElementStyle>
+  ) => void;
 
   onDeviceChange: (device: Device) => void;
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
 
-  onUpdateTypography?: (blockId: string, patch: Record<string, unknown>) => void;
+  onUpdateTypography?: (
+    blockId: string,
+    patch: Record<string, unknown>
+  ) => void;
 
   onReorderBlocks: (blocks: Block[]) => void;
+
   isMaximized: boolean;
   setIsMaximized: Dispatch<SetStateAction<boolean>>;
+
   dialogRef: RefObject<HTMLDivElement | null>;
+
   onToggleMaximize: (
     isMaximized: boolean,
     setIsMaximized: Dispatch<SetStateAction<boolean>>,
-    dialogRef: RefObject<HTMLDivElement | null>,
+    dialogRef: RefObject<HTMLDivElement | null>
   ) => void;
+
   onClose: () => void;
   onSave?: (site: SiteData) => void;
   hasChanges?: boolean;
+  contentRef: RefObject<HTMLDivElement | null>;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -100,7 +112,7 @@ export function TemplateLivePreview({
   const frameRef = useRef<HTMLDivElement>(null);
   const responsiveFrameRef = useRef<HTMLIFrameElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+
 
   // Drag state is used to resize the responsive frame.
   const dragState = useRef<FrameDragState | null>(null);
@@ -321,8 +333,7 @@ export function TemplateLivePreview({
     if (ok) onSave?.(site);
   }
 
-  // Render the preview's content area once, then reuse it in both desktop
-  // and responsive frame layouts.
+
   const previewContent = (
     <div
       ref={contentRef}
@@ -357,9 +368,9 @@ export function TemplateLivePreview({
           >
             <div
               data-block-id={block.id}
-              className={`relative group/block ${
-                isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-              }`}
+              data-block-kind={block.props.kind}
+              className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                }`}
               style={{
                 ...(isActive ? { outlineColor: theme.accent } : undefined),
                 height: isDesktop && block.height ? `${block.height}px` : undefined,
@@ -438,11 +449,10 @@ export function TemplateLivePreview({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
-                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${
-                      isResizingThis
-                        ? "bg-foreground shadow-md scale-110 opacity-100"
-                        : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                    }`}
+                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+                      ? "bg-foreground shadow-md scale-110 opacity-100"
+                      : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                      }`}
                   >
                     <div className="h-0.5 w-6 rounded-full bg-background/80" />
                   </div>
@@ -490,11 +500,10 @@ export function TemplateLivePreview({
           <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
             <button
               onClick={() => onDeviceChange("desktop")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
+                ? "bg-foreground text-background"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                }`}
               title="Desktop Preview"
             >
               <Monitor className="h-4 w-4" />
@@ -502,11 +511,10 @@ export function TemplateLivePreview({
 
             <button
               onClick={() => onDeviceChange("responsive")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                !isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
+                ? "bg-foreground text-background"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                }`}
               title="Responsive Preview"
             >
               <Smartphone className="h-4 w-4" />
@@ -517,11 +525,10 @@ export function TemplateLivePreview({
 
           <button
             onClick={handleToggleEditMode}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              editMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              }`}
             title={editMode ? "Exit edit mode" : "Enter edit mode"}
             aria-label={editMode ? "Exit edit mode" : "Enter edit mode"}
           >
@@ -530,11 +537,10 @@ export function TemplateLivePreview({
 
           <button
             onClick={handleToggleMoveModeClick}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              moveMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              }`}
             title={moveMode ? "Turn off move mode" : "Turn on move mode"}
             aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
           >

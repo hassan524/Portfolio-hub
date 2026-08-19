@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Send, ArrowUpRight, MapPin, Check } from "lucide-react";
 import { FaGithub, FaLinkedin, FaTwitter, FaInstagram, FaDribbble } from "react-icons/fa";
-import { Editable } from "@/components/editor/Editable";
+import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "../types";
 import type { ContactProps } from "@/types/builder.schema";
 

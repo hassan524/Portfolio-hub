@@ -1209,3 +1209,17 @@ export function handleEditableBlur(
 ): void {
   onChange(e.currentTarget.innerHTML ?? "");
 }
+
+
+
+export function getTemplateHtml(
+  contentRef: RefObject<HTMLDivElement | null>
+): string | null {
+  const templateRoot = contentRef.current;
+
+  if (!templateRoot) {
+    return null;
+  }
+
+  return templateRoot.outerHTML;
+}

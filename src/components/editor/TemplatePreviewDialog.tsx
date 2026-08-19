@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { TemplateSidebar } from "./ui/TemplateSidebar";
@@ -9,6 +9,8 @@ import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import { SaveMode } from "@/components/common/SaveDeployModal";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
+import { buildViewerAppFiles } from "@/lib/buildReactAppTemplate";
+
 import portfolioApi from "@/api/portfolioApi";
 import {
   toggleMaximize,
@@ -42,7 +44,7 @@ const FALLBACK_THEME: Theme = {
   spacing: "cozy",
 };
 
-export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props) {
+export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const navigate = useNavigate();
   const { profile } = useAppContext();
 
@@ -56,6 +58,9 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
   const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [deployFiles, setDeployFiles] = useState<Record<string, string> | null>(null);
+
 
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -82,6 +87,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
       setSelectedElement,
     );
     setHasChanges(false);
+    setDeployFiles(null);
   }, [template]);
 
   useEffect(() => {
@@ -158,7 +164,6 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
     try {
       const response = await portfolioApi.createPortfolio(name, description, site, template.id, mode);
       const portfolio = response.data;
-      console.log('response', response)
 
       setSaveModalOpen(false);
 
@@ -166,6 +171,11 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
         toast.success("Saved as draft!");
         navigate(`/dashboard/${portfolio.id}`);
       } else {
+
+        const files = await buildViewerAppFiles(site);
+        console.log("Generated files for deployment:", files);
+        setDeployFiles(files);
+
         toast.success("Portfolio saved!");
         setDeployModalOpen(true);
       }
@@ -237,6 +247,7 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
                 onClose={onClose}
                 onSave={handleSaveClick}
                 hasChanges={hasChanges}
+                contentRef={contentRef}
               />
 
               {/* Element Fine-Tuning Panel */}
@@ -267,13 +278,9 @@ export function TemplatePreviewDialog({ template, open, onClose, onSave }: Props
       <DeployModal
         open={DeployModalOpen}
         onOpenChange={setDeployModalOpen}
-        onConfirmDeploy={(platform) => {
-          console.log("deploying to", platform);
-        }}
         name={site.name}
         description={site.tagline}
-        deployedPlatform={deployedPlatform}
-        setDeployedPlatform={setdeployedPlatform}
+        files={deployFiles}
       />
 
     </>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { ArrowUpRight, ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { Editable } from "@/components/editor/Editable";
+import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "../types";
 import type { ProjectsProps } from "@/types/builder.schema";
 
@@ -141,24 +141,30 @@ function VisitLink({
   label = "Visit",
   className,
   style,
+  dialogMarker = false,
 }: {
-  item: Item;
+  item: Item | null;
   accent: string;
   label?: string;
   className: string;
   style?: React.CSSProperties;
+  dialogMarker?: boolean;
 }) {
   return (
     <a
-      href={item.link || "#"}
-      target={item.link ? "_blank" : undefined}
-      rel={item.link ? "noopener noreferrer" : undefined}
+      href={item?.link || "#"}
+      target={item?.link ? "_blank" : undefined}
+      rel={item?.link ? "noopener noreferrer" : undefined}
       onClick={(e) => e.stopPropagation()}
-      title={item.link ? undefined : "Add a link to this item to make this go somewhere"}
+      title={item?.link ? undefined : "Add a link to this item to make this go somewhere"}
       className={className}
       style={style ?? { color: accent }}
+      {...(dialogMarker ? { "data-dialog-visit": true } : {})}
     >
-      {item.linkLabel || label} <ArrowUpRight className="h-4 w-4" />
+      <span {...(dialogMarker ? { "data-dialog-visit-label": true } : {})}>
+        {item?.linkLabel || label}
+      </span>{" "}
+      <ArrowUpRight className="h-4 w-4" />
     </a>
   );
 }
@@ -189,13 +195,7 @@ const childTransition = { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const };
    instead (see VisitLink) so not everything behaves the same way.
 ───────────────────────────────────────────────────────── */
 
-type DialogProps = {
-  item: Item | null;
-  ink: string;
-  bg: string;
-  accent: string;
-  onClose: () => void;
-};
+type DialogProps = { item: Item | null; ink: string; bg: string; accent: string; onClose: () => void };
 
 function useEscToClose(item: Item | null, onClose: () => void) {
   useEffect(() => {
@@ -212,6 +212,7 @@ function CloseButton({ ink, onClose }: { ink: string; onClose: () => void }) {
       whileHover={{ scale: 1.08, rotate: 90 }}
       whileTap={{ scale: 0.92 }}
       onClick={onClose}
+      data-dialog-close
       className="shrink-0 h-11 w-11 rounded-full grid place-items-center cursor-pointer"
       style={{ background: `${ink}0c`, color: `${ink}90`, border: "none" }}
       aria-label="Close"
@@ -234,452 +235,331 @@ function DialogVisitRow({ item, accent }: { item: Item; accent: string }) {
   );
 }
 
-/* 1 — Editorial: large glowing hero panel, staggered copy reveal. */
+/* 1 — Editorial */
 function DialogEditorial({ item, ink, bg, accent, onClose }: DialogProps) {
   useEscToClose(item, onClose);
+  const open = !!item;
   return (
-    <AnimatePresence>
-      {item && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60]"
-            style={{ background: "rgba(10,10,10,0.6)", backdropFilter: "blur(10px)" }}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 pointer-events-none"
+    <div data-project-dialog="editorial" className={open ? "is-open" : ""}>
+      <motion.div
+        data-dialog-backdrop
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        transition={{ duration: 0.35 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60]"
+        style={{ background: "rgba(10,10,10,0.6)", backdropFilter: "blur(10px)", pointerEvents: open ? "auto" : "none" }}
+      />
+      <motion.div
+        data-dialog-panel
+        initial={false}
+        animate={open ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.92, y: 40 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10"
+        style={{ pointerEvents: open ? "auto" : "none" }}
+      >
+        <div
+          className="pointer-events-auto w-full max-w-3xl rounded-[2rem] overflow-hidden max-h-[88vh] overflow-y-auto"
+          style={{ background: bg, boxShadow: `0 60px 140px -30px ${ink}45` }}
+        >
+          <div
+            className="aspect-[16/8] w-full flex items-center justify-center relative overflow-hidden"
+            style={{ background: item?.featured ? `${accent}20` : `${ink}08` }}
           >
+            <motion.div
+              animate={{ scale: [1, 1.12, 1], rotate: [0, 6, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 opacity-25"
+              style={{ background: `radial-gradient(circle at 65% 35%, ${accent}, transparent 65%)` }}
+            />
+            <div data-dialog-letter className="relative font-display text-[10rem] md:text-[13rem] font-black opacity-[0.08] leading-none" style={{ color: ink }}>
+              {item?.title?.[0]}
+            </div>
             <div
-              className="pointer-events-auto w-full max-w-3xl rounded-[2rem] overflow-hidden max-h-[88vh] overflow-y-auto"
-              style={{ background: bg, boxShadow: `0 60px 140px -30px ${ink}45` }}
+              data-dialog-badge
+              className="absolute top-6 left-6 text-xs px-4 py-2 rounded-full font-semibold tracking-wide"
+              style={{ background: accent, color: bg, display: item?.featured ? "" : "none" }}
             >
-              <div
-                className="aspect-[16/8] w-full flex items-center justify-center relative overflow-hidden"
-                style={{ background: item.featured ? `${accent}20` : `${ink}08` }}
-              >
-                <motion.div
-                  animate={{ scale: [1, 1.12, 1], rotate: [0, 6, 0] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 opacity-25"
-                  style={{ background: `radial-gradient(circle at 65% 35%, ${accent}, transparent 65%)` }}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative font-display text-[10rem] md:text-[13rem] font-black opacity-[0.08] leading-none"
+              {item?.badgeLabel || "Featured"}
+            </div>
+          </div>
+          <div className="p-10 md:p-14">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div
+                  data-dialog-meta
+                  className="mb-3 text-xs font-semibold uppercase tracking-widest"
+                  style={{ color: accent, display: (item?.category || item?.period) ? "" : "none" }}
+                >
+                  {[item?.category, item?.period].filter(Boolean).join(" · ")}
+                </div>
+                <motion.h3
+                  data-dialog-title
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="font-display text-3xl md:text-5xl font-black leading-tight"
                   style={{ color: ink }}
                 >
-                  {item.title?.[0]}
-                </motion.div>
-                {item.featured && (
-                  <div
-                    className="absolute top-6 left-6 text-xs px-4 py-2 rounded-full font-semibold tracking-wide"
-                    style={{ background: accent, color: bg }}
-                  >
-                    {item.badgeLabel || "Featured"}
-                  </div>
-                )}
+                  {item?.title}
+                </motion.h3>
               </div>
-              <div className="p-10 md:p-14">
-                <div className="flex items-start justify-between gap-6">
-                  <div>
-                    {(item.category || item.period) && (
-                      <div className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: accent }}>
-                        {[item.category, item.period].filter(Boolean).join(" · ")}
-                      </div>
-                    )}
-                    <motion.h3
-                      initial={{ opacity: 0, y: 14 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.5 }}
-                      className="font-display text-3xl md:text-5xl font-black leading-tight"
-                      style={{ color: ink }}
-                    >
-                      {item.title}
-                    </motion.h3>
-                  </div>
-                  <CloseButton ink={ink} onClose={onClose} />
-                </div>
-                {item.desc && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.28, duration: 0.5 }}
-                    className="mt-6 text-lg leading-relaxed max-w-xl"
-                    style={{ color: `${ink}72` }}
-                  >
-                    {item.desc}
-                  </motion.p>
-                )}
-                {item.tags && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.32 }}
-                    className="mt-4 text-xs font-semibold uppercase tracking-wide"
-                    style={{ color: `${ink}45` }}
-                  >
-                    {item.tags}
-                  </motion.p>
-                )}
-                <DialogVisitRow item={item} accent={accent} />
-              </div>
+              <CloseButton ink={ink} onClose={onClose} />
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <motion.p
+              data-dialog-desc
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28, duration: 0.5 }}
+              className="mt-6 text-lg leading-relaxed max-w-xl"
+              style={{ color: `${ink}72`, display: item?.desc ? "" : "none" }}
+            >
+              {item?.desc}
+            </motion.p>
+            <motion.p
+              data-dialog-tags
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.32 }}
+              className="mt-4 text-xs font-semibold uppercase tracking-wide"
+              style={{ color: `${ink}45`, display: item?.tags ? "" : "none" }}
+            >
+              {item?.tags}
+            </motion.p>
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36, duration: 0.5 }}>
+              <VisitLink item={item} accent={accent} label="View project" dialogMarker className="mt-2 inline-flex items-center gap-2 text-base font-semibold cursor-pointer hover:gap-3 transition-[gap]" />
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
-/* 2 — Dark: ambient glow orbs, springy pop-in, uppercase mono meta row. */
+/* 2 — Dark */
 function DialogDark({ item, ink, bg, accent, onClose }: DialogProps) {
   useEscToClose(item, onClose);
+  const open = !!item;
   return (
-    <AnimatePresence>
-      {item && (
-        <>
+    <div data-project-dialog="dark" className={open ? "is-open" : ""}>
+      <motion.div
+        data-dialog-backdrop
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60]"
+        style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", pointerEvents: open ? "auto" : "none" }}
+      />
+      <motion.div
+        data-dialog-panel
+        initial={false}
+        animate={open ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 60 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10"
+        style={{ pointerEvents: open ? "auto" : "none" }}
+      >
+        <div className="pointer-events-auto relative w-full max-w-3xl rounded-[2rem] overflow-hidden max-h-[88vh] overflow-y-auto" style={{ background: ink, boxShadow: `0 60px 160px -20px ${accent}40` }}>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60]"
-            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}
+            animate={{ opacity: [0.15, 0.35, 0.15], scale: [1, 1.3, 1] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-32 -right-32 h-96 w-96 rounded-full blur-[100px] pointer-events-none"
+            style={{ background: accent }}
           />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 60 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 pointer-events-none"
-          >
-            <div
-              className="pointer-events-auto relative w-full max-w-3xl rounded-[2rem] overflow-hidden max-h-[88vh] overflow-y-auto"
-              style={{ background: ink, boxShadow: `0 60px 160px -20px ${accent}40` }}
-            >
-              <motion.div
-                animate={{ opacity: [0.15, 0.35, 0.15], scale: [1, 1.3, 1] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-32 -right-32 h-96 w-96 rounded-full blur-[100px] pointer-events-none"
-                style={{ background: accent }}
-              />
-              <div className="relative p-10 md:p-14">
-                <div className="flex items-start justify-between gap-6">
-                  <div>
-                    <div
-                      className="text-[11px] font-mono uppercase tracking-[0.3em] mb-4"
-                      style={{ color: `${bg}55` }}
-                    >
-                      {item.badgeLabel || (item.featured ? "Featured project" : "Case study")}
-                      {(item.category || item.period) && (
-                        <span style={{ color: `${bg}35` }}> · {[item.category, item.period].filter(Boolean).join(" · ")}</span>
-                      )}
-                    </div>
-                    <h3
-                      className="font-display text-3xl md:text-5xl font-black leading-tight"
-                      style={{ color: bg }}
-                    >
-                      {item.title}
-                    </h3>
-                  </div>
-                  <CloseButton ink={bg} onClose={onClose} />
+          <div className="relative p-10 md:p-14">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div data-dialog-badge className="text-[11px] font-mono uppercase tracking-[0.3em] mb-2" style={{ color: `${bg}55`, display: item?.featured ? "" : "none" }}>
+                  {item?.badgeLabel || "Featured project"}
                 </div>
-                {item.desc && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15, duration: 0.4 }}
-                    className="mt-6 text-lg leading-relaxed max-w-xl"
-                    style={{ color: `${bg}70` }}
-                  >
-                    {item.desc}
-                  </motion.p>
-                )}
-                {item.tags && (
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: `${bg}45` }}>
-                    {item.tags}
-                  </p>
-                )}
-                <div className="mt-10">
-                  <VisitLink
-                    item={item}
-                    accent={accent}
-                    label="View project"
-                    className="inline-flex items-center gap-2.5 text-base font-semibold cursor-pointer hover:gap-3.5 transition-[gap]"
-                  />
+                <div data-dialog-meta className="text-[11px] font-mono uppercase tracking-[0.3em] mb-4" style={{ color: `${bg}35`, display: (item?.category || item?.period) ? "" : "none" }}>
+                  {[item?.category, item?.period].filter(Boolean).join(" · ")}
                 </div>
+                <h3 data-dialog-title className="font-display text-3xl md:text-5xl font-black leading-tight" style={{ color: bg }}>
+                  {item?.title}
+                </h3>
               </div>
+              <CloseButton ink={bg} onClose={onClose} />
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <motion.p
+              data-dialog-desc
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+              className="mt-6 text-lg leading-relaxed max-w-xl"
+              style={{ color: `${bg}70`, display: item?.desc ? "" : "none" }}
+            >
+              {item?.desc}
+            </motion.p>
+            <p data-dialog-tags className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: `${bg}45`, display: item?.tags ? "" : "none" }}>
+              {item?.tags}
+            </p>
+            <div className="mt-10">
+              <VisitLink item={item} accent={accent} label="View project" dialogMarker className="inline-flex items-center gap-2.5 text-base font-semibold cursor-pointer hover:gap-3.5 transition-[gap]" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
-/* 3 — Terminal: mono chrome window, reveals line by line. */
+/* 3 — Terminal */
 function DialogTerminal({ item, ink, bg, accent, onClose }: DialogProps) {
   useEscToClose(item, onClose);
+  const open = !!item;
   return (
-    <AnimatePresence>
-      {item && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60]"
-            style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
-          />
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 14 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 pointer-events-none"
-          >
-            <div
-              className="pointer-events-auto w-full max-w-2xl rounded-2xl overflow-hidden font-mono max-h-[85vh] overflow-y-auto"
-              style={{ background: bg, border: `1px solid ${ink}20`, boxShadow: `0 50px 120px -30px ${ink}35` }}
-            >
-              <div
-                className="flex items-center gap-2 px-6 py-4"
-                style={{ borderBottom: `1px solid ${ink}12`, background: `${ink}04` }}
-              >
-                <span className="h-3 w-3 rounded-full" style={{ background: "#ff6058" }} />
-                <span className="h-3 w-3 rounded-full" style={{ background: "#ffbd2e" }} />
-                <span className="h-3 w-3 rounded-full" style={{ background: "#27ca40" }} />
-                <span className="ml-3 text-xs truncate" style={{ color: `${ink}40` }}>
-                  cat ./{item.title?.toLowerCase().replace(/\s+/g, "-")}.md
-                </span>
-                <button
-                  onClick={onClose}
-                  className="ml-auto shrink-0 cursor-pointer"
-                  style={{ color: `${ink}50`, background: "none", border: "none" }}
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="p-8 md:p-10 space-y-5 text-base leading-relaxed">
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 }}
-                  style={{ color: accent }}
-                >
-                  <span style={{ color: `${ink}35` }}># </span>
-                  {item.title}
-                  {(item.category || item.period) && (
-                    <span className="ml-3 text-xs" style={{ color: `${ink}45` }}>
-                      [{[item.category, item.period].filter(Boolean).join(" / ")}]
-                    </span>
-                  )}
-                </motion.div>
-                {item.desc && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.15 }}
-                    style={{ color: `${ink}75` }}
-                  >
-                    {item.desc}
-                  </motion.p>
-                )}
-                {item.tags && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-xs"
-                    style={{ color: `${ink}45` }}
-                  >
-                    tags: {item.tags}
-                  </motion.p>
-                )}
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.28 }}
-                  className="flex items-center gap-3 pt-2 flex-wrap"
-                >
-                  <span style={{ color: accent }}>$</span>
-                  <VisitLink item={item} accent={accent} label="open --project" className="inline-flex items-center gap-1.5" />
-                  <motion.span
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                    style={{ color: accent }}
-                  >
-                    ▌
-                  </motion.span>
-                </motion.div>
-              </div>
+    <div data-project-dialog="terminal" className={open ? "is-open" : ""}>
+      <motion.div
+        data-dialog-backdrop
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60]"
+        style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", pointerEvents: open ? "auto" : "none" }}
+      />
+      <motion.div
+        data-dialog-panel
+        initial={false}
+        animate={open ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10"
+        style={{ pointerEvents: open ? "auto" : "none" }}
+      >
+        <div className="pointer-events-auto w-full max-w-2xl rounded-2xl overflow-hidden font-mono max-h-[85vh] overflow-y-auto" style={{ background: bg, border: `1px solid ${ink}20`, boxShadow: `0 50px 120px -30px ${ink}35` }}>
+          <div className="flex items-center gap-2 px-6 py-4" style={{ borderBottom: `1px solid ${ink}12`, background: `${ink}04` }}>
+            <span className="h-3 w-3 rounded-full" style={{ background: "#ff6058" }} />
+            <span className="h-3 w-3 rounded-full" style={{ background: "#ffbd2e" }} />
+            <span className="h-3 w-3 rounded-full" style={{ background: "#27ca40" }} />
+            <span data-dialog-filename className="ml-3 text-xs truncate" style={{ color: `${ink}40` }}>
+              cat ./{item?.title?.toLowerCase().replace(/\s+/g, "-")}.md
+            </span>
+            <button onClick={onClose} data-dialog-close className="ml-auto shrink-0 cursor-pointer" style={{ color: `${ink}50`, background: "none", border: "none" }} aria-label="Close">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-8 md:p-10 space-y-5 text-base leading-relaxed">
+            <div style={{ color: accent }}>
+              <span style={{ color: `${ink}35` }}># </span>
+              <span data-dialog-title>{item?.title}</span>
+              <span data-dialog-meta className="ml-3 text-xs" style={{ color: `${ink}45`, display: (item?.category || item?.period) ? "" : "none" }}>
+                {[item?.category, item?.period].filter(Boolean).join(" · ")}
+              </span>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <p data-dialog-desc style={{ color: `${ink}75`, display: item?.desc ? "" : "none" }}>{item?.desc}</p>
+            <p data-dialog-tags className="text-xs" style={{ color: `${ink}45`, display: item?.tags ? "" : "none" }}>
+              {item?.tags}
+            </p>
+            <div className="flex items-center gap-3 pt-2 flex-wrap">
+              <span style={{ color: accent }}>$</span>
+              <VisitLink item={item} accent={accent} label="open --project" dialogMarker className="inline-flex items-center gap-1.5" />
+              <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} style={{ color: accent }}>▌</motion.span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
-/* 4 — Brutalist: hard edges, offset shadow block, snaps in fast. */
+/* 4 — Brutalist */
 function DialogBrutalist({ item, ink, bg, accent, onClose }: DialogProps) {
   useEscToClose(item, onClose);
+  const open = !!item;
   return (
-    <AnimatePresence>
-      {item && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60]"
-            style={{ background: `${ink}cc` }}
-          />
-          <motion.div
-            initial={{ opacity: 0, x: -30, y: 30 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, x: -16, y: 16 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 pointer-events-none"
-          >
-            <div
-              className="pointer-events-auto w-full max-w-2xl max-h-[85vh] overflow-y-auto"
-              style={{ background: bg, border: `3px solid ${ink}`, boxShadow: `12px 12px 0 ${accent}` }}
-            >
-              <div className="flex items-start justify-between gap-6 p-8 md:p-10" style={{ borderBottom: `3px solid ${ink}` }}>
-                <div>
-                  <div
-                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 inline-block mb-4"
-                    style={{ background: accent, color: bg }}
-                  >
-                    {item.badgeLabel || (item.featured ? "Featured" : "Project file")}
-                  </div>
-                  {(item.category || item.period) && (
-                    <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${ink}60` }}>
-                      {[item.category, item.period].filter(Boolean).join(" / ")}
-                    </div>
-                  )}
-                  <h3
-                    className="font-display text-3xl md:text-5xl font-black uppercase leading-[0.95]"
-                    style={{ color: ink }}
-                  >
-                    {item.title}
-                  </h3>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="shrink-0 h-11 w-11 grid place-items-center cursor-pointer"
-                  style={{ background: ink, color: bg, border: "none" }}
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+    <div data-project-dialog="brutalist" className={open ? "is-open" : ""}>
+      <motion.div
+        data-dialog-backdrop
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60]"
+        style={{ background: `${ink}cc`, pointerEvents: open ? "auto" : "none" }}
+      />
+      <motion.div
+        data-dialog-panel
+        initial={false}
+        animate={open ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x: -30, y: 30 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10"
+        style={{ pointerEvents: open ? "auto" : "none" }}
+      >
+        <div className="pointer-events-auto w-full max-w-2xl max-h-[85vh] overflow-y-auto" style={{ background: bg, border: `3px solid ${ink}`, boxShadow: `12px 12px 0 ${accent}` }}>
+          <div className="flex items-start justify-between gap-6 p-8 md:p-10" style={{ borderBottom: `3px solid ${ink}` }}>
+            <div>
+              <div data-dialog-badge className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 inline-block mb-4" style={{ background: accent, color: bg, display: item?.featured ? "" : "none" }}>
+                {item?.badgeLabel || "Featured"}
               </div>
-              {item.desc && (
-                <p className="px-8 md:px-10 pt-8 text-lg font-bold leading-relaxed" style={{ color: accent }}>
-                  {item.desc}
-                </p>
-              )}
-              <div className="p-8 md:p-10 pt-6">
-                <VisitLink
-                  item={item}
-                  accent={ink}
-                  label="OPEN PROJECT"
-                  className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest cursor-pointer"
-                />
+              <div data-dialog-meta className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${ink}60`, display: (item?.category || item?.period) ? "" : "none" }}>
+                {[item?.category, item?.period].filter(Boolean).join(" / ")}
               </div>
+              <h3 data-dialog-title className="font-display text-3xl md:text-5xl font-black uppercase leading-[0.95]" style={{ color: ink }}>
+                {item?.title}
+              </h3>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <button onClick={onClose} data-dialog-close className="shrink-0 h-11 w-11 grid place-items-center cursor-pointer" style={{ background: ink, color: bg, border: "none" }} aria-label="Close">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <p data-dialog-desc className="px-8 md:px-10 pt-8 text-lg font-bold leading-relaxed" style={{ color: accent, display: item?.desc ? "" : "none" }}>
+            {item?.desc}
+          </p>
+          <div className="p-8 md:p-10 pt-6">
+            <VisitLink item={item} accent={ink} label="OPEN PROJECT" dialogMarker className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest cursor-pointer" />
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
-/* 5 — Polaroid: photo tilts up flat from a rotated resting state. */
+/* 5 — Polaroid */
 function DialogPolaroid({ item, ink, bg, accent, onClose }: DialogProps) {
   useEscToClose(item, onClose);
+  const open = !!item;
   return (
-    <AnimatePresence>
-      {item && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60]"
-            style={{ background: "rgba(20,16,12,0.55)", backdropFilter: "blur(6px)" }}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: -6, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, rotate: 4, y: 20 }}
-            transition={{ type: "spring", stiffness: 220, damping: 20 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 pointer-events-none"
-          >
-            <div
-              className="pointer-events-auto w-full max-w-lg p-5 pb-8"
-              style={{ background: bg, boxShadow: `10px 16px 50px ${ink}35`, border: `1px solid ${ink}10` }}
-            >
-              <div
-                className="aspect-square w-full relative overflow-hidden flex items-center justify-center"
-                style={{ background: item.featured ? `${accent}25` : `${ink}08` }}
-              >
-                <motion.div
-                  initial={{ scale: 1.3, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 0.18 }}
-                  transition={{ delay: 0.1, duration: 0.5 }}
-                  className="font-display text-8xl font-black"
-                  style={{ color: ink }}
-                >
-                  {item.title?.[0]}
-                </motion.div>
-                <button
-                  onClick={onClose}
-                  className="absolute top-3 right-3 h-9 w-9 rounded-full grid place-items-center cursor-pointer"
-                  style={{ background: `${bg}d0`, color: ink, border: "none" }}
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="pt-6 px-2">
-                {(item.category || item.period) && (
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-center mb-1.5" style={{ color: accent }}>
-                    {[item.category, item.period].filter(Boolean).join(" · ")}
-                  </div>
-                )}
-                <h3 className="font-display text-2xl font-bold text-center" style={{ color: ink }}>
-                  {item.title}
-                </h3>
-                {item.desc && (
-                  <p className="mt-2 text-sm text-center leading-relaxed" style={{ color: `${ink}65` }}>
-                    {item.desc}
-                  </p>
-                )}
-                <div className="mt-4 flex justify-center">
-                  <VisitLink item={item} accent={accent} label="View project" className="inline-flex items-center gap-1.5 text-sm font-semibold" />
-                </div>
-              </div>
+    <div data-project-dialog="polaroid" className={open ? "is-open" : ""}>
+      <motion.div
+        data-dialog-backdrop
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60]"
+        style={{ background: "rgba(20,16,12,0.55)", backdropFilter: "blur(6px)", pointerEvents: open ? "auto" : "none" }}
+      />
+      <motion.div
+        data-dialog-panel
+        initial={false}
+        animate={open ? { opacity: 1, scale: 1, rotate: 0, y: 0 } : { opacity: 0, scale: 0.8, rotate: -6, y: 40 }}
+        transition={{ type: "spring", stiffness: 220, damping: 20 }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10"
+        style={{ pointerEvents: open ? "auto" : "none" }}
+      >
+        <div className="pointer-events-auto w-full max-w-lg p-5 pb-8" style={{ background: bg, boxShadow: `10px 16px 50px ${ink}35`, border: `1px solid ${ink}10` }}>
+          <div className="aspect-square w-full relative overflow-hidden flex items-center justify-center" style={{ background: item?.featured ? `${accent}25` : `${ink}08` }}>
+            <div data-dialog-letter className="font-display text-8xl font-black" style={{ color: ink, opacity: 0.18 }}>
+              {item?.title?.[0]}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <button onClick={onClose} data-dialog-close className="absolute top-3 right-3 h-9 w-9 rounded-full grid place-items-center cursor-pointer" style={{ background: `${bg}d0`, color: ink, border: "none" }} aria-label="Close">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="pt-6 px-2">
+            <div data-dialog-meta className="text-[11px] font-semibold uppercase tracking-wide text-center mb-1.5" style={{ color: accent, display: (item?.category || item?.period) ? "" : "none" }}>
+              {[item?.category, item?.period].filter(Boolean).join(" · ")}
+            </div>
+            <h3 data-dialog-title className="font-display text-2xl font-bold text-center" style={{ color: ink }}>
+              {item?.title}
+            </h3>
+            <p data-dialog-desc className="mt-2 text-sm text-center leading-relaxed" style={{ color: `${ink}65`, display: item?.desc ? "" : "none" }}>
+              {item?.desc}
+            </p>
+            <div className="mt-4 flex justify-center">
+              <VisitLink item={item} accent={accent} label="View project" dialogMarker className="inline-flex items-center gap-1.5 text-sm font-semibold" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -759,6 +639,16 @@ export function Projects1({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.4 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-[4/3] relative overflow-hidden flex items-center justify-center cursor-pointer"
                 style={{ background: it.featured ? `${accent}18` : `${ink}07` }}
               >
@@ -814,6 +704,16 @@ export function Projects1({ props, theme, onChange }: Props) {
                 <TagsLine item={it} items={items} onChange={onChange} i={i} accent={accent} />
                 <button
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="mt-5 flex items-center gap-2 text-sm font-semibold cursor-pointer"
                   style={{ color: accent, background: "none", border: "none", padding: 0 }}
                 >
@@ -936,6 +836,16 @@ export function Projects3({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.4 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-video flex items-center justify-center cursor-pointer"
                 style={{ background: it.featured ? `${accent}28` : `${bg}08` }}
               >
@@ -1013,6 +923,16 @@ export function Projects4({ props, theme, onChange }: Props) {
               >
                 <button
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="text-base shrink-0 mt-0.5 cursor-pointer font-mono"
                   style={{ color: accent, background: "none", border: "none", padding: 0 }}
                 >
@@ -1053,6 +973,16 @@ export function Projects4({ props, theme, onChange }: Props) {
                 )}
                 <button
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   style={{ color: accent, background: "none", border: "none" }}
                 >
@@ -1154,6 +1084,16 @@ export function Projects5({ props, theme, onChange }: Props) {
             <motion.button
               whileHover={{ scale: 1.15, rotate: 8 }}
               onClick={() => setSelected(it)}
+              data-project-trigger
+              data-title={it.title}
+              data-desc={it.desc || ""}
+              data-category={it.category || ""}
+              data-period={it.period || ""}
+              data-tags={it.tags || ""}
+              data-link={it.link || ""}
+              data-link-label={it.linkLabel || "View project"}
+              data-badge-label={it.badgeLabel || "Featured"}
+              data-featured={it.featured ? "true" : "false"}
               className="shrink-0 cursor-pointer"
               style={{ color: accent, background: "none", border: "none" }}
             >
@@ -1262,15 +1202,24 @@ export function Projects7({ props, theme, onChange }: Props) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.65 }}
-          className={`px-8 md:px-20 py-14 grid md:grid-cols-2 gap-12 items-center ${
-            i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""
-          }`}
+          className={`px-8 md:px-20 py-14 grid md:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""
+            }`}
           style={{ borderTop: `1px solid ${ink}08` }}
         >
           <motion.div
             whileHover={{ scale: 1.03 }}
             transition={{ duration: 0.4 }}
             onClick={() => setSelected(it)}
+            data-project-trigger
+            data-title={it.title}
+            data-desc={it.desc || ""}
+            data-category={it.category || ""}
+            data-period={it.period || ""}
+            data-tags={it.tags || ""}
+            data-link={it.link || ""}
+            data-link-label={it.linkLabel || "View project"}
+            data-badge-label={it.badgeLabel || "Featured"}
+            data-featured={it.featured ? "true" : "false"}
             className="aspect-[4/3] rounded-3xl overflow-hidden flex items-center justify-center relative cursor-pointer group"
             style={{ background: it.featured ? `${accent}20` : `${ink}07` }}
           >
@@ -1325,6 +1274,16 @@ export function Projects7({ props, theme, onChange }: Props) {
             <TagsLine item={it} items={items} onChange={onChange} i={i} accent={accent} className="mt-4" />
             <button
               onClick={() => setSelected(it)}
+              data-project-trigger
+              data-title={it.title}
+              data-desc={it.desc || ""}
+              data-category={it.category || ""}
+              data-period={it.period || ""}
+              data-tags={it.tags || ""}
+              data-link={it.link || ""}
+              data-link-label={it.linkLabel || "View project"}
+              data-badge-label={it.badgeLabel || "Featured"}
+              data-featured={it.featured ? "true" : "false"}
               className="mt-7 inline-flex items-center gap-2 text-base font-semibold cursor-pointer"
               style={{ color: accent, background: "none", border: "none", padding: 0 }}
             >
@@ -1408,6 +1367,16 @@ export function Projects8({ props, theme, onChange }: Props) {
                   whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.4 }}
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="aspect-[4/3] flex items-center justify-center cursor-pointer"
                   style={{ background: it.featured ? `${accent}18` : `${ink}07` }}
                 >
@@ -1466,14 +1435,23 @@ export function Projects9({ props, theme, onChange }: Props) {
                 key={i}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.3 }}
-                className={`relative rounded-2xl overflow-hidden flex flex-col justify-end ${
-                  big ? "col-span-2 row-span-2" : ""
-                }`}
+                className={`relative rounded-2xl overflow-hidden flex flex-col justify-end ${big ? "col-span-2 row-span-2" : ""
+                  }`}
                 style={{ background: it.featured ? `${accent}20` : `${ink}07`, border: `1px solid ${ink}08` }}
               >
                 <motion.div
                   whileHover={{ opacity: 1 }}
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 hover:opacity-100 transition-opacity z-10"
                   style={{ background: `${accent}15` }}
                 >
@@ -1624,6 +1602,16 @@ export function Projects11({ props, theme, onChange }: Props) {
               whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.3 }}
               onClick={() => setSelected(it)}
+              data-project-trigger
+              data-title={it.title}
+              data-desc={it.desc || ""}
+              data-category={it.category || ""}
+              data-period={it.period || ""}
+              data-tags={it.tags || ""}
+              data-link={it.link || ""}
+              data-link-label={it.linkLabel || "View project"}
+              data-badge-label={it.badgeLabel || "Featured"}
+              data-featured={it.featured ? "true" : "false"}
               className="aspect-square rounded-xl flex items-center justify-center cursor-pointer group relative overflow-hidden"
               style={{ background: it.featured ? `${accent}25` : `${ink}08` }}
             >
@@ -1835,6 +1823,16 @@ export function Projects13({ props, theme, onChange }: Props) {
               )}
               <button
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="mt-5 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest cursor-pointer"
                 style={{ color: ink, background: "none", border: "none", padding: 0 }}
               >
@@ -1951,6 +1949,16 @@ export function Projects14({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.35 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-video flex items-center justify-center cursor-pointer group relative overflow-hidden"
                 style={{ background: `${ink}07` }}
               >
@@ -2033,6 +2041,16 @@ export function Projects15({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.35 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-[4/3] flex items-center justify-center cursor-pointer group relative overflow-hidden"
                 style={{ background: i === 0 ? `${accent}20` : `${ink}07` }}
               >
@@ -2242,6 +2260,16 @@ export function Projects17({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.35 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-[4/3] flex items-center justify-center cursor-pointer group relative overflow-hidden"
                 style={{ background: i % 2 === 0 ? `${accent}18` : `${ink}07` }}
               >
@@ -2319,6 +2347,16 @@ export function Projects18({ props, theme, onChange }: Props) {
                   whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.35 }}
                   onClick={() => setSelected(it)}
+                  data-project-trigger
+                  data-title={it.title}
+                  data-desc={it.desc || ""}
+                  data-category={it.category || ""}
+                  data-period={it.period || ""}
+                  data-tags={it.tags || ""}
+                  data-link={it.link || ""}
+                  data-link-label={it.linkLabel || "View project"}
+                  data-badge-label={it.badgeLabel || "Featured"}
+                  data-featured={it.featured ? "true" : "false"}
                   className="aspect-video flex items-center justify-center cursor-pointer group relative overflow-hidden"
                   style={{ background: i === 0 ? `${accent}18` : `${ink}07` }}
                 >
@@ -2413,15 +2451,25 @@ export function Projects19({ props, theme, onChange }: Props) {
                   i % 4 === 0
                     ? accent
                     : i % 4 === 1
-                    ? `${bg}15`
-                    : i % 4 === 2
-                    ? `${bg}08`
-                    : `${accent}25`,
+                      ? `${bg}15`
+                      : i % 4 === 2
+                        ? `${bg}08`
+                        : `${accent}25`,
               }}
             >
               <motion.div
                 whileHover={{ opacity: 1 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 hover:opacity-100 transition-opacity z-10"
                 style={{ background: `${bg}10` }}
               >
@@ -2624,6 +2672,16 @@ export function Projects21({ props, theme, onChange }: Props) {
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.4 }}
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="aspect-[16/9] rounded-[2rem] overflow-hidden flex items-center justify-center relative cursor-pointer group mb-8"
                 style={{ background: it.featured ? `${accent}18` : `${ink}06` }}
               >
@@ -2670,6 +2728,16 @@ export function Projects21({ props, theme, onChange }: Props) {
               <TagsLine item={it} items={items} onChange={onChange} i={i} accent={accent} className="mt-4" />
               <button
                 onClick={() => setSelected(it)}
+                data-project-trigger
+                data-title={it.title}
+                data-desc={it.desc || ""}
+                data-category={it.category || ""}
+                data-period={it.period || ""}
+                data-tags={it.tags || ""}
+                data-link={it.link || ""}
+                data-link-label={it.linkLabel || "View project"}
+                data-badge-label={it.badgeLabel || "Featured"}
+                data-featured={it.featured ? "true" : "false"}
                 className="mt-8 inline-flex items-center gap-2 text-base font-semibold cursor-pointer w-fit"
                 style={{ color: accent, background: "none", border: "none", padding: 0 }}
               >
@@ -3283,9 +3351,8 @@ export function Projects25({ props, theme, onChange }: Props) {
               variants={child}
               transition={childTransition}
               whileHover={{ y: -6 }}
-              className={`group relative overflow-hidden rounded-[2rem] p-7 sm:p-10 ${
-                hero ? "md:col-span-6 lg:col-span-4 lg:row-span-2" : wide ? "md:col-span-4" : "md:col-span-3 lg:col-span-2"
-              }`}
+              className={`group relative overflow-hidden rounded-[2rem] p-7 sm:p-10 ${hero ? "md:col-span-6 lg:col-span-4 lg:row-span-2" : wide ? "md:col-span-4" : "md:col-span-3 lg:col-span-2"
+                }`}
               style={{ background: `${ink}05`, border: `1px solid ${ink}10` }}
             >
               <motion.div
@@ -3616,6 +3683,16 @@ export function Projects29({ props, theme, onChange }: Props) {
               transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -6 }}
               onClick={() => setSelected(it)}
+              data-project-trigger
+              data-title={it.title}
+              data-desc={it.desc || ""}
+              data-category={it.category || ""}
+              data-period={it.period || ""}
+              data-tags={it.tags || ""}
+              data-link={it.link || ""}
+              data-link-label={it.linkLabel || "View project"}
+              data-badge-label={it.badgeLabel || "Featured"}
+              data-featured={it.featured ? "true" : "false"}
               className="group grid gap-8 lg:grid-cols-[1fr_1.2fr] rounded-[2.25rem] overflow-hidden cursor-pointer p-6 sm:p-10 lg:p-14"
               style={{ background: `${bg}0c`, border: `1px solid ${bg}18`, backdropFilter: "blur(10px)" }}
             >

@@ -20,6 +20,7 @@ import { PricingPage } from "@/components/individual/pricing/PricingPage";
 import { FeaturesPage } from "@/components/individual/features/FeaturesPage";
 import { LoginPage } from "@/components/individual/auth/LoginPage";
 import { SignupPage } from "@/components/individual/auth/SignupPage";
+import { OAuthCompletePage } from "@/components/individual/deploy/OAuthCompletePage";
 import { useAppContext } from "@/context/AppContext";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 
@@ -191,6 +192,7 @@ export default function App() {
             />
             <Route path="/templates/:slug" element={<Navigate to="/templates" replace />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/oauth-complete" element={<OAuthCompletePage />} />
             <Route
               path="/auth"
               element={

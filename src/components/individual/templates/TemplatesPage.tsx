@@ -4,7 +4,6 @@ import { PageShell } from "@/components/individual/PageShell";
 import { PortfolioCard } from "@/components/common/PortfolioCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import { templates, allCategories } from "@/data/templates";
-import { saveSiteAsPortfolio } from "@/lib/portfolioStorage";
 import type { SiteData } from "@/types/builder.schema";
 
 const CATEGORIES = ["All", ...allCategories] as const;
@@ -36,12 +35,6 @@ export function TemplatesPage() {
   const closePreview = () => {
     setDialogOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
-  };
-
-  const savePreviewToPortfolios = (site: SiteData) => {
-    const portfolio = saveSiteAsPortfolio(site);
-    setDialogOpen(false);
-    navigate(`/dashboard?portfolioId=${encodeURIComponent(portfolio.id)}&tab=edit`);
   };
 
   return (
@@ -115,7 +108,6 @@ export function TemplatesPage() {
         template={dialogTemplate}
         open={dialogOpen}
         onClose={closePreview}
-        onSave={savePreviewToPortfolios}
       />
     </PageShell>
   );

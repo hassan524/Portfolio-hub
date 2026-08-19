@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { Editable } from "@/components/editor/Editable";
+import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "../types";
 import type { NavbarProps } from "@/types/builder.schema";
 
@@ -24,33 +24,90 @@ function updateLink(links: NavbarProps["links"], onChange: Props["onChange"], i:
   onChange({ links: next });
 }
 
+/* ─────────────────────────────────────────────────────────
+   IMPORTANT — WHY THESE 4 COMPONENTS CHANGED SHAPE
+   ─────────────────────────────────────────────────────────
+   Before: {open && (<motion.div>...</motion.div>)}
+   This means: if `open` is false, NOTHING is rendered — the
+   element does not exist in the DOM at all. Since `open` is
+   always false at the moment a portfolio is saved/exported
+   (nobody has the mobile menu open while clicking Save), the
+   exported static HTML had literally nothing to show/hide —
+   there was no menu markup to reuse, so the export script had
+   no choice but to fabricate a totally different generic menu.
+
+   Now: the menu ALWAYS renders. Visibility is controlled by
+   plain inline styles derived from `open`, plus a wrapper
+   data-mobile-menu="right|left|top|fullscreen" attribute and
+   an "is-open" class — same exact pattern already used for
+   the project dialogs (data-project-dialog + is-open class).
+
+   This means: in your live editor, it still looks/animates
+   exactly the same (React re-renders these inline styles on
+   every `open` change, so it's still smooth). But now, once
+   exported to static HTML, the real menu markup — your real
+   design, your real colors/spacing/links — is sitting in the
+   page, just invisible, ready for a small vanilla JS script
+   to toggle the same way it already toggles project dialogs.
+───────────────────────────────────────────────────────── */
+
 /* ─── RIGHT SLIDE DRAWER ─── */
 function RightDrawer({ open, onClose, props, theme, onChange }: { open: boolean; onClose: () => void; props: NavbarProps; theme: any; onChange: Props["onChange"] }) {
   const { ink, bg, accent } = theme;
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40 md:hidden" style={{ background: "rgba(0,0,0,0.4)" }} />
-          <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[85vw] flex flex-col p-8 md:hidden" style={{ background: bg }}>
-            <button onClick={onClose} className="self-end h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><X className="h-4 w-4" /></button>
-            <nav className="mt-8 flex flex-col gap-1">
-              {props.links.map((l, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * i + 0.1 }} whileHover={{ x: 6 }} className="flex items-center gap-3 py-3 px-3 rounded-xl text-base font-medium cursor-pointer" style={{ color: ink }}>
-                  <span className="h-1 w-1 rounded-full shrink-0" style={{ background: accent }} />
-                  <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
-                </motion.div>
-              ))}
-            </nav>
-            {props.ctaLabel && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-auto rounded-2xl px-5 py-3 text-sm font-semibold text-center cursor-pointer" style={{ background: accent, color: bg }}>
-                <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
-              </motion.div>
-            )}
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+    <div data-mobile-menu="right" className={open ? "is-open" : ""}>
+      <div
+        data-mobile-menu-backdrop
+        onClick={onClose}
+        className="fixed inset-0 z-40 md:hidden"
+        style={{
+          background: "rgba(0,0,0,0.4)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <aside
+        data-mobile-menu-panel
+        className="fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[85vw] flex flex-col p-8 md:hidden"
+        style={{
+          background: bg,
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+          pointerEvents: open ? "auto" : "none",
+        }}
+      >
+        <button
+          onClick={onClose}
+          data-mobile-menu-close
+          className="self-end h-9 w-9 rounded-full grid place-items-center"
+          style={{ background: `${ink}0d`, color: ink }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <nav className="mt-8 flex flex-col gap-1">
+          {props.links.map((l, i) => (
+            <div
+              key={i}
+              data-mobile-menu-link
+              className="flex items-center gap-3 py-3 px-3 rounded-xl text-base font-medium cursor-pointer"
+              style={{ color: ink }}
+            >
+              <span className="h-1 w-1 rounded-full shrink-0" style={{ background: accent }} />
+              <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+            </div>
+          ))}
+        </nav>
+        {props.ctaLabel && (
+          <div
+            className="mt-auto rounded-2xl px-5 py-3 text-sm font-semibold text-center cursor-pointer"
+            style={{ background: accent, color: bg }}
+          >
+            <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
+          </div>
+        )}
+      </aside>
+    </div>
   );
 }
 
@@ -58,24 +115,50 @@ function RightDrawer({ open, onClose, props, theme, onChange }: { open: boolean;
 function LeftDrawer({ open, onClose, props, theme, onChange }: { open: boolean; onClose: () => void; props: NavbarProps; theme: any; onChange: Props["onChange"] }) {
   const { ink, bg, accent } = theme;
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40 md:hidden" style={{ background: "rgba(0,0,0,0.4)" }} />
-          <motion.aside initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "tween", duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="fixed top-0 left-0 bottom-0 z-50 w-72 max-w-[85vw] flex flex-col p-8 md:hidden" style={{ background: bg }}>
-            <button onClick={onClose} className="self-start h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><X className="h-4 w-4" /></button>
-            <nav className="mt-8 flex flex-col gap-1">
-              {props.links.map((l, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * i + 0.1 }} className="py-3 px-3 text-base font-medium cursor-pointer" style={{ color: ink }}>
-                  <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
-                </motion.div>
-              ))}
-            </nav>
-            {props.ctaLabel && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-auto rounded-2xl px-5 py-3 text-sm font-semibold text-center" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+    <div data-mobile-menu="left" className={open ? "is-open" : ""}>
+      <div
+        data-mobile-menu-backdrop
+        onClick={onClose}
+        className="fixed inset-0 z-40 md:hidden"
+        style={{
+          background: "rgba(0,0,0,0.4)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <aside
+        data-mobile-menu-panel
+        className="fixed top-0 left-0 bottom-0 z-50 w-72 max-w-[85vw] flex flex-col p-8 md:hidden"
+        style={{
+          background: bg,
+          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+          pointerEvents: open ? "auto" : "none",
+        }}
+      >
+        <button
+          onClick={onClose}
+          data-mobile-menu-close
+          className="self-start h-9 w-9 rounded-full grid place-items-center"
+          style={{ background: `${ink}0d`, color: ink }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <nav className="mt-8 flex flex-col gap-1">
+          {props.links.map((l, i) => (
+            <div key={i} data-mobile-menu-link className="py-3 px-3 text-base font-medium cursor-pointer" style={{ color: ink }}>
+              <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+            </div>
+          ))}
+        </nav>
+        {props.ctaLabel && (
+          <div className="mt-auto rounded-2xl px-5 py-3 text-sm font-semibold text-center" style={{ background: accent, color: bg }}>
+            <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
+          </div>
+        )}
+      </aside>
+    </div>
   );
 }
 
@@ -83,20 +166,38 @@ function LeftDrawer({ open, onClose, props, theme, onChange }: { open: boolean; 
 function TopMenu({ open, props, theme, onChange }: { open: boolean; props: NavbarProps; theme: any; onChange: Props["onChange"] }) {
   const { ink, bg, accent } = theme;
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="absolute left-0 right-0 top-full z-50 md:hidden px-6 pb-6 pt-4 shadow-xl" style={{ background: bg, borderBottom: `1px solid ${ink}12` }}>
-          <nav className="flex flex-col gap-1">
-            {props.links.map((l, i) => (
-              <div key={i} className="py-3 border-b text-base font-medium cursor-pointer" style={{ color: ink, borderColor: `${ink}08` }}>
-                <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
-              </div>
-            ))}
-          </nav>
-          {props.ctaLabel && <div className="mt-4 rounded-xl px-4 py-3 text-sm font-semibold text-center" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></div>}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div data-mobile-menu="top" className={open ? "is-open" : ""}>
+      <div
+        data-mobile-menu-panel
+        className="absolute left-0 right-0 top-full z-50 md:hidden px-6 pb-6 pt-4 shadow-xl"
+        style={{
+          background: bg,
+          borderBottom: `1px solid ${ink}12`,
+          opacity: open ? 1 : 0,
+          transform: open ? "translateY(0)" : "translateY(-16px)",
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.25s ease, transform 0.25s ease",
+        }}
+      >
+        <nav className="flex flex-col gap-1">
+          {props.links.map((l, i) => (
+            <div
+              key={i}
+              data-mobile-menu-link
+              className="py-3 border-b text-base font-medium cursor-pointer"
+              style={{ color: ink, borderColor: `${ink}08` }}
+            >
+              <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+            </div>
+          ))}
+        </nav>
+        {props.ctaLabel && (
+          <div className="mt-4 rounded-xl px-4 py-3 text-sm font-semibold text-center" style={{ background: accent, color: bg }}>
+            <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -104,21 +205,44 @@ function TopMenu({ open, props, theme, onChange }: { open: boolean; props: Navba
 function FullscreenMenu({ open, onClose, props, theme, onChange }: { open: boolean; onClose: () => void; props: NavbarProps; theme: any; onChange: Props["onChange"] }) {
   const { ink, bg, accent } = theme;
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="fixed inset-0 z-50 flex flex-col px-10 py-10 md:hidden" style={{ background: bg }}>
-          <button onClick={onClose} className="self-end h-10 w-10 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><X className="h-5 w-5" /></button>
-          <nav className="flex-1 flex flex-col justify-center gap-2">
-            {props.links.map((l, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i + 0.1, ease: [0.22, 1, 0.36, 1] }} className="text-4xl font-display font-bold tracking-tight py-2 cursor-pointer" style={{ color: ink }}>
-                <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
-              </motion.div>
-            ))}
-          </nav>
-          {props.ctaLabel && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="rounded-2xl px-6 py-3 text-base font-semibold text-center" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div data-mobile-menu="fullscreen" className={open ? "is-open" : ""}>
+      <div
+        data-mobile-menu-panel
+        className="fixed inset-0 z-50 flex flex-col px-10 py-10 md:hidden"
+        style={{
+          background: bg,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.3s ease",
+        }}
+      >
+        <button
+          onClick={onClose}
+          data-mobile-menu-close
+          className="self-end h-10 w-10 rounded-full grid place-items-center"
+          style={{ background: `${ink}0d`, color: ink }}
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <nav className="flex-1 flex flex-col justify-center gap-2">
+          {props.links.map((l, i) => (
+            <div
+              key={i}
+              data-mobile-menu-link
+              className="text-4xl font-display font-bold tracking-tight py-2 cursor-pointer"
+              style={{ color: ink }}
+            >
+              <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+            </div>
+          ))}
+        </nav>
+        {props.ctaLabel && (
+          <div className="rounded-2xl px-6 py-3 text-base font-semibold text-center" style={{ background: accent, color: bg }}>
+            <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -141,7 +265,7 @@ export function Navbar1({ props, theme, onChange }: Props) {
         ))}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -167,7 +291,7 @@ export function Navbar2({ props, theme, onChange }: Props) {
         {right.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-sm font-medium cursor-pointer transition-colors" style={{ color: `${ink}70` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, half + i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-4 py-1.5 rounded-full border text-sm font-medium cursor-pointer" style={{ borderColor: ink, color: ink }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -186,7 +310,7 @@ export function Navbar3({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ backgroundColor: `${ink}06` }} className="text-sm px-3 py-1.5 rounded-lg font-medium cursor-pointer" style={{ color: ink }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-full text-sm font-bold cursor-pointer" style={{ background: ink, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(o => !o)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}>
+      <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}>
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
       </button>
       <TopMenu open={open} props={props} theme={theme} onChange={onChange} />
@@ -208,7 +332,7 @@ export function Navbar4({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ y: -2 }} className="text-sm font-medium cursor-pointer" style={{ color: `${ink}75` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.05 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer border" style={{ borderColor: accent, color: accent }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -227,7 +351,7 @@ export function Navbar5({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ backgroundColor: ink, color: bg }} className="text-sm font-semibold px-3 py-1 cursor-pointer transition-colors" style={{ color: ink }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-6 py-2 text-sm font-black uppercase cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden" style={{ color: ink }}><Menu className="h-6 w-6" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden" style={{ color: ink }}><Menu className="h-6 w-6" /></button>
       <FullscreenMenu open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -241,7 +365,7 @@ export function Navbar6({ props, theme, onChange }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <nav className={`relative flex items-center justify-between px-8 md:px-16 py-5 ${props.sticky ? "sticky top-0 z-20" : ""}`} style={{ background: ink }}>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}15`, color: bg }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}15`, color: bg }}><Menu className="h-4 w-4" /></button>
       <div className="hidden md:flex items-center gap-8">
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-sm font-medium cursor-pointer transition-colors" style={{ color: `${bg}70` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
       </div>
@@ -267,7 +391,7 @@ export function Navbar7({ props, theme, onChange }: Props) {
           {props.links.map((l, i) => <motion.div key={i} whileHover={{ backgroundColor: `${ink}08` }} className="text-sm px-3 py-1.5 rounded-full font-medium cursor-pointer" style={{ color: `${ink}80` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         </div>
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.05 }} className="hidden md:block px-4 py-1.5 rounded-full text-sm font-semibold cursor-pointer ml-1" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
-        <button onClick={() => setOpen(o => !o)} className="md:hidden h-8 w-8 rounded-full grid place-items-center" style={{ color: ink }}>
+        <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden h-8 w-8 rounded-full grid place-items-center" style={{ color: ink }}>
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </nav>
@@ -294,7 +418,7 @@ export function Navbar8({ props, theme, onChange }: Props) {
         ))}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.03 }} className="px-6 py-2.5 rounded-full text-sm font-semibold cursor-pointer" style={{ background: ink, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <motion.button onClick={() => setOpen(true)} whileTap={{ scale: 0.9 }} className="md:hidden flex flex-col gap-1.5 cursor-pointer" style={{ color: ink }}>
+      <motion.button onClick={() => setOpen(true)} data-mobile-menu-toggle whileTap={{ scale: 0.9 }} className="md:hidden flex flex-col gap-1.5 cursor-pointer" style={{ color: ink }}>
         <span className="block h-0.5 w-6" style={{ background: ink }} />
         <span className="block h-0.5 w-4" style={{ background: ink }} />
         <span className="block h-0.5 w-6" style={{ background: ink }} />
@@ -320,7 +444,7 @@ export function Navbar9({ props, theme, onChange }: Props) {
       </div>
       <div className="ml-auto flex items-center gap-3">
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="hidden md:block text-xs px-4 py-1.5 rounded cursor-pointer font-bold" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
-        <button onClick={() => setOpen(o => !o)} className="md:hidden" style={{ color: ink }}>
+        <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden" style={{ color: ink }}>
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </div>
@@ -343,7 +467,7 @@ export function Navbar10({ props, theme, onChange }: Props) {
           {props.links.map((l, i) => <motion.div key={i} whileHover={{ backgroundColor: `${accent}15` }} className="text-sm font-medium px-3 py-1 rounded cursor-pointer" style={{ color: `${ink}80` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
           {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
         </div>
-        <button onClick={() => setOpen(o => !o)} className="md:hidden h-9 w-9 grid place-items-center" style={{ color: ink }}>
+        <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden h-9 w-9 grid place-items-center" style={{ color: ink }}>
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
@@ -365,7 +489,7 @@ export function Navbar11({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ opacity: 1 }} className="text-sm font-medium cursor-pointer" style={{ color: `${bg}90` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: bg, color: accent }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}20`, color: bg }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}20`, color: bg }}><Menu className="h-4 w-4" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -379,7 +503,7 @@ export function Navbar12({ props, theme, onChange }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <nav className={`relative flex items-center justify-between px-8 md:px-16 py-5 ${props.sticky ? "sticky top-0 z-20" : ""}`} style={{ background: bg, borderBottom: `1px solid ${ink}10` }}>
-      <button onClick={() => setOpen(true)} className="md:hidden flex flex-col gap-1 cursor-pointer">
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden flex flex-col gap-1 cursor-pointer">
         <span className="block h-px w-6" style={{ background: ink }} />
         <span className="block h-px w-4" style={{ background: ink }} />
       </button>
@@ -415,7 +539,7 @@ export function Navbar13({ props, theme, onChange }: Props) {
           {props.links.map((l, i) => <motion.div key={i} whileHover={{ backgroundColor: bg }} className="text-sm px-4 py-2 rounded-xl font-medium cursor-pointer transition-colors" style={{ color: `${ink}80` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
           {props.ctaLabel && <motion.div whileHover={{ scale: 1.05 }} className="px-5 py-2 rounded-xl text-sm font-semibold cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
         </div>
-        <button onClick={() => setOpen(o => !o)} className="md:hidden h-8 w-8 rounded-xl grid place-items-center" style={{ color: ink, background: bg }}>
+        <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden h-8 w-8 rounded-xl grid place-items-center" style={{ color: ink, background: bg }}>
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </nav>
@@ -441,7 +565,7 @@ export function Navbar14({ props, theme, onChange }: Props) {
         ))}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="mb-3 ml-4 px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden pb-4" style={{ color: ink }}><Menu className="h-5 w-5" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden pb-4" style={{ color: ink }}><Menu className="h-5 w-5" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
   );
@@ -463,7 +587,7 @@ export function Navbar15({ props, theme, onChange }: Props) {
           {props.links.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-sm font-medium cursor-pointer transition-colors" style={{ color: `${ink}70` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
           {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: ink, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
         </div>
-        <button onClick={() => setOpen(true)} className="md:hidden" style={{ color: ink }}><Menu className="h-5 w-5" /></button>
+        <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden" style={{ color: ink }}><Menu className="h-5 w-5" /></button>
       </div>
       <FullscreenMenu open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
     </nav>
@@ -489,7 +613,7 @@ export function Navbar16({ props, theme, onChange }: Props) {
       {/* Mobile top bar */}
       <nav className="relative md:hidden flex items-center justify-between px-6 py-4" style={{ background: bg, borderBottom: `1px solid ${ink}10` }}>
         <Editable value={props.logoText} onChange={(v) => onChange({ logoText: v })} className="font-display text-lg font-bold cursor-pointer" style={{ color: ink }} />
-        <button onClick={() => setOpen(true)} className="h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
+        <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="h-9 w-9 rounded-full grid place-items-center" style={{ background: `${ink}0d`, color: ink }}><Menu className="h-4 w-4" /></button>
         <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={theme} onChange={onChange} />
       </nav>
     </>
@@ -514,7 +638,7 @@ export function Navbar17({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-sm font-medium cursor-pointer transition-colors" style={{ color: `${ink}70` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer" style={{ background: accent, color: bg }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(o => !o)} className="md:hidden h-9 w-9 rounded-xl grid place-items-center" style={{ background: `${ink}0d`, color: ink }}>
+      <button onClick={() => setOpen(o => !o)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-xl grid place-items-center" style={{ background: `${ink}0d`, color: ink }}>
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
       </button>
       <TopMenu open={open} props={props} theme={theme} onChange={onChange} />
@@ -542,7 +666,7 @@ export function Navbar18({ props, theme, onChange }: Props) {
         ))}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="ml-8 px-5 py-2 rounded-full text-sm font-semibold cursor-pointer border" style={{ borderColor: `${ink}30`, color: ink }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden flex flex-col gap-1.5" style={{ color: ink }}>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden flex flex-col gap-1.5" style={{ color: ink }}>
         <span className="h-0.5 w-6 block" style={{ background: ink }} />
         <span className="h-0.5 w-6 block" style={{ background: ink }} />
       </button>
@@ -564,7 +688,7 @@ export function Navbar19({ props, theme, onChange }: Props) {
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-sm font-medium cursor-pointer transition-colors" style={{ color: `${bg}70` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
         {props.ctaLabel && <motion.div whileHover={{ scale: 1.04 }} className="px-5 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ background: bg, color: ink }}><Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" /></motion.div>}
       </div>
-      <button onClick={() => setOpen(true)} className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}15`, color: bg }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden h-9 w-9 rounded-full grid place-items-center" style={{ background: `${bg}15`, color: bg }}><Menu className="h-4 w-4" /></button>
       <RightDrawer open={open} onClose={() => setOpen(false)} props={props} theme={{ ...theme, bg: ink, ink: bg }} onChange={onChange} />
     </nav>
   );
@@ -578,7 +702,7 @@ export function Navbar20({ props, theme, onChange }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <nav className={`relative flex items-center justify-between px-6 md:px-14 py-3 ${props.sticky ? "sticky top-0 z-20" : ""}`} style={{ background: bg, borderBottom: `1px solid ${ink}10` }}>
-      <button onClick={() => setOpen(true)} className="md:hidden" style={{ color: ink }}><Menu className="h-4 w-4" /></button>
+      <button onClick={() => setOpen(true)} data-mobile-menu-toggle className="md:hidden" style={{ color: ink }}><Menu className="h-4 w-4" /></button>
       <Editable value={props.logoText} onChange={(v) => onChange({ logoText: v })} className="text-sm font-bold cursor-pointer tracking-wide uppercase" style={{ color: ink }} />
       <div className="hidden md:flex items-center gap-6">
         {props.links.map((l, i) => <motion.div key={i} whileHover={{ color: accent }} className="text-xs font-medium uppercase tracking-wider cursor-pointer transition-colors" style={{ color: `${ink}60` }}><Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" /></motion.div>)}
