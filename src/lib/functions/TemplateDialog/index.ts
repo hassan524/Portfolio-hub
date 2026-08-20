@@ -16,6 +16,7 @@ import type {
 // TemplatePreviewDialog
 // ============================================================
 
+// Switches the editor dialog in and out of true browser fullscreen.
 export function toggleMaximize(
   isMaximized: boolean,
   setIsMaximized: Dispatch<SetStateAction<boolean>>,
@@ -34,6 +35,9 @@ export function toggleMaximize(
   }
 }
 
+// Applies a patch (height, label, name, style, or block props) to a single
+// block, and — if a style patch was included — also records it in previewEdits
+// so it's remembered as an edit to that block's root element.
 export function updateBlockProps(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   blockId: string,
@@ -97,6 +101,7 @@ export function updateBlockProps(
   });
 }
 
+// Merges a partial theme patch (e.g. a new accent color) into the site's theme.
 export function updateTheme(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   patch: Partial<Theme>,
@@ -107,6 +112,7 @@ export function updateTheme(
   );
 }
 
+// Updates top-level site info like name, category, or tagline.
 export function updateSiteMeta(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>,
@@ -114,6 +120,8 @@ export function updateSiteMeta(
   setSite((prev) => (prev ? { ...prev, ...patch } : prev));
 }
 
+// Replaces the whole block list with a new order and re-numbers each block's
+// `order` field to match its new position.
 export function reorderBlocks(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   nextBlocks: Block[],
@@ -128,6 +136,9 @@ export function reorderBlocks(
   );
 }
 
+// Saves a style patch (bold, color, position, etc.) for one specific element,
+// merging it on top of whatever style that element already had, and keeps the
+// currently-selected element's local state in sync too.
 export function changeElementStyle(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   setSelectedElement: Dispatch<SetStateAction<PreviewElementEdit | null>>,
@@ -173,6 +184,8 @@ export function changeElementStyle(
   );
 }
 
+// Marks the currently-selected element as "removed" (hidden) instead of
+// deleting it outright, by setting a `removed: true` style flag on it.
 export function removeSelectedElement(
   selectedElement: PreviewElementEdit | null,
   changeElementStyleFn: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
@@ -181,6 +194,8 @@ export function removeSelectedElement(
   changeElementStyleFn(selectedElement.id, { removed: true });
 }
 
+// Wipes out all saved style edits for the currently-selected element,
+// putting it back to how it looked originally.
 export function resetSelectedElement(
   selectedElement: PreviewElementEdit | null,
   setSite: Dispatch<SetStateAction<SiteData | null>>,
@@ -201,6 +216,9 @@ export function resetSelectedElement(
   setSelectedElement((prev) => (prev && prev.id === elementId ? { ...prev, style: {} } : prev));
 }
 
+// Resets the whole editor back to a fresh copy of the given template — clears
+// selection, resets device/zoom state, and deep-clones the template so edits
+// don't mutate the original object.
 export function syncTemplateState(
   template: SiteData | null,
   setSite: Dispatch<SetStateAction<SiteData | null>>,
@@ -211,7 +229,8 @@ export function syncTemplateState(
 ): void {
   if (template) {
     setSite(structuredClone(template));
-    setActiveSection(template.blocks?.[0]?.props.kind ?? "hero");
+    const nonNavBlock = template.blocks?.find((b) => b.props.kind !== "navbar");
+    setActiveSection(nonNavBlock?.props.kind ?? "hero");
     setDevice("desktop");
     setIsMaximized(false);
     setSelectedElement(null);
@@ -220,12 +239,16 @@ export function syncTemplateState(
   }
 }
 
+// Keeps `isMaximized` state truthful if the user exits fullscreen using the
+// browser's own controls (like pressing Esc) instead of our button.
 export function handleFullscreenChange(setIsMaximized: Dispatch<SetStateAction<boolean>>): void {
   if (!document.fullscreenElement) {
     setIsMaximized(false);
   }
 }
 
+// Save button behavior: free users get redirected to pricing instead of
+// saving; paid users get the save confirmation modal opened.
 export function handleSaveClick(
   profile: { is_paid?: boolean } | null | undefined,
   onClose: () => void,
@@ -243,6 +266,8 @@ export function handleSaveClick(
   setSaveModalOpen(true);
 }
 
+// Runs after the user confirms a deploy — records which platform they picked
+// (Vercel/Netlify) and calls the save handler with the current site.
 export function handleConfirmSave(
   deploymentTarget: string | undefined,
   setDeployedPlatform: Dispatch<SetStateAction<"vercel" | "netlify" | undefined>>,
@@ -257,6 +282,8 @@ export function handleConfirmSave(
   }
 }
 
+// Turning move mode ON shows a one-time warning popup first (since it changes
+// how dragging behaves). Turning it OFF just switches it off immediately.
 export async function handleToggleMoveMode(
   moveMode: boolean,
   setMoveMode: Dispatch<SetStateAction<boolean>>,
@@ -285,59 +312,49 @@ export async function handleToggleMoveMode(
   }
 }
 
+// Handles a click inside the preview while edit mode is on. Works out
+// which element and block were clicked, and selects it immediately — whether
+// it's a specific element (text, card, button) or the whole section background.
 export function handleInteractivePreviewClick(
-  e: ReactMouseEvent,
+  e: ReactMouseEvent | MouseEvent,
   editMode: boolean,
   blocks: Block[],
   site: PreviewEditableSite,
   onSelectElement: ((edit: PreviewElementEdit | null) => void) | undefined,
-  setPendingRootSelection: Dispatch<SetStateAction<PreviewElementEdit | null>>,
-  confirm: (options: {
-    type: "warning";
-    title: string;
-    description: string;
-    confirmLabel: string;
-  }) => Promise<boolean>,
 ): void {
-  if (!editMode) return;
+  if (!editMode || !onSelectElement) return;
 
   const target = e.target instanceof HTMLElement ? e.target : null;
-  const element = target?.closest<HTMLElement>("[data-preview-edit-id]");
+  const element = e.altKey
+    ? target?.closest<HTMLElement>('[data-preview-edit-id$=":root"]')
+    : (target?.closest<HTMLElement>('[data-preview-edit-id]:not([data-preview-edit-id$=":root"])') || target?.closest<HTMLElement>("[data-preview-edit-id]"));
   const blockElement = target?.closest<HTMLElement>("[data-block-id]");
-  if (!element || !blockElement || !onSelectElement) return;
+  if (!element || !blockElement) return;
 
   const block = blocks.find((candidate) => candidate.id === blockElement.dataset.blockId);
   if (!block) return;
 
   const elementId = element.dataset.previewEditId ?? "";
+  const isRoot = elementId.endsWith(":root");
+  const fallbackLabel = isRoot
+    ? (block.label ?? block.name ?? block.props.kind ?? "Section Container")
+    : getElementLabel(element);
+
   const nextSelection: PreviewElementEdit = {
     id: elementId,
     blockId: block.id,
     blockKind: block.props.kind,
-    label: getElementLabel(element),
+    label: fallbackLabel,
     style: site.previewEdits?.elements[elementId]?.style ?? {},
   };
 
   e.stopPropagation();
-
-  if (elementId.endsWith(":root")) {
-    setPendingRootSelection(nextSelection);
-    confirm({
-      type: "warning",
-      title: "Select full section?",
-      description:
-        "This will edit the whole section container instead of only the text, image, or button you clicked.",
-      confirmLabel: "Select section",
-    }).then((ok) => {
-      if (ok && nextSelection) onSelectElement?.(nextSelection);
-      setPendingRootSelection(null);
-    });
-    return;
-  }
-
   onSelectElement(nextSelection);
 }
 
+// Turns edit mode on/off. Turning it ON auto-selects the first editable
+// element inside the currently active section, so the sidebar has something
+// to show right away. Turning it OFF clears the selection and move mode.
 export function handleInteractiveToggleEditMode(
   editMode: boolean,
   setEditMode: Dispatch<SetStateAction<boolean>>,
@@ -378,6 +395,8 @@ export function handleInteractiveToggleEditMode(
   toggleEditMode(setEditMode, sortedBlocks, site, onSelectElement);
 }
 
+// Called continuously while resizing the responsive preview frame. Batches
+// updates into a single animation frame per tick so dragging stays smooth.
 export function handleFrameResizeMove(
   e: MouseEvent,
   dragStateRef: { current: FrameDragState | null },
@@ -412,6 +431,8 @@ export function handleFrameResizeMove(
   });
 }
 
+// Thin wrapper that kicks off a free element drag when the user presses the
+// mouse down inside the preview, but only if move mode is actually on.
 export function handleContentFreeDragStart(
   e: ReactMouseEvent,
   editMode: boolean,
@@ -437,6 +458,7 @@ export function handleContentFreeDragStart(
 // TemplateLivePreview
 // ============================================================
 
+// Everything we need to remember about an in-progress frame resize drag.
 export type FrameDragState = {
   edge: "left" | "right" | "bottom" | "corner";
   startX: number;
@@ -446,6 +468,9 @@ export type FrameDragState = {
   startScale: number;
 };
 
+// Given the drag's starting point and the mouse's current position, works out
+// the frame's new width/height — different edges affect different dimensions,
+// and the result is always clamped between the given min/max limits.
 export function calculateFrameResize(
   drag: FrameDragState,
   clientX: number,
@@ -474,6 +499,8 @@ export function calculateFrameResize(
   return { width: nextWidth, height: nextHeight };
 }
 
+// Works out the zoom level needed to fit the responsive frame inside the
+// visible viewport (with some padding), never zooming in past 100%.
 export function calculateViewportScale(
   viewportWidth: number,
   viewportHeight: number,
@@ -487,10 +514,14 @@ export function calculateViewportScale(
   return Number.isFinite(next) && next > 0 ? next : 1;
 }
 
+// Tags a DOM element with a unique "block:path" id so we can later find it
+// again and know exactly which block/element it belongs to.
 export function stampEditableElement(element: HTMLElement, blockId: string, path: string): void {
   element.dataset.previewEditId = `${blockId}:${path}`;
 }
 
+// Works out an element's position path (e.g. "0.2.1") by walking up the DOM
+// from the element to the block's root, recording each parent's child index.
 export function getElementPath(root: HTMLElement, element: HTMLElement): string {
   const parts: number[] = [];
   let current: HTMLElement | null = element;
@@ -505,6 +536,8 @@ export function getElementPath(root: HTMLElement, element: HTMLElement): string 
   return parts.length ? parts.join(".") : "";
 }
 
+// Picks a human-readable label for an element — its text (trimmed and
+// shortened), or its alt text if it's an image, or just its tag name.
 export function getElementLabel(element: HTMLElement): string {
   const text = element.innerText?.replace(/\s+/g, " ").trim();
   if (text) return text.slice(0, 48);
@@ -512,98 +545,340 @@ export function getElementLabel(element: HTMLElement): string {
   return element.tagName.toLowerCase();
 }
 
+// Applies one element's saved style (bold, color, size, position, etc.)
+// directly onto its real DOM node. This is what makes saved edits actually
+// show up visually in the preview.
 export function applyPreviewStyle(
   element: HTMLElement,
   style: PreviewElementStyle | undefined,
   device: "desktop" | "responsive",
 ): void {
-  if (style?.bold !== undefined) {
-    element.style.fontWeight = style.bold ? "700" : "400";
-  }
-  if (style?.italic !== undefined) {
-    element.style.fontStyle = style.italic ? "italic" : "normal";
-  }
-  if (style?.underline !== undefined) {
-    element.style.textDecoration = style.underline ? "underline" : "none";
-  }
-  if (style?.color) {
-    element.style.color = style.color;
-  }
-  if (style?.backgroundColor !== undefined) {
-    element.style.backgroundColor = style.backgroundColor || "";
-  }
-  if (style?.backgroundImage !== undefined) {
-    element.style.backgroundImage = style.backgroundImage || "";
-  }
-  if (style?.borderRadius !== undefined && style.borderRadius !== null) {
-    element.style.borderRadius = `${style.borderRadius}px`;
-  }
-  if (style?.padding !== undefined && style.padding !== null) {
-    element.style.padding = `${style.padding}px`;
-  }
-  if (style?.width) {
-    element.style.width = style.width;
-  }
-  if (style?.height) {
-    element.style.height = style.height;
-  }
-  if (style?.fontSize !== undefined && style.fontSize !== null) {
-    element.style.fontSize = `${style.fontSize}px`;
-  }
-  if (style?.removed) {
-    element.style.display = "none";
+  if (!style || Object.keys(style).length === 0) {
+    return;
   }
 
-  if (style?.freePositioned) {
+  const imp = style.isImportant ? "important" : "";
+  const setProp = (prop: string, val: string | undefined | null) => {
+    if (val !== undefined && val !== null && val !== "") {
+      element.style.setProperty(prop, val, imp);
+    }
+  };
+
+  // Typography
+  if (style.bold !== undefined || style.fontWeight !== undefined) {
+    const weight = style.bold !== undefined ? (style.bold ? "700" : "400") : (style.fontWeight || "400");
+    setProp("font-weight", weight);
+  }
+  if (style.italic !== undefined) {
+    setProp("font-style", style.italic ? "italic" : "normal");
+  }
+  if (style.underline !== undefined || style.strikethrough !== undefined) {
+    const decorations: string[] = [];
+    if (style.underline) decorations.push("underline");
+    if (style.strikethrough) decorations.push("line-through");
+    setProp("text-decoration", decorations.length > 0 ? decorations.join(" ") : "none");
+  }
+  if (style.fontFamily && style.fontFamily !== "inherit") {
+    setProp("font-family", style.fontFamily);
+  }
+  if (style.fontSize !== undefined && style.fontSize !== null) {
+    setProp("font-size", `${style.fontSize}px`);
+  }
+  if (style.lineHeight !== undefined && style.lineHeight !== null) {
+    setProp("line-height", `${style.lineHeight}`);
+  }
+  if (style.letterSpacing !== undefined && style.letterSpacing !== null) {
+    setProp("letter-spacing", `${style.letterSpacing}px`);
+  }
+  if (style.textAlign) {
+    setProp("text-align", style.textAlign);
+  }
+  if (style.textTransform && style.textTransform !== "none") {
+    setProp("text-transform", style.textTransform);
+  }
+  if (style.color) {
+    setProp("color", style.color);
+  }
+
+  // Gradient Text
+  if (style.gradientText) {
+    setProp("background-image", style.backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
+    setProp("-webkit-background-clip", "text");
+    setProp("background-clip", "text");
+    setProp("-webkit-text-fill-color", "transparent");
+  }
+
+  // Background & Colors
+  if (style.glassmorphism) {
+    setProp("background-color", "rgba(255, 255, 255, 0.08)");
+    setProp("backdrop-filter", "blur(16px)");
+    setProp("-webkit-backdrop-filter", "blur(16px)");
+    setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
+    setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
+  } else {
+    if (style.backgroundColor) {
+      setProp("background-color", style.backgroundColor);
+    }
+    if (style.backgroundGradient || style.backgroundImage) {
+      setProp("background-image", style.backgroundGradient || style.backgroundImage);
+    }
+  }
+
+  if (style.opacity !== undefined && style.opacity !== null) {
+    setProp("opacity", `${style.opacity}`);
+  }
+
+  // Borders & Shadow
+  if (!style.glassmorphism) {
+    if (style.borderRadius !== undefined && style.borderRadius !== null) {
+      setProp("border-radius", `${style.borderRadius}px`);
+    }
+    if (style.borderWidth !== undefined && style.borderWidth !== null) {
+      setProp("border-width", `${style.borderWidth}px`);
+    }
+    if (style.borderStyle) {
+      setProp("border-style", style.borderStyle);
+    }
+    if (style.borderColor) {
+      setProp("border-color", style.borderColor);
+    }
+    if (style.glowAccent) {
+      setProp("box-shadow", "0 0 25px rgba(99, 102, 241, 0.6), 0 0 50px rgba(99, 102, 241, 0.3)");
+    } else if (style.boxShadow && style.boxShadow !== "none") {
+      setProp("box-shadow", style.boxShadow);
+    }
+
+    if (style.backdropBlur !== undefined && style.backdropBlur !== null) {
+      const blurVal = style.backdropBlur ? `blur(${style.backdropBlur}px)` : "";
+      setProp("backdrop-filter", blurVal);
+      setProp("-webkit-backdrop-filter", blurVal);
+    }
+  }
+
+  // Spacing & Dimensions
+  if (style.padding !== undefined && style.padding !== null) {
+    setProp("padding", `${style.padding}px`);
+  }
+  if (style.margin !== undefined && style.margin !== null) {
+    setProp("margin", `${style.margin}px`);
+  }
+  if (style.width) {
+    setProp("width", style.width);
+  }
+  if (style.height) {
+    setProp("height", style.height);
+  }
+
+  // Important SaaS Styles
+  if (style.zIndex !== undefined && style.zIndex !== null) {
+    setProp("z-index", `${style.zIndex}`);
+  }
+  if (style.removed) {
+    setProp("display", "none");
+  } else if (style.display) {
+    setProp("display", style.display);
+  }
+  if (style.cursor) {
+    setProp("cursor", style.cursor);
+  }
+  if (style.overflow) {
+    setProp("overflow", style.overflow);
+  }
+
+  // Transforms
+  if (style.rotate !== undefined || style.scale !== undefined) {
+    const transforms: string[] = [];
+    if (style.rotate) transforms.push(`rotate(${style.rotate}deg)`);
+    if (style.scale) transforms.push(`scale(${style.scale})`);
+    if (transforms.length > 0) {
+      setProp("transform", transforms.join(" "));
+    }
+  }
+
+  // Free positioning
+  if (style.freePositioned) {
     const coords = device === "desktop" ? style.desktop : style.mobile;
     if (coords) {
-      element.style.position = "relative";
-      element.style.left = `${coords.x}px`;
-      element.style.top = `${coords.y}px`;
-      element.style.zIndex = "20";
+      setProp("position", "relative");
+      setProp("left", `${coords.x}px`);
+      setProp("top", `${coords.y}px`);
+      setProp("z-index", "20");
     }
-  } else if (element.style.position === "absolute" || element.style.position === "relative") {
-    element.style.position = "";
-    element.style.left = "";
-    element.style.top = "";
-    element.style.zIndex = "";
   }
 }
 
+// Walks the whole preview tree, stamps every element with its editable id,
+// highlights whichever one is currently selected, and re-applies every
+// element's saved style. Runs on both the desktop preview and the iframe.
 export function tagAndApplyPreviewStyles(
   root: HTMLElement | null,
   blocks: Block[],
   selectedElementId: string | null | undefined,
   previewEdits: SiteData["previewEdits"] | undefined,
-  device: "desktop" | "responsive", // ← new param
+  device: "desktop" | "responsive",
 ): void {
   if (!root) return;
 
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
-    const block = blocks.find((candidate) => candidate.id === blockId);
-    if (!blockId || !block) return;
+    if (!blockId) return;
 
-    stampEditableElement(blockRoot, blockId, "root");
+    if (!blockRoot.dataset.previewEditId) {
+      stampEditableElement(blockRoot, blockId, "root");
+    }
+
     blockRoot.querySelectorAll<HTMLElement>("*").forEach((element) => {
-      const path = getElementPath(blockRoot, element);
-      if (path) stampEditableElement(element, blockId, path);
+      if (!element.dataset.previewEditId) {
+        const path = getElementPath(blockRoot, element);
+        if (path) stampEditableElement(element, blockId, path);
+      }
     });
   });
 
+  const elements = previewEdits?.elements;
+
   root.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((element) => {
-    element.classList.toggle(
-      "preview-edit-selected",
-      element.dataset.previewEditId === selectedElementId,
-    );
-    applyPreviewStyle(
-      element,
-      previewEdits?.elements[element.dataset.previewEditId ?? ""]?.style,
-      device, // ← pass it through
-    );
+    const editId = element.dataset.previewEditId;
+    const isSelected = Boolean(editId && editId === selectedElementId);
+    
+    element.classList.toggle("preview-edit-selected", isSelected);
+    
+    if (elements && editId && elements[editId]?.style) {
+      applyPreviewStyle(element, elements[editId].style, device);
+    }
   });
 }
 
+// ------------------------------------------------------------
+// Hover highlighting (used by both the desktop preview and the
+// responsive iframe preview)
+// ------------------------------------------------------------
+
+// A vertical or horizontal alignment guide line, shown while dragging.
+export type GuideLine = { type: "v" | "h"; position: number };
+
+// A ref-like object holding whatever HTML element is currently hovered.
+type HoverRef = { current: HTMLElement | null };
+
+// Highlights whichever editable element the mouse is currently over, and
+// un-highlights the previous one. Holding Alt highlights the whole section
+// (the block's "root" element) instead of the specific piece under the cursor.
+export function updatePreviewHoverHighlight(
+  eventTarget: EventTarget | null,
+  altKey: boolean,
+  hoveredElementRef: HoverRef,
+): void {
+  const target = eventTarget instanceof HTMLElement ? eventTarget : null;
+  if (!target) {
+    clearPreviewHoverHighlight(hoveredElementRef);
+    return;
+  }
+
+  const element = altKey
+    ? target.closest<HTMLElement>('[data-preview-edit-id$=":root"]')
+    : (target.closest<HTMLElement>('[data-preview-edit-id]:not([data-preview-edit-id$=":root"])') || target.closest<HTMLElement>("[data-preview-edit-id]"));
+
+  const nextElement = element ?? null;
+  if (nextElement === hoveredElementRef.current) return;
+
+  if (hoveredElementRef.current) {
+    hoveredElementRef.current.classList.remove("preview-edit-hovered");
+  }
+  hoveredElementRef.current = nextElement;
+  if (nextElement) {
+    nextElement.classList.add("preview-edit-hovered");
+  }
+}
+
+// Removes whatever hover highlight is currently showing — used when the
+// mouse leaves the preview area entirely.
+export function clearPreviewHoverHighlight(hoveredElementRef: HoverRef): void {
+  if (hoveredElementRef.current) {
+    hoveredElementRef.current.classList.remove("preview-edit-hovered");
+    hoveredElementRef.current = null;
+  }
+}
+
+// ------------------------------------------------------------
+// Responsive (iframe) preview interactions
+// ------------------------------------------------------------
+
+// The responsive preview lives inside a separate <iframe> document, so React's
+// normal onClick/onMouseMove props can't reach it. This manually wires up the
+// same click-to-select and hover-highlight behavior directly on that iframe's
+// body using plain DOM event listeners, and gives back a cleanup function to
+// remove those listeners when the iframe is torn down or re-rendered.
+export function bindResponsivePreviewInteractions(
+  body: HTMLElement,
+  options: {
+    editMode: boolean;
+    blocks: Block[];
+    site: PreviewEditableSite;
+    device: "desktop" | "responsive";
+    onSelectElement?: (edit: PreviewElementEdit | null) => void;
+    hoverRef: HoverRef;
+  },
+): () => void {
+  const { editMode, blocks, site, onSelectElement, hoverRef } = options;
+
+  // Same "find the clicked element + its block, then select it" logic as the
+  // desktop preview, using capture phase so interactive children don't swallow clicks.
+  function handleClick(e: MouseEvent) {
+    if (!editMode || !onSelectElement) return;
+    handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
+  }
+
+  let moveRaf: number | null = null;
+  // Highlights the hovered element while in edit mode.
+  function handleMouseMove(e: MouseEvent) {
+    if (!editMode) return;
+    const target = e.target;
+    const altKey = e.altKey;
+    if (moveRaf !== null) return;
+    moveRaf = requestAnimationFrame(() => {
+      moveRaf = null;
+      updatePreviewHoverHighlight(target, altKey, hoverRef);
+    });
+  }
+
+  // Clears the highlight once the mouse leaves the iframe's body.
+  function handleMouseLeave() {
+    if (moveRaf !== null) {
+      cancelAnimationFrame(moveRaf);
+      moveRaf = null;
+    }
+    clearPreviewHoverHighlight(hoverRef);
+  }
+
+  body.addEventListener("click", handleClick, true);
+  body.addEventListener("mousemove", handleMouseMove, true);
+  body.addEventListener("mouseleave", handleMouseLeave);
+
+  const doc = body.ownerDocument;
+  if (doc && doc !== document) {
+    doc.addEventListener("mouseleave", handleMouseLeave);
+  }
+
+  // Cleanup — call this (e.g. in a useEffect return) to unbind everything.
+  return () => {
+    if (moveRaf !== null) {
+      cancelAnimationFrame(moveRaf);
+      moveRaf = null;
+    }
+    body.removeEventListener("click", handleClick, true);
+    body.removeEventListener("mousemove", handleMouseMove, true);
+    body.removeEventListener("mouseleave", handleMouseLeave);
+    if (doc && doc !== document) {
+      doc.removeEventListener("mouseleave", handleMouseLeave);
+    }
+  };
+}
+
+// ------------------------------------------------------------
+// Snapping / alignment guides for free-dragging elements
+// ------------------------------------------------------------
+
+// A rectangle's edges plus its center point, measured relative to a container.
 export type Rect = {
   left: number;
   right: number;
@@ -613,10 +888,10 @@ export type Rect = {
   centerY: number;
 };
 
-export type GuideLine = { type: "v" | "h"; position: number };
-
 const SNAP_THRESHOLD = 8;
 
+// Measures an element's position relative to its container (rather than the
+// whole page), and returns its edges + center — used for snap calculations.
 export function rectOf(el: HTMLElement, containerRect: DOMRect): Rect {
   const r = el.getBoundingClientRect();
   const left = r.left - containerRect.left;
@@ -631,67 +906,104 @@ export function rectOf(el: HTMLElement, containerRect: DOMRect): Rect {
   };
 }
 
+// Calculates snapping guides and adjustment deltas for dragged elements
 export function computeSnap(
   dragged: Rect,
   siblings: Rect[],
   containerWidth: number,
   containerHeight: number,
 ): { dx: number; dy: number; guides: GuideLine[] } {
+  let bestDx = 0;
+  let bestDy = 0;
+  let minDiffX = SNAP_THRESHOLD + 1;
+  let minDiffY = SNAP_THRESHOLD + 1;
   const guides: GuideLine[] = [];
-  let dx = 0;
-  let dy = 0;
-  let bestXDist = SNAP_THRESHOLD;
-  let bestYDist = SNAP_THRESHOLD;
 
-  const xTargets: { target: number; from: number }[] = [
-    { target: 0, from: dragged.left },
-    { target: containerWidth / 2, from: dragged.centerX },
-    { target: containerWidth, from: dragged.right },
-    ...siblings.flatMap((s) => [
-      { target: s.centerX, from: dragged.centerX },
-      { target: s.left, from: dragged.left },
-      { target: s.right, from: dragged.right },
-      { target: s.left, from: dragged.right },
-      { target: s.right, from: dragged.left },
-    ]),
+  const targetsX: { pos: number; guide: number }[] = [
+    { pos: 0, guide: 0 },
+    { pos: containerWidth / 2, guide: containerWidth / 2 },
+    { pos: containerWidth, guide: containerWidth },
   ];
+  const targetsY: { pos: 0; guide: 0 }[] = [{ pos: 0, guide: 0 }];
 
-  const yTargets: { target: number; from: number }[] = [
-    { target: 0, from: dragged.top },
-    { target: containerHeight / 2, from: dragged.centerY },
-    { target: containerHeight, from: dragged.bottom },
-    ...siblings.flatMap((s) => [
-      { target: s.centerY, from: dragged.centerY },
-      { target: s.top, from: dragged.top },
-      { target: s.bottom, from: dragged.bottom },
-      { target: s.top, from: dragged.bottom },
-      { target: s.bottom, from: dragged.top },
-    ]),
-  ];
-
-  for (const { target, from } of xTargets) {
-    const diff = target - from;
-    if (Math.abs(diff) < bestXDist) {
-      bestXDist = Math.abs(diff);
-      dx = diff;
-    }
+  for (const s of siblings) {
+    targetsX.push(
+      { pos: s.left, guide: s.left },
+      { pos: s.centerX, guide: s.centerX },
+      { pos: s.right, guide: s.right },
+    );
+    targetsY.push(
+      { pos: s.top as 0, guide: s.top as 0 },
+      { pos: s.centerY as 0, guide: s.centerY as 0 },
+      { pos: s.bottom as 0, guide: s.bottom as 0 },
+    );
   }
-  for (const { target, from } of yTargets) {
-    const diff = target - from;
-    if (Math.abs(diff) < bestYDist) {
-      bestYDist = Math.abs(diff);
-      dy = diff;
+
+  const dragPointsX = [
+    { pos: dragged.left, offset: 0 },
+    { pos: dragged.centerX, offset: (dragged.right - dragged.left) / 2 },
+    { pos: dragged.right, offset: dragged.right - dragged.left },
+  ];
+
+  for (const dp of dragPointsX) {
+    for (const t of targetsX) {
+      const diff = t.pos - dp.pos;
+      if (Math.abs(diff) < minDiffX) {
+        minDiffX = Math.abs(diff);
+        bestDx = diff;
+      }
     }
   }
 
-  if (dx !== 0) guides.push({ type: "v", position: Math.round(dragged.centerX + dx) });
-  if (dy !== 0) guides.push({ type: "h", position: Math.round(dragged.centerY + dy) });
+  if (minDiffX <= SNAP_THRESHOLD) {
+    for (const dp of dragPointsX) {
+      for (const t of targetsX) {
+        if (Math.abs(t.pos - (dp.pos + bestDx)) < 0.5) {
+          guides.push({ type: "v", position: Math.round(t.guide) });
+        }
+      }
+    }
+  } else {
+    bestDx = 0;
+  }
 
-  return { dx, dy, guides };
+  const dragPointsY = [
+    { pos: dragged.top, offset: 0 },
+    { pos: dragged.centerY, offset: (dragged.bottom - dragged.top) / 2 },
+    { pos: dragged.bottom, offset: dragged.bottom - dragged.top },
+  ];
+
+  for (const dp of dragPointsY) {
+    for (const t of targetsY) {
+      const diff = t.pos - dp.pos;
+      if (Math.abs(diff) < minDiffY) {
+        minDiffY = Math.abs(diff);
+        bestDy = diff;
+      }
+    }
+  }
+
+  if (minDiffY <= SNAP_THRESHOLD) {
+    for (const dp of dragPointsY) {
+      for (const t of targetsY) {
+        if (Math.abs(t.pos - (dp.pos + bestDy)) < 0.5) {
+          guides.push({ type: "h", position: Math.round(t.guide) });
+        }
+      }
+    }
+  } else {
+    bestDy = 0;
+  }
+
+  return { dx: bestDx, dy: bestDy, guides };
 }
 
 const DRAG_THRESHOLD = 4;
 
+// Handles free-dragging an individual element around inside its block (move
+// mode). Tracks the mouse, snaps to nearby edges/centers, updates the guide
+// lines live, and — once the drag ends — saves the final x/y position back
+// as a style patch (separately for desktop vs mobile coordinates).
 export function startElementFreeDrag(
   e: ReactMouseEvent,
   moveMode: boolean,
@@ -716,6 +1028,10 @@ export function startElementFreeDrag(
   e.preventDefault();
   e.stopPropagation();
 
+  const ownerDoc = element.ownerDocument || document;
+  const ownerWin = ownerDoc.defaultView || window;
+  const iframeEl = ownerWin !== window ? (ownerWin.frameElement as HTMLElement | null) : null;
+
   const startClientX = e.clientX;
   const startClientY = e.clientY;
 
@@ -734,6 +1050,8 @@ export function startElementFreeDrag(
   let pendingEvent: MouseEvent | null = null;
   let lastGuideKey = "";
 
+  // Only tells React about new guide lines when they've actually changed,
+  // instead of re-rendering on every single mouse-move tick.
   function setGuidesIfChanged(guides: GuideLine[]) {
     const key = guides.map((guide) => `${guide.type}:${guide.position}`).join("|");
     if (key === lastGuideKey) return;
@@ -741,9 +1059,33 @@ export function startElementFreeDrag(
     setGuides(guides);
   }
 
+  // Runs on each animation frame while dragging — computes the element's
+  // proposed new position, snaps it if it's close to another edge, and
+  // moves the element on screen immediately (for instant visual feedback).
   function applyMove(moveEvent: MouseEvent) {
-    const dxRaw = (moveEvent.clientX - startClientX) / safeScale;
-    const dyRaw = (moveEvent.clientY - startClientY) / safeScale;
+    let dxRaw = 0;
+    let dyRaw = 0;
+
+    if (iframeEl) {
+      // If event originated inside the iframe
+      if (
+        moveEvent.view === ownerWin ||
+        (moveEvent.target && ownerDoc.contains(moveEvent.target as Node))
+      ) {
+        dxRaw = moveEvent.clientX - startClientX;
+        dyRaw = moveEvent.clientY - startClientY;
+      } else {
+        // Event came from the parent window (mouse dragged outside iframe viewport)
+        const iframeRect = iframeEl.getBoundingClientRect();
+        const curIframeX = (moveEvent.clientX - iframeRect.left) / safeScale;
+        const curIframeY = (moveEvent.clientY - iframeRect.top) / safeScale;
+        dxRaw = curIframeX - startClientX;
+        dyRaw = curIframeY - startClientY;
+      }
+    } else {
+      dxRaw = (moveEvent.clientX - startClientX) / safeScale;
+      dyRaw = (moveEvent.clientY - startClientY) / safeScale;
+    }
 
     if (!hasMoved && Math.hypot(dxRaw, dyRaw) < DRAG_THRESHOLD) return;
 
@@ -789,6 +1131,7 @@ export function startElementFreeDrag(
     setGuidesIfChanged(guides);
   }
 
+  // Throttles mouse-move handling to once per animation frame.
   function onMouseMove(moveEvent: MouseEvent) {
     pendingEvent = moveEvent;
     if (rafId !== null) return;
@@ -798,9 +1141,14 @@ export function startElementFreeDrag(
     });
   }
 
+  // Finishes the drag: cleans up listeners/guides, and — if the element
+  // actually moved — saves its final position as a style patch.
   function onMouseUp() {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
+    ownerDoc.removeEventListener("mousemove", onMouseMove, true);
+    ownerDoc.removeEventListener("mouseup", onMouseUp, true);
+    window.removeEventListener("mousemove", onMouseMove, true);
+    window.removeEventListener("mouseup", onMouseUp, true);
+
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
@@ -819,10 +1167,15 @@ export function startElementFreeDrag(
     onChangeElementStyle(elementId, patch);
   }
 
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  ownerDoc.addEventListener("mousemove", onMouseMove, true);
+  ownerDoc.addEventListener("mouseup", onMouseUp, true);
+  window.addEventListener("mousemove", onMouseMove, true);
+  window.addEventListener("mouseup", onMouseUp, true);
 }
 
+// After a block's real rendered height changes (measured via ResizeObserver),
+// this saves that measured height back into state — but only if it's
+// actually different, to avoid triggering pointless re-renders.
 export function handleMeasuredBlockHeight(
   blockId: string,
   measuredHeight: number,
@@ -837,6 +1190,9 @@ export function handleMeasuredBlockHeight(
 
 export type ResizingBlockState = { id: string; startY: number; startHeight: number } | null;
 
+// Starts a manual block-height resize when the user drags a block's bottom
+// handle — tracks the mouse, live-updates the block's height, and cleans up
+// once the mouse is released.
 export function handleStartBlockResize(
   blockId: string,
   currentHeight: number,
@@ -866,6 +1222,8 @@ export function handleStartBlockResize(
   window.addEventListener("mouseup", onMouseUp);
 }
 
+// Older/simpler version of the preview-click handler (no root-section
+// confirmation step) — selects whichever element was clicked directly.
 export function handlePreviewClick(
   e: { target: EventTarget; stopPropagation: () => void },
   editMode: boolean,
@@ -893,6 +1251,8 @@ export function handlePreviewClick(
   });
 }
 
+// Flips edit mode on/off, clearing the current selection whenever it's
+// switched off.
 export function toggleEditMode(
   setEditMode: Dispatch<SetStateAction<boolean>>,
   sortedBlocks: Block[],
@@ -908,6 +1268,9 @@ export function toggleEditMode(
   });
 }
 
+// Kicks off a responsive-frame resize drag — remembers the starting size and
+// mouse position, sets the resize cursor, and starts listening for mouse
+// movement/release on the whole window.
 export function startFrameDrag(
   edge: "left" | "right" | "bottom" | "corner",
   e: { preventDefault: () => void; clientX: number; clientY: number },
@@ -935,6 +1298,8 @@ export function startFrameDrag(
   window.addEventListener("mouseup", handleDragEnd);
 }
 
+// Cleans up after a frame resize drag finishes — resets the cursor,
+// clears drag state, and removes the window-level listeners.
 export function endFrameDrag(
   dragStateRef: { current: FrameDragState | null },
   setIsDragging: (dragging: boolean) => void,
@@ -953,6 +1318,8 @@ export function endFrameDrag(
 // DraggableBlockWrapper
 // ============================================================
 
+// Moves one block to another block's position in the list, keeping every
+// other block's relative order the same.
 export function reorderDraggedBlock(
   draggedId: string,
   targetId: string,
@@ -970,6 +1337,8 @@ export function reorderDraggedBlock(
   return next;
 }
 
+// Called when a dragged block is dropped onto another block — reorders the
+// list and turns off the "drag over" highlight.
 export function handleBlockDrop(
   draggedId: string,
   targetBlockId: string,
@@ -984,6 +1353,8 @@ export function handleBlockDrop(
   }
 }
 
+// Marks the start of a block drag by storing its id in the browser's native
+// drag-and-drop data transfer.
 export function handleBlockDragStart(
   e: { dataTransfer: DataTransfer },
   blockId: string,
@@ -998,6 +1369,8 @@ export function handleBlockDragStart(
 // SelectionToolbar
 // ============================================================
 
+// Figures out where to position the floating text-formatting toolbar, based
+// on the current text selection's on-screen bounding box.
 export function calculateSelectionPosition(
   selection: Selection | null,
 ): { top: number; left: number } | null {
@@ -1019,10 +1392,12 @@ export function calculateSelectionPosition(
   };
 }
 
+// Applies bold/italic/underline to the current text selection.
 export function applyFormat(command: "bold" | "italic" | "underline"): void {
   document.execCommand(command);
 }
 
+// Applies a text color to the current text selection.
 export function applyColor(color: string): void {
   document.execCommand("foreColor", false, color);
 }
@@ -1031,6 +1406,9 @@ export function applyColor(color: string): void {
 // TemplateSidebar
 // ============================================================
 
+// Decides where a brand-new block should be inserted: right after the hero
+// block if there is one, otherwise right after the nav/header, otherwise near
+// the top of the list.
 export function findInsertIndex(blocks: Block[]): number {
   const kindOf = (b: Block) => String(b.props.kind ?? "");
   const isNav = (b: Block) => /^(nav|navbar|header)/i.test(kindOf(b));
@@ -1045,6 +1423,7 @@ export function findInsertIndex(blocks: Block[]): number {
   return Math.min(2, blocks.length);
 }
 
+// Builds an empty "spacer" block with a random id, ready to be inserted.
 export function createBlankBlock(theme: Theme): Block {
   return {
     id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -1065,9 +1444,19 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 }
 
 export function isHexColor(value: string): boolean {
-  return /^#[0-9a-f]{6}$/i.test(value);
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim());
 }
 
+export function to6DigitHex(value: string): string {
+  const trimmed = value.trim();
+  if (/^#[0-9a-f]{6}$/i.test(trimmed)) return trimmed;
+  if (/^#[0-9a-f]{3}$/i.test(trimmed)) {
+    return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`;
+  }
+  return "#ffffff";
+}
+
+// Adds a fresh blank block into the list at a sensible default position.
 export function handleAddBlock(
   sortedBlocks: Block[],
   theme: Theme,
@@ -1079,6 +1468,8 @@ export function handleAddBlock(
   onReorderBlocks(next);
 }
 
+// Moves a block dragged from the sidebar list to a new position among the
+// other blocks.
 export function moveSidebarBlock(
   draggedId: string | null,
   targetId: string,
@@ -1095,6 +1486,7 @@ export function moveSidebarBlock(
   onReorderBlocks(next);
 }
 
+// Updates a block's manually-typed height value from the sidebar input.
 export function handleBlockHeightChange(
   blockId: string,
   rawValue: string,
@@ -1103,6 +1495,8 @@ export function handleBlockHeightChange(
   onUpdateBlock(blockId, { height: rawValue === "" ? undefined : Number(rawValue) });
 }
 
+// Replaces one item inside an array-valued field (e.g. a list of testimonials)
+// and saves the whole updated array back through onChange.
 export function handleArrayItemChange<T>(
   current: T[],
   index: number,
@@ -1120,6 +1514,8 @@ export function handleArrayItemChange<T>(
 // AddBlockMenu
 // ============================================================
 
+// Builds a brand-new block from a catalog entry (e.g. "Hero — Split Layout"),
+// placing it right after the chosen block (or at the start if none chosen).
 export function createInsertedBlock(
   afterOrder: number | null,
   blocks: Block[],
@@ -1154,11 +1550,14 @@ export function createInsertedBlock(
   } as Block;
 }
 
+// Filters the block catalog down to entries whose label matches the search text.
 export function filterBlockCatalog<T extends { label: string }>(catalog: T[], query: string): T[] {
   const q = query.trim().toLowerCase();
   return catalog.filter((entry) => entry.label.toLowerCase().includes(q));
 }
 
+// Handles picking a block from the "add block" menu: builds it, inserts it,
+// then resets the menu's open/search/height state back to defaults.
 export function handlePickBlock<
   T extends {
     componentType: string;
@@ -1187,14 +1586,16 @@ export function handlePickBlock<
 // ElementStylePanel
 // ============================================================
 
+// Nudges a numeric value up or down by one step (e.g. font size +/- buttons),
+// staying within the given min/max bounds.
 export function stepStepperValue(
   currentValue: number,
-  direction: 1 | -1,
+  direction: number,
   min: number,
   max: number,
   onChange: (value: number) => void,
 ): void {
-  const next = currentValue + direction;
+  const next = Math.round((currentValue + direction) * 100) / 100;
   if (next < min || next > max) return;
   onChange(next);
 }
@@ -1203,6 +1604,7 @@ export function stepStepperValue(
 // Editable
 // ============================================================
 
+// Saves an editable element's content once the user clicks away from it.
 export function handleEditableBlur(
   e: FocusEvent<HTMLElement>,
   onChange: (v: string) => void,
@@ -1210,8 +1612,8 @@ export function handleEditableBlur(
   onChange(e.currentTarget.innerHTML ?? "");
 }
 
-
-
+// Grabs the current outer HTML of the whole preview — used when exporting or
+// generating a static snapshot of the site.
 export function getTemplateHtml(
   contentRef: RefObject<HTMLDivElement | null>
 ): string | null {

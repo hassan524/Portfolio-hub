@@ -30,6 +30,9 @@ import {
   handleInteractivePreviewClick,
   handleFrameResizeMove,
   handleContentFreeDragStart,
+  updatePreviewHoverHighlight,
+  clearPreviewHoverHighlight,
+  bindResponsivePreviewInteractions,
   type FrameDragState,
   type GuideLine,
   type ConfirmationCopy,
@@ -72,18 +75,12 @@ export function TemplateLivePreview({
 
   selectedElementId?: string | null;
   onSelectElement?: (edit: PreviewElementEdit | null) => void;
-  onChangeElementStyle?: (
-    elementId: string,
-    patch: Partial<PreviewElementStyle>
-  ) => void;
+  onChangeElementStyle?: (elementId: string, patch: Partial<PreviewElementStyle>) => void;
 
   onDeviceChange: (device: Device) => void;
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
 
-  onUpdateTypography?: (
-    blockId: string,
-    patch: Record<string, unknown>
-  ) => void;
+  onUpdateTypography?: (blockId: string, patch: Record<string, unknown>) => void;
 
   onReorderBlocks: (blocks: Block[]) => void;
 
@@ -95,7 +92,7 @@ export function TemplateLivePreview({
   onToggleMaximize: (
     isMaximized: boolean,
     setIsMaximized: Dispatch<SetStateAction<boolean>>,
-    dialogRef: RefObject<HTMLDivElement | null>
+    dialogRef: RefObject<HTMLDivElement | null>,
   ) => void;
 
   onClose: () => void;
@@ -110,15 +107,18 @@ export function TemplateLivePreview({
 
   // Refs for the preview viewport and its content.
   const frameRef = useRef<HTMLDivElement>(null);
+  const desktopScrollRef = useRef<HTMLDivElement>(null);
   const responsiveFrameRef = useRef<HTMLIFrameElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-
 
   // Drag state is used to resize the responsive frame.
   const dragState = useRef<FrameDragState | null>(null);
   const dragRafRef = useRef<number | null>(null);
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null);
   const isDesktop = device === "desktop";
+
+  // add this near your other useState calls in TemplateLivePreview
+  const [pendingRootSelection, setPendingRootSelection] = useState<PreviewElementEdit | null>(null);
 
   /* ---------------------------------------------------------------------- */
   /*                    LOCAL CONFIRM MODAL (context-free)                   */
@@ -146,7 +146,6 @@ export function TemplateLivePreview({
 
   const [editMode, setEditMode] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
-  const [, setPendingRootSelection] = useState<PreviewElementEdit | null>(null);
   const [size, setSize] = useState({
     width: DEFAULT_RESPONSIVE_WIDTH,
     height: DEFAULT_RESPONSIVE_HEIGHT,
@@ -161,6 +160,9 @@ export function TemplateLivePreview({
 
   const [dragGuides, setDragGuides] = useState<GuideLine[]>([]);
   const [draggingElementId, setDraggingElementId] = useState<string | null>(null);
+  const hoveredElementRef = useRef<HTMLElement | null>(null);
+  // Incremented when the iframe body becomes available so listener useEffect re-runs.
+  const [iframeReady, setIframeReady] = useState(0);
 
   const resizingRef = useRef<typeof resizingBlock>(null);
   useEffect(() => {
@@ -179,7 +181,7 @@ export function TemplateLivePreview({
       setSize({ width: DEFAULT_RESPONSIVE_WIDTH, height: DEFAULT_RESPONSIVE_HEIGHT });
       responsiveFrameRef.current?.contentWindow?.scrollTo({ top: 0, left: 0 });
     } else {
-      frameRef.current?.scrollTo({ top: 0, left: 0 });
+      desktopScrollRef.current?.scrollTo({ top: 0, left: 0 });
     }
   }, [isDesktop]);
 
@@ -261,52 +263,116 @@ export function TemplateLivePreview({
   const sortedBlockIds = sorted.map((block) => block.id).join(",");
 
   useLayoutEffect(() => {
-    tagAndApplyPreviewStyles(
-      contentRef.current,
-      blocks,
-      selectedElementId,
-      site.previewEdits,
-      device,
-    );
-  }, [blocks, selectedElementId, site.previewEdits, device]);
+    if (contentRef.current) {
+      tagAndApplyPreviewStyles(
+        contentRef.current,
+        blocks,
+        selectedElementId,
+        site.previewEdits,
+        device,
+      );
+    }
 
+    const iframeDoc = responsiveFrameRef.current?.contentDocument;
+    if (iframeDoc?.body) {
+      iframeDoc.body.style.setProperty("--preview-editor-accent", theme.accent);
+      iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
+      tagAndApplyPreviewStyles(iframeDoc.body, blocks, selectedElementId, site.previewEdits, device);
+    }
+  }, [blocks, contentRef, selectedElementId, site.previewEdits, device, editMode, theme.accent]);
+
+  // Unified capture-phase listeners on BOTH the desktop canvas and the responsive
+  // iframe document. Re-runs whenever editMode/blocks/site/onSelectElement change
+  // so the closures inside are always fresh — this was the root cause of hover
+  // and click not working in responsive mode (stale editMode=false closure).
   useEffect(() => {
-    const root = contentRef.current;
-    if (!root) return;
+    const desktopEl = contentRef.current;
+    const iframeDoc = responsiveFrameRef.current?.contentDocument;
 
-    const ownerWindow = root.ownerDocument?.defaultView ?? window;
-    const observer = new ownerWindow.ResizeObserver((entries: ResizeObserverEntry[]) => {
-      if (!isDesktop) return;
-      for (const entry of entries) {
-        const el = entry.target as HTMLElement;
-        const blockId = el.dataset.blockId;
-        if (!blockId) continue;
-        if (resizingRef.current?.id === blockId) continue;
-        const measured = Math.round(entry.contentRect.height);
-        handleMeasuredBlockHeight(blockId, measured, blocks, onUpdateBlock);
-      }
-    });
+    function handleCaptureClick(e: MouseEvent) {
+      if (!editMode) return;
+      handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
+    }
 
-    root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((el) => observer.observe(el));
+    let moveRaf: number | null = null;
+    function handleMouseMove(e: MouseEvent) {
+      if (!editMode) return;
+      if (moveRaf !== null) return;
+      const { target, altKey } = e;
+      moveRaf = requestAnimationFrame(() => {
+        moveRaf = null;
+        updatePreviewHoverHighlight(target, altKey, hoveredElementRef);
+      });
+    }
+    function handleMouseLeave() {
+      if (moveRaf !== null) { cancelAnimationFrame(moveRaf); moveRaf = null; }
+      clearPreviewHoverHighlight(hoveredElementRef);
+    }
 
-    return () => observer.disconnect();
-  }, [sortedBlockIds, blocks, onUpdateBlock, device, isDesktop]);
+    desktopEl?.addEventListener("click", handleCaptureClick, true);
+    desktopEl?.addEventListener("mousemove", handleMouseMove, true);
+    desktopEl?.addEventListener("mouseleave", handleMouseLeave);
+
+    iframeDoc?.addEventListener("click", handleCaptureClick, true);
+    iframeDoc?.addEventListener("mousemove", handleMouseMove, true);
+    iframeDoc?.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      if (moveRaf !== null) { cancelAnimationFrame(moveRaf); moveRaf = null; }
+      desktopEl?.removeEventListener("click", handleCaptureClick, true);
+      desktopEl?.removeEventListener("mousemove", handleMouseMove, true);
+      desktopEl?.removeEventListener("mouseleave", handleMouseLeave);
+      iframeDoc?.removeEventListener("click", handleCaptureClick, true);
+      iframeDoc?.removeEventListener("mousemove", handleMouseMove, true);
+      iframeDoc?.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [editMode, blocks, site, onSelectElement, iframeReady]);
 
   function handlePreviewClick(e: React.MouseEvent) {
+    if (!editMode) return;
     handleInteractivePreviewClick(
       e,
       editMode,
       blocks,
       site,
       onSelectElement,
-      setPendingRootSelection,
-      confirm,
     );
   }
 
+  const mouseMoveRafRef = useRef<number | null>(null);
+  function handlePreviewMouseMove(e: React.MouseEvent) {
+    if (!editMode) return;
+    const target = e.target;
+    const altKey = e.altKey;
+    if (mouseMoveRafRef.current !== null) return;
+    mouseMoveRafRef.current = requestAnimationFrame(() => {
+      mouseMoveRafRef.current = null;
+      updatePreviewHoverHighlight(target, altKey, hoveredElementRef);
+    });
+  }
+
+  function handlePreviewMouseLeave() {
+    if (mouseMoveRafRef.current !== null) {
+      cancelAnimationFrame(mouseMoveRafRef.current);
+      mouseMoveRafRef.current = null;
+    }
+    clearPreviewHoverHighlight(hoveredElementRef);
+  }
+
+  const handleResponsiveDocumentReady = useCallback(
+    (body: HTMLElement) => {
+      body.style.setProperty("--preview-editor-accent", theme.accent);
+      body.ownerDocument.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
+      tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device);
+      // Signal the unified listener useEffect to re-run so it can bind to this
+      // now-available iframe document with fresh closures.
+      setIframeReady((n) => n + 1);
+    },
+    [blocks, selectedElementId, site.previewEdits, device, theme.accent],
+  );
+
   function handleToggleEditMode() {
-    // Toggle the live preview edit mode. When entering edit mode, the first
-    // editable element inside the currently active section is selected.
+    if (editMode) handlePreviewMouseLeave();
     handleInteractiveToggleEditMode(
       editMode,
       setEditMode,
@@ -333,21 +399,22 @@ export function TemplateLivePreview({
     if (ok) onSave?.(site);
   }
 
-
   const previewContent = (
     <div
       ref={contentRef}
-      className="min-h-full w-full preview-edit-canvas"
+      className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
       style={{ background: bg, color: ink }}
       onClick={handlePreviewClick}
       onMouseDown={handleContentMouseDown}
+      onMouseMove={handlePreviewMouseMove}
+      onMouseLeave={handlePreviewMouseLeave}
     >
       {sorted.map((block) => {
         const variant = (block.props as { variant?: string }).variant;
         const Cmp = getBlockComponent(block.props.kind, variant);
         if (!Cmp) return null;
 
-        const isActive = activeSection === block.props.kind;
+        const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
         const isResizingThis = resizingBlock?.id === block.id;
         const currentHeight = block.height ?? 200;
         const displayName = block.label ?? block.name ?? block.props.kind;
@@ -373,8 +440,7 @@ export function TemplateLivePreview({
                 }`}
               style={{
                 ...(isActive ? { outlineColor: theme.accent } : undefined),
-                height: isDesktop && block.height ? `${block.height}px` : undefined,
-                overflow: "hidden",
+                minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
                 position: "relative",
               }}
             >
@@ -450,8 +516,8 @@ export function TemplateLivePreview({
                 >
                   <div
                     className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
-                      ? "bg-foreground shadow-md scale-110 opacity-100"
-                      : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                        ? "bg-foreground shadow-md scale-110 opacity-100"
+                        : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
                       }`}
                   >
                     <div className="h-0.5 w-6 rounded-full bg-background/80" />
@@ -501,8 +567,8 @@ export function TemplateLivePreview({
             <button
               onClick={() => onDeviceChange("desktop")}
               className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
                 }`}
               title="Desktop Preview"
             >
@@ -512,8 +578,8 @@ export function TemplateLivePreview({
             <button
               onClick={() => onDeviceChange("responsive")}
               className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
                 }`}
               title="Responsive Preview"
             >
@@ -526,10 +592,14 @@ export function TemplateLivePreview({
           <button
             onClick={handleToggleEditMode}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
               }`}
-            title={editMode ? "Exit edit mode" : "Enter edit mode"}
+            title={
+              editMode
+                ? "Exit edit mode — hover to preview selection; hold Alt for a container"
+                : "Enter edit mode"
+            }
             aria-label={editMode ? "Exit edit mode" : "Enter edit mode"}
           >
             <PencilLine className="h-4 w-4" />
@@ -538,8 +608,8 @@ export function TemplateLivePreview({
           <button
             onClick={handleToggleMoveModeClick}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
               }`}
             title={moveMode ? "Turn off move mode" : "Turn on move mode"}
             aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
@@ -580,9 +650,8 @@ export function TemplateLivePreview({
 
       {isDesktop ? (
         <div
+          ref={desktopScrollRef}
           className="simple-scrollbar flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6"
-          onWheelCapture={(e) => e.stopPropagation()}
-          onTouchMoveCapture={(e) => e.stopPropagation()}
           style={{ overscrollBehavior: "contain" }}
         >
           <div
@@ -595,9 +664,19 @@ export function TemplateLivePreview({
       ) : (
         <div
           ref={viewportRef}
-          className="flex-1 min-h-0 overflow-hidden flex items-center justify-center"
-          onWheelCapture={(e) => e.stopPropagation()}
-          onTouchMoveCapture={(e) => e.stopPropagation()}
+          className="flex-1 min-h-0 overflow-hidden flex items-center justify-center select-none"
+          onWheel={(e) => {
+            if (e.target === viewportRef.current) {
+              const win = responsiveFrameRef.current?.contentWindow;
+              if (win) {
+                win.scrollBy({
+                  top: e.deltaY,
+                  left: 0,
+                  behavior: "auto",
+                });
+              }
+            }
+          }}
           style={{ overscrollBehavior: "contain" }}
         >
           <div
@@ -609,7 +688,9 @@ export function TemplateLivePreview({
               height={height}
               scale={scale}
               isDragging={isDragging}
+              editMode={editMode}
               iframeRef={responsiveFrameRef}
+              onDocumentReady={handleResponsiveDocumentReady}
             >
               {previewContent}
             </PreviewIframe>
@@ -667,11 +748,32 @@ export function TemplateLivePreview({
       <style>{`
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .preview-edit-canvas [data-preview-edit-id] { cursor: ${moveMode ? "move" : "pointer"}; }
-        .preview-edit-canvas [data-preview-edit-id$=":root"] { cursor: pointer; }
+        .preview-edit-canvas.edit-active [data-preview-edit-id] {
+          cursor: pointer;
+        }
+        .preview-edit-canvas.move-active [data-preview-edit-id] {
+          cursor: move;
+        }
+        .preview-edit-canvas.edit-active .preview-edit-hovered:not(.preview-edit-selected) {
+          outline: 2px dashed ${theme.accent}cc !important;
+          outline-offset: 3px !important;
+          cursor: pointer !important;
+          transition: outline 0.12s ease;
+        }
+        .preview-edit-canvas.edit-active .preview-edit-selected,
         .preview-edit-selected {
-          outline: 2px solid ${theme.accent};
-          outline-offset: 2px;
+          outline: 2px solid ${theme.accent} !important;
+          outline-offset: 3px !important;
+          box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
+          transform: scale(1.02) !important;
+          z-index: 35 !important;
+          position: relative !important;
+          transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
+        }
+        .preview-hover-lift:hover {
+          transform: translateY(-4px) !important;
+          box-shadow: 0 12px 24px -6px rgba(0,0,0,0.2) !important;
+          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
         }
       `}</style>
     </main>
