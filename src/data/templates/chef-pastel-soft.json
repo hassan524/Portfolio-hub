@@ -1,7 +1,7 @@
 {
   "id": "chef-pastel-soft",
-  "name": "Chef — Pastel Soft",
-  "category": "Chef",
+  "name": "Forest Base",
+  "category": "Bakery",
   "tagline": "Cooking food that tells a story.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -24,12 +24,12 @@ export function toggleMaximize(
 ): void {
   if (!isMaximized) {
     if (dialogRef.current && !document.fullscreenElement) {
-      dialogRef.current.requestFullscreen?.().catch(() => {});
+      dialogRef.current.requestFullscreen?.().catch(() => { });
     }
     setIsMaximized(true);
   } else {
     if (document.fullscreenElement) {
-      document.exitFullscreen?.().catch(() => {});
+      document.exitFullscreen?.().catch(() => { });
     }
     setIsMaximized(false);
   }
@@ -115,7 +115,7 @@ export function updateTheme(
 // Updates top-level site info like name, category, or tagline.
 export function updateSiteMeta(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
-  patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>,
+  patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
 ): void {
   setSite((prev) => (prev ? { ...prev, ...patch } : prev));
 }
@@ -129,9 +129,9 @@ export function reorderBlocks(
   setSite((prev) =>
     prev
       ? {
-          ...prev,
-          blocks: nextBlocks.map((block, order) => ({ ...block, order })),
-        }
+        ...prev,
+        blocks: nextBlocks.map((block, order) => ({ ...block, order })),
+      }
       : prev,
   );
 }
@@ -324,11 +324,14 @@ export function handleInteractivePreviewClick(
 ): void {
   if (!editMode || !onSelectElement) return;
 
-  const target = e.target instanceof HTMLElement ? e.target : null;
+  const target = getPreviewElementTarget(e.target);
+  const blockElement = target?.closest<HTMLElement>("[data-block-id]") ?? null;
   const element = e.altKey
-    ? target?.closest<HTMLElement>('[data-preview-edit-id$=":root"]')
-    : (target?.closest<HTMLElement>('[data-preview-edit-id]:not([data-preview-edit-id$=":root"])') || target?.closest<HTMLElement>("[data-preview-edit-id]"));
-  const blockElement = target?.closest<HTMLElement>("[data-block-id]");
+    ? target?.closest<HTMLElement>('[data-preview-edit-id$=":root"]') ?? null
+    : target
+      ? findHoverableElement(target, blockElement)
+      : null;
+
   if (!element || !blockElement) return;
 
   const block = blocks.find((candidate) => candidate.id === blockElement.dataset.blockId);
@@ -340,12 +343,15 @@ export function handleInteractivePreviewClick(
     ? (block.label ?? block.name ?? block.props.kind ?? "Section Container")
     : getElementLabel(element);
 
+  const rect = element.getBoundingClientRect();
   const nextSelection: PreviewElementEdit = {
     id: elementId,
     blockId: block.id,
     blockKind: block.props.kind,
     label: fallbackLabel,
     style: site.previewEdits?.elements[elementId]?.style ?? {},
+    computedWidth: `${Math.round(rect.width)}px`,
+    computedHeight: `${Math.round(rect.height)}px`,
   };
 
   e.stopPropagation();
@@ -378,12 +384,15 @@ export function handleInteractiveToggleEditMode(
 
     if (activeBlock && firstChild) {
       const elementId = firstChild.dataset.previewEditId ?? "";
+      const firstChildRect = firstChild.getBoundingClientRect();
       onSelectElement({
         id: elementId,
         blockId: activeBlock.id,
         blockKind: activeBlock.props.kind,
         label: getElementLabel(firstChild),
         style: site.previewEdits?.elements[elementId]?.style ?? {},
+        computedWidth: `${Math.round(firstChildRect.width)}px`,
+        computedHeight: `${Math.round(firstChildRect.height)}px`,
       });
     }
   }
@@ -449,8 +458,8 @@ export function handleContentFreeDragStart(
     device,
     scale,
     (elementId, patch) => onChangeElementStyle?.(elementId, patch),
-    setDragGuides ?? (() => {}),
-    setDraggingElementId ?? (() => {}),
+    setDragGuides ?? (() => { }),
+    setDraggingElementId ?? (() => { }),
   );
 }
 
@@ -663,10 +672,18 @@ export function applyPreviewStyle(
     setProp("margin", `${style.margin}px`);
   }
   if (style.width) {
-    setProp("width", style.width);
+    let w = style.width.trim();
+    if (/^\d+(\.\d+)?$/.test(w)) {
+      w = `${w}px`;
+    }
+    setProp("width", w);
   }
   if (style.height) {
-    setProp("height", style.height);
+    let h = style.height.trim();
+    if (/^\d+(\.\d+)?$/.test(h)) {
+      h = `${h}px`;
+    }
+    setProp("height", h);
   }
 
   // Important SaaS Styles
@@ -740,9 +757,9 @@ export function tagAndApplyPreviewStyles(
   root.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((element) => {
     const editId = element.dataset.previewEditId;
     const isSelected = Boolean(editId && editId === selectedElementId);
-    
+
     element.classList.toggle("preview-edit-selected", isSelected);
-    
+
     if (elements && editId && elements[editId]?.style) {
       applyPreviewStyle(element, elements[editId].style, device);
     }
@@ -755,7 +772,13 @@ export function tagAndApplyPreviewStyles(
 // ------------------------------------------------------------
 
 // A vertical or horizontal alignment guide line, shown while dragging.
-export type GuideLine = { type: "v" | "h"; position: number };
+export type GuideLine = {
+  type: "v" | "h";
+  position: number;
+  start?: number;
+  end?: number;
+  emphasis?: "center" | "edge";
+};
 
 // A ref-like object holding whatever HTML element is currently hovered.
 type HoverRef = { current: HTMLElement | null };
@@ -763,31 +786,74 @@ type HoverRef = { current: HTMLElement | null };
 // Highlights whichever editable element the mouse is currently over, and
 // un-highlights the previous one. Holding Alt highlights the whole section
 // (the block's "root" element) instead of the specific piece under the cursor.
+const HOVER_OUTLINE_COLOR = "#10b981cc";
+
+// `instanceof Element` only works for elements created by this window. The
+// responsive preview is rendered in an iframe, whose elements have a
+// different Element constructor, so use the DOM shape instead.
+function getPreviewElementTarget(eventTarget: EventTarget | null): HTMLElement | null {
+  if (
+    eventTarget &&
+    typeof eventTarget === "object" &&
+    "nodeType" in eventTarget &&
+    (eventTarget as Node).nodeType === 1 &&
+    "closest" in eventTarget
+  ) {
+    return eventTarget as HTMLElement;
+  }
+  return null;
+}
+
 export function updatePreviewHoverHighlight(
   eventTarget: EventTarget | null,
   altKey: boolean,
   hoveredElementRef: HoverRef,
 ): void {
-  const target = eventTarget instanceof HTMLElement ? eventTarget : null;
+  const target = getPreviewElementTarget(eventTarget);
   if (!target) {
     clearPreviewHoverHighlight(hoveredElementRef);
     return;
   }
 
+  const blockRoot = target.closest<HTMLElement>("[data-block-id]");
+
   const element = altKey
     ? target.closest<HTMLElement>('[data-preview-edit-id$=":root"]')
-    : (target.closest<HTMLElement>('[data-preview-edit-id]:not([data-preview-edit-id$=":root"])') || target.closest<HTMLElement>("[data-preview-edit-id]"));
+    : findHoverableElement(target, blockRoot);
 
   const nextElement = element ?? null;
   if (nextElement === hoveredElementRef.current) return;
 
-  if (hoveredElementRef.current) {
-    hoveredElementRef.current.classList.remove("preview-edit-hovered");
-  }
+  clearPreviewHoverHighlight(hoveredElementRef);
+
   hoveredElementRef.current = nextElement;
   if (nextElement) {
+    const isMoveMode = nextElement.closest(".preview-edit-canvas")?.classList.contains("move-active");
     nextElement.classList.add("preview-edit-hovered");
+    // Applied inline, not just via class — guarantees the highlight shows
+    // up even if the cloned stylesheet hasn't synced into the iframe's
+    // document yet. Doesn't depend on any external CSS at all.
+    nextElement.style.setProperty("outline", `2px dashed ${HOVER_OUTLINE_COLOR}`, "important");
+    nextElement.style.setProperty("outline-offset", "4px", "important");
+    nextElement.style.setProperty("cursor", isMoveMode ? "move" : "pointer", "important");
+    nextElement.style.setProperty("transform", "scale(1.01)", "important");
+    nextElement.style.setProperty("transition", "outline 0.12s ease, transform 0.12s ease", "important");
   }
+}
+
+// A block's own top-level rendered node (direct child of [data-block-id])
+// IS that block's background/section, not a distinct editable element —
+// plain hover/click shouldn't be able to grab it, only Alt (whole section) can.
+function findHoverableElement(
+  target: HTMLElement,
+  blockRoot: HTMLElement | null,
+): HTMLElement | null {
+  const candidate = target.closest<HTMLElement>(
+    '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
+  );
+  if (!candidate) return null;
+  if (blockRoot && candidate.parentElement === blockRoot) return null;
+  return candidate;
 }
 
 // Removes whatever hover highlight is currently showing — used when the
@@ -795,6 +861,11 @@ export function updatePreviewHoverHighlight(
 export function clearPreviewHoverHighlight(hoveredElementRef: HoverRef): void {
   if (hoveredElementRef.current) {
     hoveredElementRef.current.classList.remove("preview-edit-hovered");
+    hoveredElementRef.current.style.removeProperty("outline");
+    hoveredElementRef.current.style.removeProperty("outline-offset");
+    hoveredElementRef.current.style.removeProperty("cursor");
+    hoveredElementRef.current.style.removeProperty("transform");
+    hoveredElementRef.current.style.removeProperty("transition");
     hoveredElementRef.current = null;
   }
 }
@@ -817,9 +888,10 @@ export function bindResponsivePreviewInteractions(
     device: "desktop" | "responsive";
     onSelectElement?: (edit: PreviewElementEdit | null) => void;
     hoverRef: HoverRef;
+    onMouseDown?: (e: MouseEvent) => void;
   },
 ): () => void {
-  const { editMode, blocks, site, onSelectElement, hoverRef } = options;
+  const { editMode, blocks, site, onSelectElement, hoverRef, onMouseDown } = options;
 
   // Same "find the clicked element + its block, then select it" logic as the
   // desktop preview, using capture phase so interactive children don't swallow clicks.
@@ -851,6 +923,9 @@ export function bindResponsivePreviewInteractions(
   }
 
   body.addEventListener("click", handleClick, true);
+  if (onMouseDown) {
+    body.addEventListener("mousedown", onMouseDown, true);
+  }
   body.addEventListener("mousemove", handleMouseMove, true);
   body.addEventListener("mouseleave", handleMouseLeave);
 
@@ -866,6 +941,9 @@ export function bindResponsivePreviewInteractions(
       moveRaf = null;
     }
     body.removeEventListener("click", handleClick, true);
+    if (onMouseDown) {
+      body.removeEventListener("mousedown", onMouseDown, true);
+    }
     body.removeEventListener("mousemove", handleMouseMove, true);
     body.removeEventListener("mouseleave", handleMouseLeave);
     if (doc && doc !== document) {
@@ -888,114 +966,186 @@ export type Rect = {
   centerY: number;
 };
 
-const SNAP_THRESHOLD = 8;
+const CENTER_SNAP_THRESHOLD = 10;
+const EDGE_SNAP_THRESHOLD = 6;
+const RELATED_GAP_LIMIT = 72;
 
 // Measures an element's position relative to its container (rather than the
 // whole page), and returns its edges + center — used for snap calculations.
-export function rectOf(el: HTMLElement, containerRect: DOMRect): Rect {
+export function rectOf(el: HTMLElement, containerRect: DOMRect, scale = 1): Rect {
   const r = el.getBoundingClientRect();
-  const left = r.left - containerRect.left;
-  const top = r.top - containerRect.top;
+  const safeScale = scale || 1;
+  const left = (r.left - containerRect.left) / safeScale;
+  const top = (r.top - containerRect.top) / safeScale;
+  const width = r.width / safeScale;
+  const height = r.height / safeScale;
   return {
     left,
     top,
-    right: left + r.width,
-    bottom: top + r.height,
-    centerX: left + r.width / 2,
-    centerY: top + r.height / 2,
+    right: left + width,
+    bottom: top + height,
+    centerX: left + width / 2,
+    centerY: top + height / 2,
   };
 }
 
-// Calculates snapping guides and adjustment deltas for dragged elements
+type SnapCandidate = {
+  delta: number;
+  guide: GuideLine;
+  priority: number;
+};
+
+type SnapContainer = Rect & {
+  priority: number;
+};
+
+function betterSnapCandidate(
+  current: SnapCandidate | null,
+  candidate: SnapCandidate,
+): SnapCandidate {
+  if (!current) return candidate;
+
+  const currentDistance = Math.abs(current.delta);
+  const candidateDistance = Math.abs(candidate.delta);
+  if (candidateDistance !== currentDistance) {
+    return candidateDistance < currentDistance ? candidate : current;
+  }
+
+  return candidate.priority < current.priority ? candidate : current;
+}
+
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number): boolean {
+  return Math.min(endA, endB) - Math.max(startA, startB) > 0;
+}
+
+function rangesClose(startA: number, endA: number, startB: number, endB: number): boolean {
+  if (rangesOverlap(startA, endA, startB, endB)) return true;
+  const gap = startA > endB ? startA - endB : startB - endA;
+  return gap <= RELATED_GAP_LIMIT;
+}
+
+// Calculates snapping guides and adjustment deltas for dragged elements.
+// The guide set is intentionally small: one best X guide and one best Y guide.
 export function computeSnap(
   dragged: Rect,
   siblings: Rect[],
   containerWidth: number,
   containerHeight: number,
+  containers: SnapContainer[] = [],
 ): { dx: number; dy: number; guides: GuideLine[] } {
-  let bestDx = 0;
-  let bestDy = 0;
-  let minDiffX = SNAP_THRESHOLD + 1;
-  let minDiffY = SNAP_THRESHOLD + 1;
-  const guides: GuideLine[] = [];
+  let bestX: SnapCandidate | null = null;
+  let bestY: SnapCandidate | null = null;
 
-  const targetsX: { pos: number; guide: number }[] = [
-    { pos: 0, guide: 0 },
-    { pos: containerWidth / 2, guide: containerWidth / 2 },
-    { pos: containerWidth, guide: containerWidth },
-  ];
-  const targetsY: { pos: 0; guide: 0 }[] = [{ pos: 0, guide: 0 }];
-
-  for (const s of siblings) {
-    targetsX.push(
-      { pos: s.left, guide: s.left },
-      { pos: s.centerX, guide: s.centerX },
-      { pos: s.right, guide: s.right },
-    );
-    targetsY.push(
-      { pos: s.top as 0, guide: s.top as 0 },
-      { pos: s.centerY as 0, guide: s.centerY as 0 },
-      { pos: s.bottom as 0, guide: s.bottom as 0 },
-    );
+  const containerCenterX = containerWidth / 2;
+  const centerDx = containerCenterX - dragged.centerX;
+  if (Math.abs(centerDx) <= CENTER_SNAP_THRESHOLD) {
+    bestX = betterSnapCandidate(bestX, {
+      delta: centerDx,
+      priority: 2,
+      guide: {
+        type: "v",
+        position: Math.round(containerCenterX),
+        emphasis: "center",
+      },
+    });
   }
 
-  const dragPointsX = [
-    { pos: dragged.left, offset: 0 },
-    { pos: dragged.centerX, offset: (dragged.right - dragged.left) / 2 },
-    { pos: dragged.right, offset: dragged.right - dragged.left },
-  ];
+  const containerCenterY = containerHeight / 2;
+  const centerDy = containerCenterY - dragged.centerY;
+  if (Math.abs(centerDy) <= CENTER_SNAP_THRESHOLD) {
+    bestY = betterSnapCandidate(bestY, {
+      delta: centerDy,
+      priority: 2,
+      guide: {
+        type: "h",
+        position: Math.round(containerCenterY),
+        emphasis: "center",
+      },
+    });
+  }
 
-  for (const dp of dragPointsX) {
-    for (const t of targetsX) {
-      const diff = t.pos - dp.pos;
-      if (Math.abs(diff) < minDiffX) {
-        minDiffX = Math.abs(diff);
-        bestDx = diff;
+  for (const container of containers) {
+    const cardCenterDx = container.centerX - dragged.centerX;
+    if (Math.abs(cardCenterDx) <= CENTER_SNAP_THRESHOLD) {
+      bestX = betterSnapCandidate(bestX, {
+        delta: cardCenterDx,
+        priority: container.priority,
+        guide: {
+          type: "v",
+          position: Math.round(container.centerX),
+          emphasis: "center",
+        },
+      });
+    }
+
+    const cardCenterDy = container.centerY - dragged.centerY;
+    if (Math.abs(cardCenterDy) <= CENTER_SNAP_THRESHOLD) {
+      bestY = betterSnapCandidate(bestY, {
+        delta: cardCenterDy,
+        priority: container.priority,
+        guide: {
+          type: "h",
+          position: Math.round(container.centerY),
+          emphasis: "center",
+        },
+      });
+    }
+  }
+
+  for (const sibling of siblings) {
+    const verticallyRelated = rangesClose(dragged.top, dragged.bottom, sibling.top, sibling.bottom);
+    const horizontallyRelated = rangesClose(dragged.left, dragged.right, sibling.left, sibling.right);
+
+    const xMatches = [
+      { source: dragged.centerX, target: sibling.centerX, priority: 0, threshold: CENTER_SNAP_THRESHOLD },
+      { source: dragged.left, target: sibling.left, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
+      { source: dragged.right, target: sibling.right, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
+    ];
+
+    if (verticallyRelated) {
+      for (const match of xMatches) {
+        const delta = match.target - match.source;
+        if (Math.abs(delta) > match.threshold) continue;
+        bestX = betterSnapCandidate(bestX, {
+          delta,
+          priority: match.priority,
+          guide: {
+            type: "v",
+            position: Math.round(match.target),
+            emphasis: match.priority === 0 ? "center" : "edge",
+          },
+        });
+      }
+    }
+
+    const yMatches = [
+      { source: dragged.centerY, target: sibling.centerY, priority: 0, threshold: CENTER_SNAP_THRESHOLD },
+      { source: dragged.top, target: sibling.top, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
+      { source: dragged.bottom, target: sibling.bottom, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
+    ];
+
+    if (horizontallyRelated) {
+      for (const match of yMatches) {
+        const delta = match.target - match.source;
+        if (Math.abs(delta) > match.threshold) continue;
+        bestY = betterSnapCandidate(bestY, {
+          delta,
+          priority: match.priority,
+          guide: {
+            type: "h",
+            position: Math.round(match.target),
+            emphasis: match.priority === 0 ? "center" : "edge",
+          },
+        });
       }
     }
   }
 
-  if (minDiffX <= SNAP_THRESHOLD) {
-    for (const dp of dragPointsX) {
-      for (const t of targetsX) {
-        if (Math.abs(t.pos - (dp.pos + bestDx)) < 0.5) {
-          guides.push({ type: "v", position: Math.round(t.guide) });
-        }
-      }
-    }
-  } else {
-    bestDx = 0;
-  }
-
-  const dragPointsY = [
-    { pos: dragged.top, offset: 0 },
-    { pos: dragged.centerY, offset: (dragged.bottom - dragged.top) / 2 },
-    { pos: dragged.bottom, offset: dragged.bottom - dragged.top },
-  ];
-
-  for (const dp of dragPointsY) {
-    for (const t of targetsY) {
-      const diff = t.pos - dp.pos;
-      if (Math.abs(diff) < minDiffY) {
-        minDiffY = Math.abs(diff);
-        bestDy = diff;
-      }
-    }
-  }
-
-  if (minDiffY <= SNAP_THRESHOLD) {
-    for (const dp of dragPointsY) {
-      for (const t of targetsY) {
-        if (Math.abs(t.pos - (dp.pos + bestDy)) < 0.5) {
-          guides.push({ type: "h", position: Math.round(t.guide) });
-        }
-      }
-    }
-  } else {
-    bestDy = 0;
-  }
-
-  return { dx: bestDx, dy: bestDy, guides };
+  return {
+    dx: bestX?.delta ?? 0,
+    dy: bestY?.delta ?? 0,
+    guides: [bestX?.guide, bestY?.guide].filter((guide): guide is GuideLine => Boolean(guide)),
+  };
 }
 
 const DRAG_THRESHOLD = 4;
@@ -1016,17 +1166,16 @@ export function startElementFreeDrag(
   if (!moveMode) return;
 
   const target = e.target as HTMLElement;
+  if (target.closest("[data-block-drag-handle]")) return;
   const element = target.closest<HTMLElement>("[data-preview-edit-id]");
   if (!element) return;
 
+  const draggedElement = element;
   const elementId = element.dataset.previewEditId!;
   if (elementId.endsWith(":root")) return;
 
   const blockRoot = target.closest<HTMLElement>("[data-block-id]");
   if (!blockRoot) return;
-
-  e.preventDefault();
-  e.stopPropagation();
 
   const ownerDoc = element.ownerDocument || document;
   const ownerWin = ownerDoc.defaultView || window;
@@ -1038,9 +1187,6 @@ export function startElementFreeDrag(
   const elRectAtStart = element.getBoundingClientRect();
   const startOffsetX = Number.parseFloat(element.style.left || "0") || 0;
   const startOffsetY = Number.parseFloat(element.style.top || "0") || 0;
-  const elWidth = elRectAtStart.width;
-  const elHeight = elRectAtStart.height;
-
   const safeScale = scale || 1;
 
   let hasMoved = false;
@@ -1053,7 +1199,9 @@ export function startElementFreeDrag(
   // Only tells React about new guide lines when they've actually changed,
   // instead of re-rendering on every single mouse-move tick.
   function setGuidesIfChanged(guides: GuideLine[]) {
-    const key = guides.map((guide) => `${guide.type}:${guide.position}`).join("|");
+    const key = guides
+      .map((guide) => `${guide.type}:${guide.position}:${guide.start ?? ""}:${guide.end ?? ""}:${guide.emphasis ?? ""}`)
+      .join("|");
     if (key === lastGuideKey) return;
     lastGuideKey = key;
     setGuides(guides);
@@ -1091,17 +1239,22 @@ export function startElementFreeDrag(
 
     if (!hasMoved) {
       hasMoved = true;
+      moveEvent.preventDefault();
       setDraggingId(elementId);
-      element!.style.position = "relative";
-      element!.style.zIndex = "100";
+      draggedElement.style.position = "relative";
+      draggedElement.style.zIndex = "100";
     }
-
     const proposedOffsetX = startOffsetX + dxRaw;
     const proposedOffsetY = startOffsetY + dyRaw;
 
     const containerRect = blockRoot!.getBoundingClientRect();
-    const proposedVisualX = elRectAtStart.left - containerRect.left + dxRaw;
-    const proposedVisualY = elRectAtStart.top - containerRect.top + dyRaw;
+    const measurementScale = iframeEl ? 1 : safeScale;
+    const containerWidth = containerRect.width / measurementScale;
+    const containerHeight = containerRect.height / measurementScale;
+    const elWidth = elRectAtStart.width / measurementScale;
+    const elHeight = elRectAtStart.height / measurementScale;
+    const proposedVisualX = (elRectAtStart.left - containerRect.left) / measurementScale + dxRaw;
+    const proposedVisualY = (elRectAtStart.top - containerRect.top) / measurementScale + dyRaw;
     const draggedRect = {
       left: proposedVisualX,
       top: proposedVisualY,
@@ -1112,21 +1265,48 @@ export function startElementFreeDrag(
     };
 
     const siblings = Array.from(blockRoot!.querySelectorAll<HTMLElement>("[data-preview-edit-id]"))
-      .filter((s) => s !== element && !s.dataset.previewEditId?.endsWith(":root"))
-      .map((s) => rectOf(s, containerRect));
+      .filter(
+        (s) =>
+          s !== draggedElement &&
+          !s.dataset.previewEditId?.endsWith(":root") &&
+          !draggedElement.contains(s) &&
+          !s.contains(draggedElement),
+      )
+      .map((s) => rectOf(s, containerRect, measurementScale));
+
+    const parentContainers: SnapContainer[] = [];
+    let parent = draggedElement.parentElement;
+    while (parent && parent !== blockRoot) {
+      const editId = parent.dataset.previewEditId;
+      const isEditableContainer = editId && editId !== elementId && !editId.endsWith(":root");
+      if (isEditableContainer) {
+        const parentRect = rectOf(parent, containerRect, measurementScale);
+        const isMeaningfullyLarger =
+          parentRect.right - parentRect.left > elWidth + 16 ||
+          parentRect.bottom - parentRect.top > elHeight + 16;
+        if (isMeaningfullyLarger) {
+          parentContainers.push({
+            ...parentRect,
+            priority: parentContainers.length === 0 ? -1 : 0,
+          });
+        }
+      }
+      parent = parent.parentElement;
+    }
 
     const { dx, dy, guides } = computeSnap(
       draggedRect,
       siblings,
-      containerRect.width,
-      containerRect.height,
+      containerWidth,
+      containerHeight,
+      parentContainers,
     );
 
     currentX = proposedOffsetX + dx;
     currentY = proposedOffsetY + dy;
 
-    element!.style.left = `${currentX}px`;
-    element!.style.top = `${currentY}px`;
+    draggedElement.style.left = `${currentX}px`;
+    draggedElement.style.top = `${currentY}px`;
 
     setGuidesIfChanged(guides);
   }
@@ -1144,10 +1324,16 @@ export function startElementFreeDrag(
   // Finishes the drag: cleans up listeners/guides, and — if the element
   // actually moved — saves its final position as a style patch.
   function onMouseUp() {
+
     ownerDoc.removeEventListener("mousemove", onMouseMove, true);
+
     ownerDoc.removeEventListener("mouseup", onMouseUp, true);
+
     window.removeEventListener("mousemove", onMouseMove, true);
+
     window.removeEventListener("mouseup", onMouseUp, true);
+
+    window.removeEventListener("blur", onMouseUp);
 
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
@@ -1168,11 +1354,16 @@ export function startElementFreeDrag(
   }
 
   ownerDoc.addEventListener("mousemove", onMouseMove, true);
-  ownerDoc.addEventListener("mouseup", onMouseUp, true);
-  window.addEventListener("mousemove", onMouseMove, true);
-  window.addEventListener("mouseup", onMouseUp, true);
-}
 
+  ownerDoc.addEventListener("mouseup", onMouseUp, true);
+
+  window.addEventListener("mousemove", onMouseMove, true);
+
+  window.addEventListener("mouseup", onMouseUp, true);
+
+  window.addEventListener("blur", onMouseUp);
+
+}
 // After a block's real rendered height changes (measured via ResizeObserver),
 // this saves that measured height back into state — but only if it's
 // actually different, to avoid triggering pointless re-renders.
@@ -1242,12 +1433,15 @@ export function handlePreviewClick(
   if (!block || !onSelectElement) return;
 
   e.stopPropagation();
+  const rect = element.getBoundingClientRect();
   onSelectElement({
     id: element.dataset.previewEditId ?? "",
     blockId: block.id,
     blockKind: block.props.kind,
     label: getElementLabel(element),
     style: site.previewEdits?.elements[element.dataset.previewEditId ?? ""]?.style ?? {},
+    computedWidth: `${Math.round(rect.width)}px`,
+    computedHeight: `${Math.round(rect.height)}px`,
   });
 }
 

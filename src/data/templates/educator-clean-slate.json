@@ -1,7 +1,7 @@
 {
   "id": "educator-clean-slate",
-  "name": "Educator — Clean Slate",
-  "category": "Educator",
+  "name": "Paradigm Layout",
+  "category": "Real Estate Brand",
   "tagline": "Curriculum designer and instructor.",
   "isPro": false,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "musician-warm-earth",
-  "name": "Musician — Warm Earth",
-  "category": "Musician",
+  "name": "Element Panel",
+  "category": "Event / Conference",
   "tagline": "Composing sound that lingers.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

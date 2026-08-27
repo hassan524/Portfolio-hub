@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PageShell } from "@/components/individual/PageShell";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
+import { TemplateFullPreview } from "@/components/editor/TemplateFullPreview";
 import type { SiteData } from "@/types/builder.schema";
 
 // Subcomponents
@@ -16,15 +17,27 @@ import { FinalCTA } from "./ui/FinalCTA";
 
 export function LandingPage() {
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [fullPreviewOpen, setFullPreviewOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
-  const openPreview = (template: SiteData) => {
+  const openFullPreview = (template: SiteData) => {
     setDialogTemplate(template);
-    setDialogOpen(true);
+    setFullPreviewOpen(true);
   };
 
-  const closePreview = () => {
-    setDialogOpen(false);
+  const closeFullPreview = () => {
+    setFullPreviewOpen(false);
+    setTimeout(() => setDialogTemplate(null), 300);
+  };
+
+  const continueToEditor = (template: SiteData) => {
+    setDialogTemplate(template);
+    setFullPreviewOpen(false);
+    setEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setEditorOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
   };
 
@@ -32,7 +45,7 @@ export function LandingPage() {
     <PageShell>
       <Hero />
       <LogoStrip />
-      <TemplateShowcase onPreview={openPreview} />
+      <TemplateShowcase onPreview={openFullPreview} />
       <HowItWorks />
       <FeatureGrid />
       <LiveEditorPreview />
@@ -40,11 +53,18 @@ export function LandingPage() {
       <FAQ />
       <FinalCTA />
 
+      <TemplateFullPreview
+        site={dialogTemplate}
+        open={fullPreviewOpen}
+        onClose={closeFullPreview}
+        onContinue={continueToEditor}
+      />
+
       <TemplatePreviewDialog
         template={dialogTemplate}
-        open={dialogOpen}
-        onClose={closePreview}
+        open={editorOpen}
+        onClose={closeEditor}
       />
     </PageShell>
   );
-}
+}

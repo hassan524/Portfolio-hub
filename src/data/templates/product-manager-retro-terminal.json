@@ -1,7 +1,7 @@
 {
   "id": "product-manager-retro-terminal",
-  "name": "Product Manager — Retro Terminal",
-  "category": "Product Manager",
+  "name": "Matrix Craft",
+  "category": "SaaS Product",
   "tagline": "Shipping products people actually want.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

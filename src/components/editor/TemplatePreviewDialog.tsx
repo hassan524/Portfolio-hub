@@ -61,8 +61,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [deployFiles, setDeployFiles] = useState<Record<string, string> | null>(null);
 
-
-  const [hasChanges, setHasChanges] = useState(false);
+  // Numeric change counter — Save unlocks once the user has made enough
+  // distinct edits (see REQUIRED_CHANGES threshold in TemplateLivePreview).
+  const [changeCount, setChangeCount] = useState(0);
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -86,7 +87,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       setIsMaximized,
       setSelectedElement,
     );
-    setHasChanges(false);
+    setChangeCount(0);
     setDeployFiles(null);
   }, [template]);
 
@@ -105,41 +106,41 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   // ── State Handler Delegates ──────────────────────────────────────────
   const handleUpdateBlockProps = (blockId: string, patch: Record<string, unknown>) => {
     updateBlockProps(setSite, blockId, patch);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleUpdateTheme = (patch: Partial<Theme>) => {
     updateTheme(setSite, patch, FALLBACK_THEME);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleUpdateSiteMeta = (
-    patch: Partial<Pick<SiteData, "name" | "category" | "tagline">>,
+    patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
   ) => {
     updateSiteMeta(setSite, patch);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleReorderBlocks = (nextBlocks: Block[]) => {
     reorderBlocks(setSite, nextBlocks);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleChangeElementStyle = (elementId: string, patch: Partial<PreviewElementStyle>) => {
     changeElementStyle(setSite, setSelectedElement, elementId, patch);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
       changeElementStyle(setSite, setSelectedElement, elementId, patch),
     );
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
   const handleResetSelectedElement = () => {
     resetSelectedElement(selectedElement, setSite, setSelectedElement);
-    setHasChanges(true);
+    setChangeCount((c) => c + 1);
   };
 
 
@@ -212,22 +213,12 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
               onClick={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
               className={`relative border border-border bg-background shadow-lift overflow-hidden flex ${isMaximized
-                ? "h-screen w-screen rounded-none"
-                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl"
+                ? "h-screen w-screen rounded-none p-2 gap-2"
+                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl p-3 gap-3"
                 }`}
             >
-              {/* Sidebar Controls */}
-              <TemplateSidebar
-                site={site}
-                theme={theme}
-                activeSection={activeSection}
-                onSectionChange={setActiveSection}
-                onThemeChange={handleUpdateTheme}
-                onSiteMetaChange={handleUpdateSiteMeta}
-                onUpdateBlock={handleUpdateBlockProps}
-                onReorderBlocks={handleReorderBlocks}
-                onSave={handleSaveClick}
-              />
+              {/* Sidebar Controls - auto-collapses when element edit panel is open */}
+
 
               {/* Live Interactive Preview Canvas */}
               <TemplateLivePreview
@@ -246,14 +237,29 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 onToggleMaximize={toggleMaximize}
                 onClose={onClose}
                 onSave={handleSaveClick}
-                hasChanges={hasChanges}
+                changeCount={changeCount}
                 contentRef={contentRef}
               />
+
+              {!selectedElement && (
+                <TemplateSidebar
+                  site={site}
+                  theme={theme}
+                  activeSection={activeSection}
+                  onSectionChange={setActiveSection}
+                  onThemeChange={handleUpdateTheme}
+                  onSiteMetaChange={handleUpdateSiteMeta}
+                  onUpdateBlock={handleUpdateBlockProps}
+                  onReorderBlocks={handleReorderBlocks}
+                  onSave={handleSaveClick}
+                />
+              )}
 
               {/* Element Fine-Tuning Panel */}
               {selectedElement && (
                 <ElementStylePanel
                   edit={selectedElement}
+                  theme={theme}
                   onChange={(patch) => handleChangeElementStyle(selectedElement.id, patch)}
                   onRemove={handleRemoveSelectedElement}
                   onReset={handleResetSelectedElement}

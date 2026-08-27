@@ -1,7 +1,7 @@
 {
   "id": "photographer-luxury-gold",
-  "name": "Photographer — Luxury Gold",
-  "category": "Photographer",
+  "name": "Essence Blueprint",
+  "category": "Photography Portfolio",
   "tagline": "Documentary-style photography with heart.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

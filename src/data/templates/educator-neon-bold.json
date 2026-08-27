@@ -1,7 +1,7 @@
 {
   "id": "educator-neon-bold",
-  "name": "Educator — Neon Bold",
-  "category": "Educator",
+  "name": "Radiance Studio",
+  "category": "Fitness Brand / Gym",
   "tagline": "Curriculum designer and instructor.",
   "isPro": false,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

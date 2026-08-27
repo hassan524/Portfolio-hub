@@ -1,7 +1,7 @@
 {
   "id": "videographer-midnight-mono",
-  "name": "Videographer — Midnight Mono",
-  "category": "Videographer",
+  "name": "Theory Deck",
+  "category": "Beauty & Cosmetics",
   "tagline": "Telling stories through motion.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

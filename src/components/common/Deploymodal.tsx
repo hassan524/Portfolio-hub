@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  Loader2, Globe, Rocket, ArrowLeft, X, Check, ShieldCheck,
-  ExternalLink, Copy, AlertTriangle, CheckCircle2, LayoutDashboard, Info,
+  Loader2, ArrowLeft, X, Check, ShieldCheck,
+  ExternalLink, Copy, AlertTriangle, CheckCircle2, LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -36,18 +36,16 @@ const TARGETS: {
     {
       id: "vercel",
       name: "Vercel",
-      tagline: "Fast, global, zero-config",
+      tagline: "Free hosting from the team behind Next.js — fast and zero-config.",
       icon: "▲",
-      about:
-        "Vercel is a free hosting service — the same company behind Next.js. It gives your portfolio a real, public web address that anyone can visit.",
+      about: "",
     },
     {
       id: "netlify",
       name: "Netlify",
-      tagline: "Simple deploys, custom domains",
+      tagline: "Free hosting, similar to Vercel — easy to add a custom domain later.",
       icon: "◆",
-      about:
-        "Netlify is another free hosting service, similar to Vercel. It also gives your portfolio a public web address, and makes it easy to add your own custom domain later.",
+      about: "",
     },
   ];
 
@@ -82,7 +80,6 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
   const [status, setStatus] = useState<DeployStatus | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [authorizing, setAuthorizing] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
 
   const [stage, setStage] = useState<DeployStage>("idle");
   const [logs, setLogs] = useState<string[]>([]);
@@ -311,208 +308,214 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
   const stageOrder: DeployStage[] = ["idle", "uploading", "building", "live"];
   const currentIndex = stageOrder.indexOf(stage === "error" ? "building" : stage);
 
+  const headerSubtitle =
+    (stage === "idle" && "Choose a hosting platform for your portfolio.") ||
+    (stage === "uploading" && "Uploading your files…") ||
+    (stage === "building" && "Publishing your site…") ||
+    (stage === "live" && "Your portfolio is live and ready to share.") ||
+    (stage === "error" && "Something went wrong along the way.") ||
+    "";
+
   return (
     <Dialog open={open} onOpenChange={deploying ? undefined : onOpenChange}>
-      <DialogContent className="w-125 max-w-[92vw] p-6">
-        {!deploying && (
-          <button
-            type="button"
-            onClick={close}
-            className="absolute right-3 top-3 z-10 grid h-6 w-6 place-items-center rounded-md text-neutral-500 hover:bg-neutral-800 hover:text-white"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-black">
-            <Globe className="h-4 w-4" />
-          </div>
+      <DialogContent className="w-125 max-w-[92vw] gap-0 overflow-hidden border-neutral-800 bg-neutral-950 p-0">
+        {/* ---------------- Header ---------------- */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
           <div>
-            <h2 className="text-sm font-bold text-white">Deploy your portfolio</h2>
-            <p className="text-[11px] text-neutral-500">
-              {stage === "idle" && "Choose a hosting platform"}
-              {stage === "uploading" && "Uploading…"}
-              {stage === "building" && "Publishing…"}
-              {stage === "live" && "Your portfolio is live"}
-              {stage === "error" && "Something went wrong"}
-            </p>
+            <h2 className="text-sm font-semibold text-white">Deploy your portfolio</h2>
+            <p className="mt-0.5 text-[11px] text-neutral-500">{headerSubtitle}</p>
           </div>
+
+          {!deploying && (
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close"
+              className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* ── STAGE: idle — pick platform, connect, deploy ───────────────── */}
-        {stage === "idle" && (
-          <>
-            {checkingStatus ? (
-              <div className="mt-5 flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-800 py-10">
-                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
-                <p className="text-xs text-neutral-500">Checking authorization…</p>
-              </div>
-            ) : (
-              <div className="mt-5 space-y-2">
-                {TARGETS.map((t) => {
-                  const active = selectedPlatform === t.id;
-                  const connected = status?.[t.id] ?? false;
-                  return (
-                    <div
-                      key={t.id}
-                      onClick={() => setSelectedPlatform(t.id)}
-                      className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors",
-                        active ? "border-white bg-neutral-900" : "border-neutral-800 hover:border-neutral-600",
-                      )}
-                    >
-                      <div
+        <div className="p-5">
+          {/* ── STAGE: idle — pick platform, connect, deploy ───────────────── */}
+          {stage === "idle" && (
+            <>
+              {checkingStatus ? (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-800 py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  <p className="text-xs text-neutral-500">Checking authorization…</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {TARGETS.map((t) => {
+                    const active = selectedPlatform === t.id;
+                    const connected = status?.[t.id] ?? false;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => setSelectedPlatform(t.id)}
                         className={cn(
-                          "flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold",
-                          active ? "bg-white text-black" : "bg-neutral-900 text-neutral-400",
+                          "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 text-left transition-colors",
+                          active
+                            ? "border-neutral-600 bg-neutral-900"
+                            : "border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900/50",
                         )}
                       >
-                        {t.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-semibold text-white">{t.name}</span>
-                          {connected && (
-                            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-medium text-emerald-400">
-                              Connected
-                            </span>
+                        <div
+                          className={cn(
+                            "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold",
+                            active ? "bg-white text-black" : "bg-neutral-900 text-neutral-400",
                           )}
+                        >
+                          {t.icon}
                         </div>
-                        <p className="text-[10px] text-neutral-500 mt-0.5">{t.tagline}</p>
-                      </div>
-                      <div
-                        className={cn(
-                          "flex h-5 w-5 items-center justify-center rounded-full border",
-                          active ? "border-white bg-white text-black" : "border-neutral-700",
-                        )}
-                      >
-                        {active && <Check className="h-3 w-3 stroke-3" />}
-                      </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-medium text-white">{t.name}</span>
+                            {connected && (
+                              <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-medium text-emerald-400">
+                                Connected
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-500">
+                            {t.tagline}
+                          </p>
+                        </div>
+
+                        <div
+                          className={cn(
+                            "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                            active
+                              ? "border-white bg-white text-black"
+                              : "border-neutral-700 text-transparent",
+                          )}
+                        >
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {/* Quiet reassurance line — only shown before they've connected anything */}
+                  {!isAuthorized && (
+                    <p className="flex items-center gap-1.5 pt-1 text-[10.5px] text-neutral-500">
+                      <ShieldCheck className="h-3 w-3 shrink-0" />
+                      Deploys straight to your own {activeTarget.name} account — we never see
+                      your password.
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── STAGE: uploading / building — live checklist + console ─────── */}
+          {(stage === "uploading" || stage === "building") && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                {stageChecklist.map((step, i) => {
+                  const done = i < currentIndex;
+                  const active = i === currentIndex;
+                  return (
+                    <div key={step.key} className="flex items-center gap-2 text-xs">
+                      {done ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                      ) : active ? (
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-neutral-300" />
+                      ) : (
+                        <div className="h-4 w-4 shrink-0 rounded-full border border-neutral-700" />
+                      )}
+                      <span className={cn(done || active ? "text-white" : "text-neutral-600")}>
+                        {step.label}
+                      </span>
                     </div>
                   );
                 })}
+              </div>
 
-                {/* Plain-English explainer */}
-                <button
-                  type="button"
-                  onClick={() => setShowAbout((v) => !v)}
-                  className="flex w-full items-center gap-1.5 pt-1 text-[10.5px] text-neutral-500 hover:text-neutral-300"
+              <div className="max-h-40 overflow-y-auto rounded-lg border border-neutral-800 bg-black p-3 font-mono text-[11px] text-neutral-300">
+                {logs.map((line, i) => (
+                  <div key={i} className="py-0.5">
+                    <span className="text-neutral-600">›</span> {line}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── STAGE: error ─────────────────────────────────────────────── */}
+          {stage === "error" && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/30 p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                <div>
+                  <p className="text-xs font-medium text-red-300">Deployment failed</p>
+                  <p className="mt-0.5 text-[11px] text-red-400/80">{errorMessage}</p>
+                </div>
+              </div>
+              <div className="max-h-32 overflow-y-auto rounded-lg border border-neutral-800 bg-black p-3 font-mono text-[11px] text-neutral-300">
+                {logs.map((line, i) => (
+                  <div key={i} className="py-0.5">
+                    <span className="text-neutral-600">›</span> {line}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── STAGE: live — success screen ─────────────────────────────── */}
+          {stage === "live" && (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-emerald-900/40 bg-emerald-950/20 py-6 text-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                <p className="text-sm font-semibold text-white">Your portfolio is live!</p>
+                <p className="px-6 text-[11px] text-neutral-400">
+                  Anyone with this link can now view your portfolio.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <span className="flex-1 truncate text-xs text-neutral-300">{liveUrl}</span>
+                <button onClick={copyUrl} className="cursor-pointer text-neutral-500 hover:text-white">
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+                <a
+                  href={liveUrl ?? "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-neutral-500 hover:text-white"
                 >
-                  <Info className="h-3 w-3" />
-                  What is {activeTarget.name}? What does "Authorize" do?
-                </button>
-                {showAbout && (
-                  <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-3 text-[11px] leading-relaxed text-neutral-400">
-                    <p>{activeTarget.about}</p>
-                    <p className="mt-2">
-                      Clicking <span className="text-neutral-300 font-medium">Authorize</span> opens a
-                      small window where you log into {activeTarget.name} (or create a free account if
-                      you don't have one yet). We never see or store your password — you're only
-                      granting permission to publish your portfolio files. You can remove this
-                      permission anytime from your {activeTarget.name} account settings.
-                    </p>
-                  </div>
-                )}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
               </div>
-            )}
-          </>
-        )}
 
-        {/* ── STAGE: uploading / building — live checklist + console ─────── */}
-        {(stage === "uploading" || stage === "building") && (
-          <div className="mt-5 space-y-4">
-            <div className="space-y-2">
-              {stageChecklist.map((step, i) => {
-                const done = i < currentIndex;
-                const active = i === currentIndex;
-                return (
-                  <div key={step.key} className="flex items-center gap-2 text-xs">
-                    {done ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                    ) : active ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-neutral-300 shrink-0" />
-                    ) : (
-                      <div className="h-4 w-4 rounded-full border border-neutral-700 shrink-0" />
-                    )}
-                    <span className={cn(done || active ? "text-white" : "text-neutral-600")}>
-                      {step.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="rounded-xl border border-neutral-800 bg-black p-3 font-mono text-[11px] text-neutral-300 max-h-40 overflow-y-auto">
-              {logs.map((line, i) => (
-                <div key={i} className="py-0.5">
-                  <span className="text-neutral-600">›</span> {line}
+              {redirectSeconds !== null && (
+                <div className="flex items-center justify-between rounded-lg bg-neutral-900 px-3 py-2 text-[11px] text-neutral-500">
+                  <span>Taking you to your dashboard in {redirectSeconds}s…</span>
+                  <button onClick={cancelRedirect} className="cursor-pointer text-neutral-400 underline hover:text-white">
+                    Stay here
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
-
-        {/* ── STAGE: error ─────────────────────────────────────────────── */}
-        {stage === "error" && (
-          <div className="mt-5 space-y-3">
-            <div className="flex items-start gap-2 rounded-xl border border-red-900/50 bg-red-950/30 p-3">
-              <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs font-medium text-red-300">Deployment failed</p>
-                <p className="text-[11px] text-red-400/80 mt-0.5">{errorMessage}</p>
-              </div>
-            </div>
-            <div className="rounded-xl border border-neutral-800 bg-black p-3 font-mono text-[11px] text-neutral-300 max-h-32 overflow-y-auto">
-              {logs.map((line, i) => (
-                <div key={i} className="py-0.5">
-                  <span className="text-neutral-600">›</span> {line}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── STAGE: live — success screen ─────────────────────────────── */}
-        {stage === "live" && (
-          <div className="mt-5 space-y-4">
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-emerald-900/40 bg-emerald-950/20 py-6 text-center">
-              <CheckCircle2 className="h-8 w-8 text-emerald-400" />
-              <p className="text-sm font-semibold text-white">Your portfolio is live!</p>
-              <p className="text-[11px] text-neutral-400 px-6">
-                Anyone with this link can now view your portfolio.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2">
-              <span className="flex-1 truncate text-xs text-neutral-300">{liveUrl}</span>
-              <button onClick={copyUrl} className="text-neutral-500 hover:text-white">
-                <Copy className="h-3.5 w-3.5" />
-              </button>
-              <a href={liveUrl ?? "#"} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white">
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-
-            {redirectSeconds !== null && (
-              <div className="flex items-center justify-between rounded-lg bg-neutral-900 px-3 py-2 text-[11px] text-neutral-500">
-                <span>Taking you to your dashboard in {redirectSeconds}s…</span>
-                <button onClick={cancelRedirect} className="text-neutral-400 underline hover:text-white">
-                  Stay here
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── FOOTER ───────────────────────────────────────────────────── */}
-        <div className="mt-5 flex items-center justify-between border-t border-neutral-800 pt-4">
+        <div className="flex items-center justify-between border-t border-neutral-800 px-5 py-3.5">
           {stage !== "live" ? (
             <button
               type="button"
               onClick={close}
               disabled={deploying}
-              className="flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-40"
+              className="flex h-8 cursor-pointer items-center gap-1 rounded-md px-2.5 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Cancel
@@ -526,7 +529,7 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
               type="button"
               onClick={handleAuthorize}
               disabled={authorizing || checkingStatus}
-              className="flex h-9 min-w-32 items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-60"
+              className="flex h-8 min-w-32 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {authorizing ? (
                 <>
@@ -546,9 +549,8 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
             <button
               type="button"
               onClick={handleDeploy}
-              className="flex h-9 min-w-24 items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200"
+              className="flex h-8 min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200"
             >
-              <Rocket className="h-3.5 w-3.5" />
               Deploy
             </button>
           )}
@@ -557,7 +559,7 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
             <button
               type="button"
               onClick={() => setStage("idle")}
-              className="flex h-9 min-w-24 items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200"
+              className="flex h-8 min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200"
             >
               Try again
             </button>
@@ -568,14 +570,14 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
               <button
                 type="button"
                 onClick={close}
-                className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-neutral-700 px-4 text-xs font-semibold text-white hover:bg-neutral-800"
+                className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-neutral-700 px-3.5 text-xs font-medium text-white transition-colors hover:bg-neutral-900"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/dashboard")}
-                className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200"
+                className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200"
               >
                 <LayoutDashboard className="h-3.5 w-3.5" />
                 Go to Dashboard

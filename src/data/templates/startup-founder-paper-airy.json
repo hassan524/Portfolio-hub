@@ -1,13 +1,14 @@
 {
   "id": "startup-founder-paper-airy",
-  "name": "Startup Founder — Paper Airy",
-  "category": "Startup Founder",
+  "name": "Mystic Studio",
+  "category": "AI Product",
   "tagline": "Founder obsessed with solving real problems.",
   "isPro": false,
   "theme": {
-    "bg": "#faf9f6",
-    "ink": "#1a1a1a",
-    "accent": "#e85d3d",
+    "bg": "#FFFFFF",
+    "ink": "#1A0D14",
+    "accent": "#E11D48",
+    "surface": "#F9F6F7",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "soft",
@@ -726,5 +727,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

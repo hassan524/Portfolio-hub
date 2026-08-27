@@ -1,7 +1,7 @@
 {
   "id": "consultant-editorial-serif",
-  "name": "Consultant — Editorial Serif",
-  "category": "Consultant",
+  "name": "Corporate Site",
+  "category": "Business / Company",
   "tagline": "Clarity, structure, and results.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "ux-researcher-warm-earth",
-  "name": "UX Researcher — Warm Earth",
-  "category": "UX Researcher",
+  "name": "Relic Folio",
+  "category": "Marketing Agency",
   "tagline": "Understanding people to build better products.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "chef-forest-calm",
-  "name": "Chef — Forest Calm",
-  "category": "Chef",
+  "name": "Paper Draft",
+  "category": "Cafe / Coffee Shop",
   "tagline": "Seasonal, honest, and a little bit stubborn.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

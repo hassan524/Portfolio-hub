@@ -1,7 +1,7 @@
 {
   "id": "illustrator-ocean-deep",
-  "name": "Illustrator — Ocean Deep",
-  "category": "Illustrator",
+  "name": "Miyabi Flow",
+  "category": "Restaurant",
   "tagline": "Character design and visual storytelling.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "architect-forest-calm",
-  "name": "Architect — Forest Calm",
-  "category": "Architect",
+  "name": "Zenith Craft",
+  "category": "Architecture Studio",
   "tagline": "Where structure meets story.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

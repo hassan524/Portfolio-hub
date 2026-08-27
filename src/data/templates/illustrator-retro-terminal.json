@@ -1,7 +1,7 @@
 {
   "id": "illustrator-retro-terminal",
-  "name": "Illustrator — Retro Terminal",
-  "category": "Illustrator",
+  "name": "Sumi Folio",
+  "category": "Restaurant",
   "tagline": "Bringing ideas to life, one illustration at a time.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

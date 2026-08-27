@@ -21,7 +21,7 @@ function PreviewIframe({
   children: React.ReactNode;
 }) {
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
-  const copiedNodes = useRef<Set<Node>>(new Set());
+  const copiedNodes = useRef<Map<Node, HTMLElement>>(new Map());
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -33,12 +33,28 @@ function PreviewIframe({
       // Clone every <link rel="stylesheet"> and <style> tag from the host
       // document into the iframe so Tailwind's compiled CSS (and any
       // inline <style> blocks) is available inside the iframe's document too.
+      // Re-syncs existing clones too (not just first-copy), so live edits to
+      // the shared <style> block (theme.accent, hover/cursor rules, etc.)
+      // don't go stale inside the iframe.
       document
         .querySelectorAll('link[rel="stylesheet"], style')
         .forEach((node) => {
-          if (copiedNodes.current.has(node)) return;
-          copiedNodes.current.add(node);
-          doc.head.appendChild(node.cloneNode(true));
+          const existingClone = copiedNodes.current.get(node);
+          if (existingClone && existingClone.isConnected) {
+            if (existingClone.innerHTML !== (node as HTMLElement).innerHTML) {
+              existingClone.innerHTML = (node as HTMLElement).innerHTML;
+            }
+            if (
+              node.nodeName === "LINK" &&
+              existingClone.getAttribute("href") !== (node as HTMLLinkElement).href
+            ) {
+              existingClone.setAttribute("href", (node as HTMLLinkElement).href);
+            }
+            return;
+          }
+          const clone = node.cloneNode(true) as HTMLElement;
+          copiedNodes.current.set(node, clone);
+          doc.head.appendChild(clone);
         });
       // Keep theme/dark-mode classes on <html> (e.g. class="dark") in sync,
       // since CSS variables driving your theme are usually scoped to :root/html.
@@ -69,33 +85,6 @@ function PreviewIframe({
             scroll-behavior: smooth;
           }
           html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
-          .preview-edit-canvas.edit-active [data-preview-edit-id] {
-            cursor: pointer;
-          }
-          .preview-edit-canvas.move-active [data-preview-edit-id] {
-            cursor: move;
-          }
-          .preview-edit-canvas.edit-active .preview-edit-hovered:not(.preview-edit-selected) {
-            outline: 2px dashed var(--preview-editor-accent, #10b981) !important;
-            outline-offset: 3px !important;
-            cursor: pointer !important;
-            transition: outline 0.12s ease;
-          }
-          .preview-edit-canvas.edit-active .preview-edit-selected,
-          .preview-edit-selected {
-            outline: 2px solid var(--preview-editor-accent, #10b981) !important;
-            outline-offset: 3px !important;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22), 0 8px 24px rgba(0,0,0,0.18) !important;
-            transform: scale(1.02) !important;
-            z-index: 35 !important;
-            position: relative !important;
-            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
-          }
-          .preview-hover-lift:hover {
-            transform: translateY(-4px) !important;
-            box-shadow: 0 12px 24px -6px rgba(0,0,0,0.2) !important;
-            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-          }
         `;
         doc.head.appendChild(style);
       }
@@ -114,6 +103,7 @@ function PreviewIframe({
     // keep the iframe's stylesheet set in sync as those show up.
     const observer = new MutationObserver(copyHeadAssets);
     observer.observe(document.head, { childList: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     return () => {
       iframe.removeEventListener("load", handleLoad);
@@ -144,9 +134,8 @@ function PreviewIframe({
     <iframe
       ref={iframeRef}
       title="Responsive preview"
-      className={`no-scrollbar absolute top-0 left-0 origin-top-left overflow-y-auto overflow-x-hidden border border-border bg-background shadow-lift ${
-        isDragging ? "" : "transition-transform duration-200"
-      }`}
+      className={`no-scrollbar absolute top-0 left-0 origin-top-left overflow-y-auto overflow-x-hidden border border-border bg-background shadow-lift ${isDragging ? "" : "transition-transform duration-200"
+        }`}
       style={{
         width,
         height,

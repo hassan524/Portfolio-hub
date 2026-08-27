@@ -1,7 +1,7 @@
 {
   "id": "fine-artist-midnight-mono",
-  "name": "Fine Artist — Midnight Mono",
-  "category": "Fine Artist",
+  "name": "Summit Deck",
+  "category": "Creative Portfolio",
   "tagline": "Painting the space between memory and place.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "product-manager-midnight-mono",
-  "name": "Product Manager — Midnight Mono",
-  "category": "Product Manager",
+  "name": "Impact Frame",
+  "category": "SaaS Product",
   "tagline": "Shipping products people actually want.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

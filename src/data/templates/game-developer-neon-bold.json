@@ -1,7 +1,7 @@
 {
   "id": "game-developer-neon-bold",
-  "name": "Game Developer — Neon Bold",
-  "category": "Game Developer",
+  "name": "Vapor Slate",
+  "category": "Travel Brand / Agency",
   "tagline": "Gameplay-first indie developer.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

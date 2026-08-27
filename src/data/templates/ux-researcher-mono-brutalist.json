@@ -1,7 +1,7 @@
 {
   "id": "ux-researcher-mono-brutalist",
-  "name": "UX Researcher — Mono Brutalist",
-  "category": "UX Researcher",
+  "name": "Phase Blueprint",
+  "category": "Digital Agency",
   "tagline": "Understanding people to build better products.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

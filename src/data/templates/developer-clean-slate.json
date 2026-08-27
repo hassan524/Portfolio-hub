@@ -1,7 +1,7 @@
 {
   "id": "developer-clean-slate",
-  "name": "Developer — Clean Slate",
-  "category": "Developer",
+  "name": "Meridian Grid",
+  "category": "Developer Portfolio",
   "tagline": "Backend-obsessed engineer who ships fast.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-neon-bold",
-  "name": "Data Scientist — Neon Bold",
-  "category": "Data Scientist",
+  "name": "Kinetic Slate",
+  "category": "Personal Brand",
   "tagline": "Machine learning engineer & researcher.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

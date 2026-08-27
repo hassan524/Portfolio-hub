@@ -153,7 +153,7 @@ function CardView({ t }: { t: SiteData }) {
       >
         {sorted.map((b) => {
           const variant = (b.props as any).variant as string | undefined;
-          const Cmp = getBlockComponent(b.props.kind, variant);
+          const Cmp = getBlockComponent(b.props.kind, variant, t.category, t.id);
 
           if (!Cmp) return null;
 

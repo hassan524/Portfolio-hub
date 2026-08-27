@@ -1,7 +1,7 @@
 {
   "id": "consultant-mono-brutalist",
-  "name": "Consultant — Mono Brutalist",
-  "category": "Consultant",
+  "name": "Solar Vibe",
+  "category": "Clothing Brand",
   "tagline": "Helping teams solve their hardest problems.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

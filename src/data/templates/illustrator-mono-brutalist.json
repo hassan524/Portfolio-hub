@@ -1,7 +1,7 @@
 {
   "id": "illustrator-mono-brutalist",
-  "name": "Illustrator — Mono Brutalist",
-  "category": "Illustrator",
+  "name": "Shibui Vibe",
+  "category": "Restaurant",
   "tagline": "Bringing ideas to life, one illustration at a time.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

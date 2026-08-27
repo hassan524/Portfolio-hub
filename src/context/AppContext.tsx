@@ -7,17 +7,8 @@ import {
   type ReactNode,
 } from "react";
 
-import {
-  createClient,
-  type User,
-  type Session,
-  type AuthChangeEvent,
-} from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { type User, type Session, type AuthChangeEvent } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 const PREFERRED_PROVIDER_KEY = "preferredAuthProvider";
 
@@ -244,7 +235,6 @@ export function AppProvider({
       if (error) {
         setError(error.message);
         return { success: false, error: error.message };
-        console.log('error signin', error)
       }
 
       return { success: true, error: null };

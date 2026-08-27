@@ -1,7 +1,7 @@
 {
   "id": "architect-example-with-navbar",
-  "name": "Architect — Editorial Serif",
-  "category": "Architect",
+  "name": "Dark Grid",
+  "category": "Architecture Studio",
   "tagline": "Structured, long-form, editorial feel",
   "isPro": false,
   "theme": {
@@ -791,5 +791,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "writer-mono-brutalist",
-  "name": "Writer — Mono Brutalist",
-  "category": "Writer",
+  "name": "Nami Tide",
+  "category": "Jewelry Brand",
   "tagline": "Writing words that move people.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

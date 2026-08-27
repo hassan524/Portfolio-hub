@@ -1,7 +1,7 @@
 {
   "id": "consultant-luxury-gold",
-  "name": "Consultant — Luxury Gold",
-  "category": "Consultant",
+  "name": "Liquid Blueprint",
+  "category": "Clothing Brand",
   "tagline": "Strategy consultant turned operator.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

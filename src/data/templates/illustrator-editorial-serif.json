@@ -1,7 +1,7 @@
 {
   "id": "illustrator-editorial-serif",
-  "name": "Illustrator — Editorial Serif",
-  "category": "Illustrator",
+  "name": "Wabi Site",
+  "category": "Food Brand",
   "tagline": "Character design and visual storytelling.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

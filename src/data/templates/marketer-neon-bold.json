@@ -1,7 +1,7 @@
 {
   "id": "marketer-neon-bold",
-  "name": "Marketer — Neon Bold",
-  "category": "Marketer",
+  "name": "Sora Deck",
+  "category": "Startup",
   "tagline": "Building brands people actually remember.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

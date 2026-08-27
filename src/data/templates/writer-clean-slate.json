@@ -1,7 +1,7 @@
 {
   "id": "writer-clean-slate",
-  "name": "Writer — Clean Slate",
-  "category": "Writer",
+  "name": "Nova Layout",
+  "category": "Perfume Brand",
   "tagline": "Long-form storyteller and essayist.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

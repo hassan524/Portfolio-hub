@@ -1,7 +1,7 @@
 {
   "id": "videographer-paper-airy",
-  "name": "Videographer — Paper Airy",
-  "category": "Videographer",
+  "name": "Aura Frame",
+  "category": "Skincare Brand",
   "tagline": "Documentary filmmaker and editor.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

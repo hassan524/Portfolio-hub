@@ -1,7 +1,7 @@
 {
   "id": "fine-artist-forest-calm",
-  "name": "Fine Artist — Forest Calm",
-  "category": "Fine Artist",
+  "name": "Stasis Canvas",
+  "category": "Creative Portfolio",
   "tagline": "Art that asks questions rather than answers them.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

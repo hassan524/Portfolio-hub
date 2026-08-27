@@ -1,7 +1,7 @@
 {
   "id": "copywriter-midnight-mono",
-  "name": "Copywriter — Midnight Mono",
-  "category": "Copywriter",
+  "name": "Lunar Frame",
+  "category": "Business / Company",
   "tagline": "Words that sell without shouting.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

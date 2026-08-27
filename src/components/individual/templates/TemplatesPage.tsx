@@ -3,10 +3,46 @@ import { Link, useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/individual/PageShell";
 import { PortfolioCard } from "@/components/common/PortfolioCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
+import { TemplateFullPreview } from "@/components/editor/TemplateFullPreview";
 import { templates, allCategories } from "@/data/templates";
 import type { SiteData } from "@/types/builder.schema";
 
-const CATEGORIES = ["All", ...allCategories] as const;
+const CATEGORY_ORDER = [
+  "Developer Portfolio",
+  "Designer Portfolio",
+  "Creative Portfolio",
+  "Personal Brand",
+  "SaaS Product",
+  "AI Product",
+  "Startup",
+  "Mobile App",
+  "Digital Agency",
+  "Marketing Agency",
+  "Business / Company",
+  "Clothing Brand",
+  "Streetwear Brand",
+  "Beauty & Cosmetics",
+  "Skincare Brand",
+  "Perfume Brand",
+  "Jewelry Brand",
+  "Food Brand",
+  "Restaurant",
+  "Cafe / Coffee Shop",
+  "Bakery",
+  "Photography Portfolio",
+  "Content Creator",
+  "Music Artist / Band",
+  "Architecture Studio",
+  "Interior Design Studio",
+  "Real Estate Brand",
+  "Fitness Brand / Gym",
+  "Travel Brand / Agency",
+  "Wedding Website",
+  "Event / Conference",
+  "Online Community"
+] as const;
+
+const CATEGORIES = ["All", ...CATEGORY_ORDER];
 
 // 5 rows worth at the widest (3-col) breakpoint. Bump each "Show more" click by the same amount.
 const PAGE_SIZE = 15;
@@ -16,48 +52,76 @@ export function TemplatesPage() {
   const [cat, setCat] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Two-step flow: full-site scroll preview first, then the live editor dialog.
+  const [fullPreviewOpen, setFullPreviewOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const filtered = cat === "All" ? templates : templates.filter((t) => t.category === cat);
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
+
+  const getCategoryCount = (c: string) => {
+    if (c === "All") return templates.length;
+    return templates.filter((t) => t.category === c).length;
+  };
+
+  const getPageTitle = () => {
+    if (cat === "All") return "Choose a template";
+    const suffix = cat.toLowerCase().includes("portfolio") ? "" : " Portfolio";
+    return `Choose a ${cat}${suffix}`;
+  };
 
   // Reset pagination whenever the category filter changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [cat]);
 
-  const openPreview = (template: SiteData) => {
+  const openFullPreview = (template: SiteData) => {
     setDialogTemplate(template);
-    setDialogOpen(true);
+    setFullPreviewOpen(true);
   };
 
-  const closePreview = () => {
-    setDialogOpen(false);
+  const closeFullPreview = () => {
+    setFullPreviewOpen(false);
+    setTimeout(() => setDialogTemplate(null), 300);
+  };
+
+  const continueToEditor = (template: SiteData) => {
+    setDialogTemplate(template);
+    setFullPreviewOpen(false);
+    setEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setEditorOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
   };
 
   return (
     <PageShell
       eyebrow="Templates"
-      title="Choose a template"
+      title={getPageTitle()}
       subtitle="Hand-designed layouts tuned for specific kinds of work. Production-ready on day one — pick one and start editing."
       containerClassName="mx-auto max-w-7xl px-6 py-10 md:py-14"
     >
       <div className="mb-8 flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            className={`rounded-full px-4 py-2 text-sm transition-all ${
-              cat === c
-                ? "bg-foreground text-background"
-                : "border border-border bg-surface-elevated hover:bg-secondary"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
+        {CATEGORIES.map((c) => {
+          const count = getCategoryCount(c);
+          return (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`rounded-full px-4 py-2 text-sm transition-all ${
+                cat === c
+                  ? "bg-foreground text-background"
+                  : "border border-border bg-surface-elevated hover:bg-secondary"
+              }`}
+            >
+              {c} ({count})
+            </button>
+          );
+        })}
       </div>
 
       <section>
@@ -68,7 +132,7 @@ export function TemplatesPage() {
               id={t.id}
               t={t}
               isCreated={false}
-              onPreview={openPreview}
+              onPreview={openFullPreview}
             />
           ))}
         </div>
@@ -104,10 +168,17 @@ export function TemplatesPage() {
         </div>
       </section>
 
+      <TemplateFullPreview
+        site={dialogTemplate}
+        open={fullPreviewOpen}
+        onClose={closeFullPreview}
+        onContinue={continueToEditor}
+      />
+
       <TemplatePreviewDialog
         template={dialogTemplate}
-        open={dialogOpen}
-        onClose={closePreview}
+        open={editorOpen}
+        onClose={closeEditor}
       />
     </PageShell>
   );

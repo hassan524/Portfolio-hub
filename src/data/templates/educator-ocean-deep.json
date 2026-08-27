@@ -1,7 +1,7 @@
 {
   "id": "educator-ocean-deep",
-  "name": "Educator — Ocean Deep",
-  "category": "Educator",
+  "name": "Resonance Base",
+  "category": "Fitness Brand / Gym",
   "tagline": "Making hard ideas click.",
   "isPro": false,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

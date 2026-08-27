@@ -1,7 +1,7 @@
 {
   "id": "copywriter-paper-airy",
-  "name": "Copywriter — Paper Airy",
-  "category": "Copywriter",
+  "name": "Apex Space",
+  "category": "Business / Company",
   "tagline": "Brand voice specialist and copywriter.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

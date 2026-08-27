@@ -1,7 +1,7 @@
 {
   "id": "designer-pastel-soft",
-  "name": "Designer — Pastel Soft",
-  "category": "Designer",
+  "name": "Haven Vibe",
+  "category": "Designer Portfolio",
   "tagline": "Product designer crafting digital experiences.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

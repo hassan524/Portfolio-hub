@@ -1,7 +1,7 @@
 {
   "id": "designer-sunset-warm",
-  "name": "Designer — Sunset Warm",
-  "category": "Designer",
+  "name": "Iris Flow",
+  "category": "Designer Portfolio",
   "tagline": "Making complex products feel simple.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

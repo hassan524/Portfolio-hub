@@ -1,7 +1,7 @@
 {
   "id": "marketer-glass-gradient",
-  "name": "Marketer — Glass Gradient",
-  "category": "Marketer",
+  "name": "Nami Canvas",
+  "category": "Startup",
   "tagline": "Performance marketing with a creative edge.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

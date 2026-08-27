@@ -1,7 +1,7 @@
 {
   "id": "educator-mono-brutalist",
-  "name": "Educator — Mono Brutalist",
-  "category": "Educator",
+  "name": "Plaza Slate",
+  "category": "Real Estate Brand",
   "tagline": "Teaching that meets people where they are.",
   "isPro": true,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

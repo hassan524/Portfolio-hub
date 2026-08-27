@@ -13,10 +13,14 @@ export type CornerStyle = "sharp" | "soft" | "rounded" | "pill";
 export type SpacingStyle = "compact" | "cozy" | "airy";
 export type Alignment = "left" | "center" | "right";
 
+import type { PreviewEditState } from "@/types/previewEditTypes";
+
 export type Theme = {
   bg: string;
   ink: string;
   accent: string;
+  accent2?: string;
+  surface?: string;
   fontHeading: string;
   fontBody: string;
   corners: CornerStyle;
@@ -36,8 +40,10 @@ export type NavbarProps = {
   kind: "navbar";
   variant: string;
   logoText: string;
+  logo?: string | null;
   links: NavbarLink[];
   ctaLabel?: string;
+  sticky?: boolean;
 };
 
 /* =========================
@@ -147,6 +153,8 @@ export type FooterProps = {
   variant: string;
   heading: string;
   message: string;
+  logo?: string | null;
+  socials?: SocialItem[];
 };
 
 /* =========================
@@ -156,11 +164,13 @@ export type FooterProps = {
 export type StatItem = {
   value: string;
   label: string;
+  suffix?: string;
 };
 
 export type StatsProps = {
   kind: "stats";
   variant: string;
+  heading?: string;
   items: StatItem[];
 };
 
@@ -172,6 +182,8 @@ export type SpacerProps = {
   kind: "spacer";
   variant: string;
   height: number;
+  backgroundColor?: string;
+  isCustom?: boolean;
 };
 
 /* =========================
@@ -202,6 +214,7 @@ export type Block = {
   label?: string;
   isCustom?: boolean;
   name?: string;
+  overrides?: { style?: Record<string, unknown> };
 };
 
 /* =========================
@@ -213,7 +226,9 @@ export type SiteData = {
   name: string;
   category: string;
   tagline: string;
+  logo: string | null;
   isPro: boolean;
   theme: Theme;
   blocks: Block[];
+  previewEdits?: PreviewEditState;
 };

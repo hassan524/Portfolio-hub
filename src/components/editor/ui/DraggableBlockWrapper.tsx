@@ -8,12 +8,14 @@ export function DraggableBlockWrapper({
   blocks,
   onReorderBlocks,
   ink,
+  moveMode,
   children,
 }: {
   block: Block;
   blocks: Block[];
   onReorderBlocks: (blocks: Block[]) => void;
   ink: string;
+  moveMode?: boolean;
   children: ReactNode;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -46,11 +48,14 @@ export function DraggableBlockWrapper({
       }}
     >
       <div
+        data-block-drag-handle
         draggable
         onDragStart={onDragStart}
         onDragEnd={() => setIsDragging(false)}
         title="Drag to reorder"
-        className="absolute -left-2 top-3 z-20 grid h-7 w-7 cursor-grab place-items-center rounded-md opacity-0 shadow-sm transition-opacity group-hover/dragblock:opacity-100 active:cursor-grabbing"
+        className={`absolute -left-2 top-3 z-20 grid h-7 w-7 cursor-grab place-items-center rounded-md shadow-sm transition-opacity active:cursor-grabbing ${
+          moveMode ? "opacity-100" : "opacity-0 group-hover/dragblock:opacity-100"
+        }`}
         style={{ background: `${ink}10`, backdropFilter: "blur(4px)" }}
       >
         <GripVertical className="h-4 w-4" style={{ color: ink }} />

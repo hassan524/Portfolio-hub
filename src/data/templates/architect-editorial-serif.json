@@ -1,7 +1,7 @@
 {
   "id": "architect-editorial-serif",
-  "name": "Architect — Editorial Serif",
-  "category": "Architect",
+  "name": "Silent Canvas",
+  "category": "Architecture Studio",
   "tagline": "Where structure meets story.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

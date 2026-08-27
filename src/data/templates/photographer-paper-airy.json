@@ -1,7 +1,7 @@
 {
   "id": "photographer-paper-airy",
-  "name": "Photographer — Paper Airy",
-  "category": "Photographer",
+  "name": "Focus Flow",
+  "category": "Content Creator",
   "tagline": "Documentary-style photography with heart.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

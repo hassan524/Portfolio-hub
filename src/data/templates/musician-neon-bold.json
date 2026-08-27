@@ -1,7 +1,7 @@
 {
   "id": "musician-neon-bold",
-  "name": "Musician — Neon Bold",
-  "category": "Musician",
+  "name": "Drift Studio",
+  "category": "Music Artist / Band",
   "tagline": "Producer and multi-instrumentalist.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

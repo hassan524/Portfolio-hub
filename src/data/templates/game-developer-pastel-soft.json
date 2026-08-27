@@ -1,7 +1,7 @@
 {
   "id": "game-developer-pastel-soft",
-  "name": "Game Developer — Pastel Soft",
-  "category": "Game Developer",
+  "name": "Vector Studio",
+  "category": "Travel Brand / Agency",
   "tagline": "Building worlds people want to get lost in.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

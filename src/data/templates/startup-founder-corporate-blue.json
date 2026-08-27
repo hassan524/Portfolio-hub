@@ -1,7 +1,7 @@
 {
   "id": "startup-founder-corporate-blue",
-  "name": "Startup Founder — Corporate Blue",
-  "category": "Startup Founder",
+  "name": "Mimic Layout",
+  "category": "SaaS Product",
   "tagline": "Founder obsessed with solving real problems.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "developer-retro-terminal",
-  "name": "Developer — Retro Terminal",
-  "category": "Developer",
+  "name": "Oracle Craft",
+  "category": "Developer Portfolio",
   "tagline": "Full-stack engineer building for the web.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

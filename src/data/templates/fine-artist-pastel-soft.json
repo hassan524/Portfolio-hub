@@ -1,7 +1,7 @@
 {
   "id": "fine-artist-pastel-soft",
-  "name": "Fine Artist — Pastel Soft",
-  "category": "Fine Artist",
+  "name": "Trace Space",
+  "category": "Wedding Website",
   "tagline": "Painting the space between memory and place.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

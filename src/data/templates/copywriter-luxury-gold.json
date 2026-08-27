@@ -1,7 +1,7 @@
 {
   "id": "copywriter-luxury-gold",
-  "name": "Copywriter — Luxury Gold",
-  "category": "Copywriter",
+  "name": "Urban Deck",
+  "category": "Marketing Agency",
   "tagline": "Brand voice specialist and copywriter.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

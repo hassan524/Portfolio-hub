@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-corporate-blue",
-  "name": "Data Scientist — Corporate Blue",
-  "category": "Data Scientist",
+  "name": "Tactile Layout",
+  "category": "Personal Brand",
   "tagline": "Machine learning engineer & researcher.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

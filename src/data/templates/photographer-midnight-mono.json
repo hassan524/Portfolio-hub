@@ -1,7 +1,7 @@
 {
   "id": "photographer-midnight-mono",
-  "name": "Photographer — Midnight Mono",
-  "category": "Photographer",
+  "name": "Finite Vibe",
+  "category": "Photography Portfolio",
   "tagline": "Capturing moments that last forever.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

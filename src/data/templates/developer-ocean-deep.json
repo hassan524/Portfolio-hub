@@ -1,7 +1,7 @@
 {
   "id": "developer-ocean-deep",
-  "name": "Developer — Ocean Deep",
-  "category": "Developer",
+  "name": "Odyssey Space",
+  "category": "Developer Portfolio",
   "tagline": "Turning coffee into scalable systems.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

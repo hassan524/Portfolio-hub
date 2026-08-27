@@ -1,7 +1,7 @@
 {
   "id": "startup-founder-midnight-mono",
-  "name": "Startup Founder — Midnight Mono",
-  "category": "Startup Founder",
+  "name": "Mosaic Slate",
+  "category": "AI Product",
   "tagline": "Building the future, one product at a time.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "game-developer-glass-gradient",
-  "name": "Game Developer — Glass Gradient",
-  "category": "Game Developer",
+  "name": "Vanguard Page",
+  "category": "Developer Portfolio",
   "tagline": "Code, design, and a lot of playtesting.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

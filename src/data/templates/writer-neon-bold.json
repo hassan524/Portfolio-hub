@@ -1,7 +1,7 @@
 {
   "id": "writer-neon-bold",
-  "name": "Writer — Neon Bold",
-  "category": "Writer",
+  "name": "Kumo Sky",
+  "category": "Jewelry Brand",
   "tagline": "Long-form storyteller and essayist.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

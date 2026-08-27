@@ -1,7 +1,7 @@
 {
   "id": "musician-glass-gradient",
-  "name": "Musician — Glass Gradient",
-  "category": "Musician",
+  "name": "Concept Page",
+  "category": "Content Creator",
   "tagline": "Music for film, and for its own sake.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

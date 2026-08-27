@@ -1,13 +1,13 @@
 {
   "id": "startup-founder-forest-calm",
-  "name": "Startup Founder — Forest Calm",
-  "category": "Startup Founder",
+  "name": "Monolith Page",
+  "category": "AI Product",
   "tagline": "Zero to one, repeatedly.",
   "isPro": false,
   "theme": {
-    "bg": "#f2f5f0",
-    "ink": "#1c2a1e",
-    "accent": "#3d7a4f",
+    "bg": "#ffffff",
+    "ink": "#0f172a",
+    "accent": "#6366f1",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "soft",
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

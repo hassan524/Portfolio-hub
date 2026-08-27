@@ -1,7 +1,7 @@
 {
   "id": "fashion-designer-retro-terminal",
-  "name": "Fashion Designer — Retro Terminal",
-  "category": "Fashion Designer",
+  "name": "Spectrum Folio",
+  "category": "Beauty & Cosmetics",
   "tagline": "Designing clothes with intention.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

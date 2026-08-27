@@ -1,7 +1,7 @@
 {
   "id": "educator-warm-earth",
-  "name": "Educator — Warm Earth",
-  "category": "Educator",
+  "name": "Rhythm Panel",
+  "category": "Fitness Brand / Gym",
   "tagline": "Teaching that meets people where they are.",
   "isPro": true,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

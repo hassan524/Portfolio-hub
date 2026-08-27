@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, Rocket, ArrowLeft, ArrowRight, X, Check, FileEdit, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DeployPlatform } from "./Deploymodal";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export type { DeployPlatform };
 export type SaveMode = "draft" | "deploy";
@@ -32,12 +29,12 @@ const SAVE_MODES: SaveModeOption[] = [
   {
     id: "draft",
     name: "Save as draft",
-    tagline: "Keep it private, publish whenever you're ready",
+    tagline: "Keep it private and publish it whenever you're ready from your dashboard.",
   },
   {
     id: "deploy",
     name: "Save & deploy",
-    tagline: "Publish it live on Vercel or Netlify",
+    tagline: "Publish it live on Vercel or Netlify right away and share it with the world.",
   },
 ];
 
@@ -46,8 +43,40 @@ const MIN_CHARS = 50;
 type Step = "choice" | "info";
 const STEP_ORDER: Step[] = ["choice", "info"];
 
+// Counts trimmed characters — used to gate the "Continue" button on step 2.
 function charCount(text: string) {
   return text.trim().length;
+}
+
+// Turns whatever the user types into a URL-safe slug, since this name
+// becomes part of the live deploy link (e.g. your-name.vercel.app).
+function slugifyName(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+// Small numbered progress indicator shown at the top of the dialog —
+// replaces the old icon, and actually communicates where the user is.
+function StepIndicator({ step }: { step: Step }) {
+  const stepIndex = STEP_ORDER.indexOf(step);
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {STEP_ORDER.map((s, i) => (
+        <div
+          key={s}
+          className={cn(
+            "h-1 rounded-full transition-all duration-300",
+            i === stepIndex ? "w-6 bg-white" : "w-1.5 bg-neutral-700",
+          )}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function SaveDeployModal({
@@ -55,136 +84,130 @@ export function SaveDeployModal({
   onOpenChange,
   onConfirmSave,
   onProceedToDeploy,
-  siteName = "My Portfolio",
+  siteName = "my-portfolio",
   saving = false,
 }: SaveDeployModalProps) {
   const [step, setStepRaw] = useState<Step>("choice");
   const [direction, setDirection] = useState(1);
   const [saveMode, setSaveMode] = useState<SaveMode>("deploy");
-  const [name, setName] = useState(siteName);
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   const chars = charCount(description);
   const canContinueFromInfo = name.trim().length > 0 && chars >= MIN_CHARS;
+  // Only meaningful once the user has actually typed something — no preview
+  // before that, so nothing appears "pre-decided" on their behalf.
+  const hasTypedName = name.trim().length > 0;
+  const slug = slugifyName(name);
 
+  // Moves between steps and tracks direction so the slide animation knows
+  // whether to enter from the left (forward) or right (back).
   const goTo = (next: Step) => {
     setDirection(STEP_ORDER.indexOf(next) > STEP_ORDER.indexOf(step) ? 1 : -1);
     setStepRaw(next);
   };
 
+  // Resets the whole form back to a blank state every time the dialog opens,
+  // so leftover values from a previous save don't linger.
   useEffect(() => {
     if (open) {
       setDirection(1);
       setStepRaw("choice");
       setSaveMode("deploy");
-      setName(siteName);
+      setName("");
       setDescription("");
     }
-  }, [open, siteName]);
+  }, [open]);
 
+  // Closes the dialog — blocked while a save is actually in progress.
   const close = useCallback(() => {
     if (saving) return;
     onOpenChange(false);
   }, [onOpenChange, saving]);
 
+  // Fires the parent's save handler with whatever the user filled in.
   const handleContinueFromInfo = () => {
-    onConfirmSave(saveMode, name, description);
+    onConfirmSave(saveMode, name.trim(), description.trim());
   };
 
   return (
     <Dialog open={open} onOpenChange={saving ? undefined : onOpenChange}>
-      <DialogContent className="w-95 max-w-[92vw] p-0">
-        {!saving && (
-          <button
-            type="button"
-            onClick={close}
-            className="absolute right-3 top-3 z-10 grid h-6 w-6 cursor-pointer place-items-center rounded-md text-neutral-500 hover:bg-neutral-800 hover:text-white"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
+      <DialogContent className="w-96 max-w-[92vw] gap-0 overflow-hidden border-neutral-800 bg-neutral-950 p-0">
+        {/* ---------------- Header ---------------- */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+          <div>
+            <h2 className="text-sm font-semibold text-white">
+              {step === "choice" ? "Save your portfolio" : "A few details"}
+            </h2>
+            <p className="mt-0.5 text-[11px] text-neutral-500">
+              {step === "choice"
+                ? "Choose how you'd like to save your work."
+                : "This helps people find and understand your portfolio."}
+            </p>
+          </div>
 
+          {!saving && (
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close"
+              className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* ---------------- Step content ---------------- */}
         <div className="relative overflow-hidden">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
             {step === "choice" && (
               <motion.div
                 key="choice"
                 custom={direction}
-                initial={{ x: direction > 0 ? 60 : -60, opacity: 0 }}
+                initial={{ x: direction > 0 ? 40 : -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                exit={{ x: direction > 0 ? -60 : 60, opacity: 0 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                exit={{ x: direction > 0 ? -40 : 40, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="p-5"
               >
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-black">
-                    <Rocket className="h-4 w-4" />
-                  </div>
-                  <h2 className="text-sm font-bold text-white">How do you want to save?</h2>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {SAVE_MODES.map((m) => {
-                    const active = saveMode === m.id;
+                <div className="space-y-2">
+                  {SAVE_MODES.map((mode) => {
+                    const active = saveMode === mode.id;
                     return (
-                      <div
-                        key={m.id}
+                      <button
+                        key={mode.id}
+                        type="button"
                         role="radio"
                         aria-checked={active}
-                        onClick={() => setSaveMode(m.id)}
+                        onClick={() => setSaveMode(mode.id)}
                         className={cn(
-                          "flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors",
+                          "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 text-left transition-colors",
                           active
-                            ? "border-white bg-neutral-900"
-                            : "border-neutral-800 hover:border-neutral-600",
+                            ? "border-neutral-600 bg-neutral-900"
+                            : "border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900/50",
                         )}
                       >
-                        <div
-                          className={cn(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                            active ? "bg-white text-black" : "bg-neutral-900 text-neutral-400",
-                          )}
-                        >
-                          {m.id === "draft" ? (
-                            <FileEdit className="h-4 w-4" />
-                          ) : (
-                            <Globe className="h-4 w-4" />
-                          )}
-                        </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs font-semibold text-white">{m.name}</span>
-                          <p className="text-[10px] text-neutral-500 mt-0.5">{m.tagline}</p>
+                          <span className="text-xs font-medium text-white">{mode.name}</span>
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-500">
+                            {mode.tagline}
+                          </p>
                         </div>
+
                         <div
                           className={cn(
-                            "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors",
-                            active ? "border-white bg-white text-black" : "border-neutral-700",
+                            "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                            active
+                              ? "border-white bg-white text-black"
+                              : "border-neutral-700 text-transparent",
                           )}
                         >
-                          {active && <Check className="h-3 w-3 stroke-3" />}
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
-                </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-3">
-                  <button
-                    type="button"
-                    onClick={close}
-                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  >
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => goTo("info")}
-                    className="flex h-9 min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200"
-                  >
-                    Continue
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </motion.div>
             )}
@@ -193,88 +216,111 @@ export function SaveDeployModal({
               <motion.div
                 key="info"
                 custom={direction}
-                initial={{ x: direction > 0 ? 60 : -60, opacity: 0 }}
+                initial={{ x: direction > 0 ? 40 : -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                exit={{ x: direction > 0 ? -60 : 60, opacity: 0 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                exit={{ x: direction > 0 ? -40 : 40, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="p-5"
               >
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-black">
-                    <Rocket className="h-4 w-4" />
-                  </div>
-                  <h2 className="text-sm font-bold text-white">About your portfolio</h2>
-                </div>
-
-                <div className="mt-4 space-y-1.5">
-                  <label className="text-[11px] font-medium text-neutral-400">
+                {/* Portfolio name */}
+                <div className="space-y-1.5">
+                  <label htmlFor="portfolio-name" className="text-[11px] font-medium text-neutral-400">
                     Portfolio name
                   </label>
                   <input
+                    id="portfolio-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Hassan's Portfolio"
+                    placeholder={siteName}
                     disabled={saving}
-                    className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none focus:border-neutral-600 disabled:opacity-50"
+                    className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
                   />
+                  {saveMode === "deploy" && hasTypedName && (
+                    <p className="text-[10px] leading-relaxed text-neutral-500">
+                      Your link will be related to this name — something like{" "}
+                      <span className="font-mono text-neutral-300">{slug}.vercel.app</span>.
+                      Keep it short, no spaces.
+                    </p>
+                  )}
                 </div>
 
-                <div className="mt-3 space-y-1.5">
+                {/* Description */}
+                <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-medium text-neutral-400">
-                      Describe your portfolio
+                    <label htmlFor="portfolio-description" className="text-[11px] font-medium text-neutral-400">
+                      Description
                     </label>
                     <span
                       className={cn(
-                        "text-[10px]",
+                        "text-[10px] tabular-nums",
                         chars >= MIN_CHARS ? "text-neutral-400" : "text-neutral-600",
                       )}
                     >
-                      {chars}/{MIN_CHARS} chars
+                      {chars}/{MIN_CHARS}
                     </span>
                   </div>
                   <textarea
+                    id="portfolio-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    placeholder="What is this portfolio for, who's it for, what should people notice first?"
+                    placeholder="What's this portfolio for, who's it for, what should people notice first?"
                     disabled={saving}
-                    className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs leading-relaxed text-white placeholder:text-neutral-600 outline-none focus:border-neutral-600 disabled:opacity-50"
+                    className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs leading-relaxed text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
                   />
-                </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => goTo("choice")}
-                    disabled={saving}
-                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!canContinueFromInfo || saving}
-                    onClick={handleContinueFromInfo}
-                    className="flex h-9 min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Saving…
-                      </>
-                    ) : (
-                      <>
-                        Continue
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </>
-                    )}
-                  </button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* ---------------- Footer ---------------- */}
+        <div className="flex items-center justify-between border-t border-neutral-800 px-5 py-3.5">
+          <StepIndicator step={step} />
+
+          <div className="flex items-center gap-2">
+            {step === "info" && (
+              <button
+                type="button"
+                onClick={() => goTo("choice")}
+                disabled={saving}
+                className="flex h-8 cursor-pointer items-center gap-1 rounded-md px-2.5 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+            )}
+
+            {step === "choice" ? (
+              <button
+                type="button"
+                onClick={() => goTo("info")}
+                className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200"
+              >
+                Continue
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={!canContinueFromInfo || saving}
+                onClick={handleContinueFromInfo}
+                className="flex h-8 min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-xs font-medium text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

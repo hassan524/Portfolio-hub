@@ -1,7 +1,7 @@
 {
   "id": "architect-luxury-gold",
-  "name": "Architect — Luxury Gold",
-  "category": "Architect",
+  "name": "Velvet Folio",
+  "category": "Interior Design Studio",
   "tagline": "Architecture rooted in light and material.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

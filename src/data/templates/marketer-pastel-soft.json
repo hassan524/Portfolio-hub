@@ -1,7 +1,7 @@
 {
   "id": "marketer-pastel-soft",
-  "name": "Marketer — Pastel Soft",
-  "category": "Marketer",
+  "name": "Aether Frame",
+  "category": "Mobile App",
   "tagline": "Growth marketer who loves the data behind the story.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-warm-earth",
-  "name": "Data Scientist — Warm Earth",
-  "category": "Data Scientist",
+  "name": "Cosmic Panel",
+  "category": "Online Community",
   "tagline": "Finding signal in the noise.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

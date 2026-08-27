@@ -1,7 +1,7 @@
 {
   "id": "fine-artist-corporate-blue",
-  "name": "Fine Artist — Corporate Blue",
-  "category": "Fine Artist",
+  "name": "Sphere Grid",
+  "category": "Creative Portfolio",
   "tagline": "Mixed-media artist working in color and texture.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

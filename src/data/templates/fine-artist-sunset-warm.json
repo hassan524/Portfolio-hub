@@ -1,7 +1,7 @@
 {
   "id": "fine-artist-sunset-warm",
-  "name": "Fine Artist — Sunset Warm",
-  "category": "Fine Artist",
+  "name": "Transit Craft",
+  "category": "Event / Conference",
   "tagline": "Art that asks questions rather than answers them.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

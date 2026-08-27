@@ -8,11 +8,14 @@ const viewerAppBase = import.meta.glob("/viewer-app/**/*", {
     import: "default",
 }) as Record<string, string>;
 
-const blockSource = import.meta.glob("/src/components/blocks/**/*", {
-    eager: true,
-    query: "?raw",
-    import: "default",
-}) as Record<string, string>;
+const blockSource = import.meta.glob(
+    ["/src/components/blocks/**/*", "/src/components/editor/TemplatesUI/**/*"],
+    {
+        eager: true,
+        query: "?raw",
+        import: "default",
+    }
+) as Record<string, string>;
 
 const viewerSource = import.meta.glob(
     ["/src/lib/blockRegistry.ts", "/src/types/builder.schema.ts"],
@@ -81,7 +84,7 @@ export default function App() {
     <main style={{ minHeight: "100vh", background: theme.bg, color: theme.ink }}>
       {sorted.map((block) => {
         const variant = (block.props as { variant?: string }).variant;
-        const Block = getBlockComponent(block.props.kind, variant);
+        const Block = getBlockComponent(block.props.kind, variant, site.category, site.id);
         if (!Block) return null;
 
         return <Block key={block.id} id={block.id} props={block.props} theme={theme} onChange={() => {}} />;

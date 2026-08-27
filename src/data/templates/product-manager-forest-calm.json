@@ -1,7 +1,7 @@
 {
   "id": "product-manager-forest-calm",
-  "name": "Product Manager — Forest Calm",
-  "category": "Product Manager",
+  "name": "Glitch Canvas",
+  "category": "SaaS Product",
   "tagline": "Bridging design, engineering, and users.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

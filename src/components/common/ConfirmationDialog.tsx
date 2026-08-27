@@ -59,7 +59,7 @@ export function ConfirmationDialog({
 
         {children && <div className="py-2 text-xs">{children}</div>}
 
-        <AlertDialogFooter className="gap-2 sm:space-x-0">
+        <AlertDialogFooter className="mt-5 gap-2 sm:space-x-0">
           {showCancel && (
             <AlertDialogCancel
               onClick={onCancel}

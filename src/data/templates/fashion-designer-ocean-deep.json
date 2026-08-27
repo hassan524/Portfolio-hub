@@ -1,7 +1,7 @@
 {
   "id": "fashion-designer-ocean-deep",
-  "name": "Fashion Designer — Ocean Deep",
-  "category": "Fashion Designer",
+  "name": "Solis Flow",
+  "category": "Beauty & Cosmetics",
   "tagline": "Where craft meets ready-to-wear.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "musician-ocean-deep",
-  "name": "Musician — Ocean Deep",
-  "category": "Musician",
+  "name": "Eclipse Base",
+  "category": "Music Artist / Band",
   "tagline": "Music for film, and for its own sake.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

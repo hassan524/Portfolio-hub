@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-pastel-soft",
-  "name": "Data Scientist — Pastel Soft",
-  "category": "Data Scientist",
+  "name": "Vortex Studio",
+  "category": "Personal Brand",
   "tagline": "Finding signal in the noise.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "chef-paper-airy",
-  "name": "Chef — Paper Airy",
-  "category": "Chef",
+  "name": "Sunset Studio",
+  "category": "Bakery",
   "tagline": "Chef and recipe developer.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

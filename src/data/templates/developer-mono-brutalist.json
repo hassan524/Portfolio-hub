@@ -1,7 +1,7 @@
 {
   "id": "developer-mono-brutalist",
-  "name": "Developer — Mono Brutalist",
-  "category": "Developer",
+  "name": "Obsidian Frame",
+  "category": "Developer Portfolio",
   "tagline": "Full-stack engineer building for the web.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

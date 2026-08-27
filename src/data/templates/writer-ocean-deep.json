@@ -1,7 +1,7 @@
 {
   "id": "writer-ocean-deep",
-  "name": "Writer — Ocean Deep",
-  "category": "Writer",
+  "name": "Sumi Brush",
+  "category": "Jewelry Brand",
   "tagline": "Turning ideas into sentences worth reading.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

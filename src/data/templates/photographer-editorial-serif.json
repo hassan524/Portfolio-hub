@@ -1,7 +1,7 @@
 {
   "id": "photographer-editorial-serif",
-  "name": "Photographer — Editorial Serif",
-  "category": "Photographer",
+  "name": "Enigma Sheet",
+  "category": "Photography Portfolio",
   "tagline": "Light, shadow, and honest storytelling.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

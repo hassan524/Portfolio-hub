@@ -1,7 +1,7 @@
 {
   "id": "startup-founder-sunset-warm",
-  "name": "Startup Founder — Sunset Warm",
-  "category": "Startup Founder",
+  "name": "Nebula Panel",
+  "category": "Startup",
   "tagline": "Zero to one, repeatedly.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

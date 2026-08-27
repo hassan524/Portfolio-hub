@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-sunset-warm",
-  "name": "Data Scientist — Sunset Warm",
-  "category": "Data Scientist",
+  "name": "Ember Base",
+  "category": "Personal Brand",
   "tagline": "Data-driven, curiosity-led.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

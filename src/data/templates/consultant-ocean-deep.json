@@ -1,7 +1,7 @@
 {
   "id": "consultant-ocean-deep",
-  "name": "Consultant — Ocean Deep",
-  "category": "Consultant",
+  "name": "Prism Flow",
+  "category": "Clothing Brand",
   "tagline": "Clarity, structure, and results.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

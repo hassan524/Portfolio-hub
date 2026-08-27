@@ -1,7 +1,7 @@
 {
   "id": "data-scientist-glass-gradient",
-  "name": "Data Scientist — Glass Gradient",
-  "category": "Data Scientist",
+  "name": "Subtle Page",
+  "category": "Personal Brand",
   "tagline": "Data-driven, curiosity-led.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

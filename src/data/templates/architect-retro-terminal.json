@@ -1,7 +1,7 @@
 {
   "id": "architect-retro-terminal",
-  "name": "Architect — Retro Terminal",
-  "category": "Architect",
+  "name": "Neon Frame",
+  "category": "Real Estate Brand",
   "tagline": "Designing spaces that shape how people live.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

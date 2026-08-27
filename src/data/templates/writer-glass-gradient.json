@@ -1,7 +1,7 @@
 {
   "id": "writer-glass-gradient",
-  "name": "Writer — Glass Gradient",
-  "category": "Writer",
+  "name": "Solis Page",
+  "category": "Perfume Brand",
   "tagline": "Turning ideas into sentences worth reading.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "illustrator-clean-slate",
-  "name": "Illustrator — Clean Slate",
-  "category": "Illustrator",
+  "name": "Vessel Sheet",
+  "category": "Food Brand",
   "tagline": "Playful visuals with a bold hand.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

@@ -1,7 +1,7 @@
 {
   "id": "educator-glass-gradient",
-  "name": "Educator — Glass Gradient",
-  "category": "Educator",
+  "name": "Pivot Page",
+  "category": "Real Estate Brand",
   "tagline": "Making hard ideas click.",
   "isPro": false,
   "theme": {
@@ -724,5 +724,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

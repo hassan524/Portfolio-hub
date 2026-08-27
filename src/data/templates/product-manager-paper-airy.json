@@ -1,7 +1,7 @@
 {
   "id": "product-manager-paper-airy",
-  "name": "Product Manager — Paper Airy",
-  "category": "Product Manager",
+  "name": "Infinity Space",
+  "category": "SaaS Product",
   "tagline": "PM focused on outcomes, not output.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

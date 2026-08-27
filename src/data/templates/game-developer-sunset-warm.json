@@ -1,7 +1,7 @@
 {
   "id": "game-developer-sunset-warm",
-  "name": "Game Developer — Sunset Warm",
-  "category": "Game Developer",
+  "name": "Velvet Base",
+  "category": "Travel Brand / Agency",
   "tagline": "Code, design, and a lot of playtesting.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

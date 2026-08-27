@@ -1,4 +1,5 @@
-import type { Block, Theme, SiteData, PreviewElementStyle } from "@/types/builder.schema";
+import type { Block, Theme, SiteData } from "@/types/builder.schema";
+import type { PreviewElementStyle } from "@/types/previewEditTypes";
 
 /**
  * DOM-sampling block blender.

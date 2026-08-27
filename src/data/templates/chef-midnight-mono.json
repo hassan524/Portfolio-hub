@@ -1,7 +1,7 @@
 {
   "id": "chef-midnight-mono",
-  "name": "Chef — Midnight Mono",
-  "category": "Chef",
+  "name": "Classic Layout",
+  "category": "Cafe / Coffee Shop",
   "tagline": "Cooking food that tells a story.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

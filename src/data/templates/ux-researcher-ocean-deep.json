@@ -1,7 +1,7 @@
 {
   "id": "ux-researcher-ocean-deep",
-  "name": "UX Researcher — Ocean Deep",
-  "category": "UX Researcher",
+  "name": "Reflect Flow",
+  "category": "Digital Agency",
   "tagline": "Research that actually changes decisions.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

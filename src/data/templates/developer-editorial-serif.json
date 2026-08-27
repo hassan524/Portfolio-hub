@@ -1,7 +1,7 @@
 {
   "id": "developer-editorial-serif",
-  "name": "Developer — Editorial Serif",
-  "category": "Developer",
+  "name": "Nomad Canvas",
+  "category": "Developer Portfolio",
   "tagline": "Turning coffee into scalable systems.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

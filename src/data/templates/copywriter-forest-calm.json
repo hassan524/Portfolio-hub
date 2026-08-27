@@ -1,7 +1,7 @@
 {
   "id": "copywriter-forest-calm",
-  "name": "Copywriter — Forest Calm",
-  "category": "Copywriter",
+  "name": "Static Canvas",
+  "category": "Marketing Agency",
   "tagline": "Clarity is the whole job.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

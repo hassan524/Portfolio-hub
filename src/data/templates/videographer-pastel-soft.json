@@ -1,7 +1,7 @@
 {
   "id": "videographer-pastel-soft",
-  "name": "Videographer — Pastel Soft",
-  "category": "Videographer",
+  "name": "Lumen Space",
+  "category": "Skincare Brand",
   "tagline": "Telling stories through motion.",
   "isPro": true,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

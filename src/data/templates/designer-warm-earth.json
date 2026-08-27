@@ -1,7 +1,7 @@
 {
   "id": "designer-warm-earth",
-  "name": "Designer — Warm Earth",
-  "category": "Designer",
+  "name": "Legacy Folio",
+  "category": "Designer Portfolio",
   "tagline": "Product designer crafting digital experiences.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

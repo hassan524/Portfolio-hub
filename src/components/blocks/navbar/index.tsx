@@ -64,6 +64,7 @@ function RightDrawer({ open, onClose, props, theme, onChange }: { open: boolean;
           background: "rgba(0,0,0,0.4)",
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
+          display: open ? "block" : "none",
           transition: "opacity 0.3s ease",
         }}
       />
@@ -75,6 +76,7 @@ function RightDrawer({ open, onClose, props, theme, onChange }: { open: boolean;
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
           pointerEvents: open ? "auto" : "none",
+          display: open ? "flex" : "none",
         }}
       >
         <button
@@ -124,6 +126,7 @@ function LeftDrawer({ open, onClose, props, theme, onChange }: { open: boolean; 
           background: "rgba(0,0,0,0.4)",
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
+          display: open ? "block" : "none",
           transition: "opacity 0.3s ease",
         }}
       />
@@ -135,6 +138,7 @@ function LeftDrawer({ open, onClose, props, theme, onChange }: { open: boolean; 
           transform: open ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
           pointerEvents: open ? "auto" : "none",
+          display: open ? "flex" : "none",
         }}
       >
         <button
@@ -176,6 +180,7 @@ function TopMenu({ open, props, theme, onChange }: { open: boolean; props: Navba
           opacity: open ? 1 : 0,
           transform: open ? "translateY(0)" : "translateY(-16px)",
           pointerEvents: open ? "auto" : "none",
+          display: open ? "block" : "none",
           transition: "opacity 0.25s ease, transform 0.25s ease",
         }}
       >
@@ -213,6 +218,7 @@ function FullscreenMenu({ open, onClose, props, theme, onChange }: { open: boole
           background: bg,
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
+          display: open ? "flex" : "none",
           transition: "opacity 0.3s ease",
         }}
       >

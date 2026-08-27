@@ -1,7 +1,7 @@
 {
   "id": "musician-clean-slate",
-  "name": "Musician — Clean Slate",
-  "category": "Musician",
+  "name": "Clarity Layout",
+  "category": "Content Creator",
   "tagline": "Producer and multi-instrumentalist.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

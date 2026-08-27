@@ -1,7 +1,7 @@
 {
   "id": "musician-mono-brutalist",
-  "name": "Musician — Mono Brutalist",
-  "category": "Musician",
+  "name": "Contrast Slate",
+  "category": "Music Artist / Band",
   "tagline": "Composing sound that lingers.",
   "isPro": true,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

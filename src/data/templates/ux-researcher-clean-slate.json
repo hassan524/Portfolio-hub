@@ -1,7 +1,7 @@
 {
   "id": "ux-researcher-clean-slate",
-  "name": "UX Researcher — Clean Slate",
-  "category": "UX Researcher",
+  "name": "Nexus Sheet",
+  "category": "Digital Agency",
   "tagline": "Qualitative depth, quantitative rigor.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

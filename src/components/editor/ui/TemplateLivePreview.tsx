@@ -46,6 +46,7 @@ type Device = "desktop" | "responsive";
 
 const DEFAULT_RESPONSIVE_WIDTH = 390;
 const DEFAULT_RESPONSIVE_HEIGHT = 844;
+const DEFAULT_DESKTOP_WIDTH = 1440;
 const VIEWPORT_PADDING = 40;
 
 type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
@@ -66,7 +67,7 @@ export function TemplateLivePreview({
   onToggleMaximize,
   onClose,
   onSave,
-  hasChanges,
+  changeCount,
   contentRef,
 }: {
   site: PreviewEditableSite;
@@ -97,13 +98,15 @@ export function TemplateLivePreview({
 
   onClose: () => void;
   onSave?: (site: SiteData) => void;
-  hasChanges?: boolean;
+  changeCount?: number;
   contentRef: RefObject<HTMLDivElement | null>;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
   const ink = theme.ink;
-  const isChanged = hasChanges ?? false;
+  const REQUIRED_CHANGES = 10;
+  const changesMade = changeCount ?? 0;
+  const canSave = changesMade >= REQUIRED_CHANGES;
 
   // Refs for the preview viewport and its content.
   const frameRef = useRef<HTMLDivElement>(null);
@@ -161,8 +164,6 @@ export function TemplateLivePreview({
   const [dragGuides, setDragGuides] = useState<GuideLine[]>([]);
   const [draggingElementId, setDraggingElementId] = useState<string | null>(null);
   const hoveredElementRef = useRef<HTMLElement | null>(null);
-  // Incremented when the iframe body becomes available so listener useEffect re-runs.
-  const [iframeReady, setIframeReady] = useState(0);
 
   const resizingRef = useRef<typeof resizingBlock>(null);
   useEffect(() => {
@@ -188,7 +189,15 @@ export function TemplateLivePreview({
   const { width, height } = size;
 
   const recalcScale = useCallback(() => {
-    if (isDesktop || !viewportRef.current) {
+    if (isDesktop) {
+      const viewportWidth = desktopScrollRef.current?.clientWidth ?? DEFAULT_DESKTOP_WIDTH;
+      const availableWidth = viewportWidth - VIEWPORT_PADDING * 2;
+      const next = Math.min(1, availableWidth / DEFAULT_DESKTOP_WIDTH);
+      setScale(Number.isFinite(next) && next > 0 ? next : 1);
+      return;
+    }
+
+    if (!viewportRef.current) {
       setScale(1);
       return;
     }
@@ -207,17 +216,19 @@ export function TemplateLivePreview({
   }, [recalcScale, isMaximized]);
 
   useEffect(() => {
-    if (!viewportRef.current) return;
+    const observedElement = isDesktop ? desktopScrollRef.current : viewportRef.current;
+    if (!observedElement) return;
     const observer = new ResizeObserver(() => recalcScale());
-    observer.observe(viewportRef.current);
+    observer.observe(observedElement);
     return () => observer.disconnect();
-  }, [recalcScale]);
+  }, [isDesktop, recalcScale]);
 
   const handleDragMove = useCallback((e: MouseEvent) => {
     handleFrameResizeMove(e, dragState, dragPointerRef, dragRafRef, setSize);
   }, []);
 
   function handleContentMouseDown(e: React.MouseEvent) {
+    if (!isDesktop) return;
     handleContentFreeDragStart(
       e,
       editMode,
@@ -279,15 +290,18 @@ export function TemplateLivePreview({
       iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
       tagAndApplyPreviewStyles(iframeDoc.body, blocks, selectedElementId, site.previewEdits, device);
     }
-  }, [blocks, contentRef, selectedElementId, site.previewEdits, device, editMode, theme.accent]);
+  }, [blocks, contentRef, selectedElementId, site.previewEdits, device, theme.accent]);
 
-  // Unified capture-phase listeners on BOTH the desktop canvas and the responsive
-  // iframe document. Re-runs whenever editMode/blocks/site/onSelectElement change
-  // so the closures inside are always fresh — this was the root cause of hover
-  // and click not working in responsive mode (stale editMode=false closure).
+  // Desktop-only capture-phase listeners. Responsive-mode interactions are
+  // bound separately, directly on the iframe body, via
+  // handleResponsiveDocumentReady -> bindResponsivePreviewInteractions below —
+  // that's the correct hook point (PreviewIframe treats its return value as
+  // the cleanup function) and avoids double-binding on contentRef.current,
+  // which in responsive mode is itself a node living inside the iframe.
   useEffect(() => {
+    if (!isDesktop) return;
     const desktopEl = contentRef.current;
-    const iframeDoc = responsiveFrameRef.current?.contentDocument;
+    if (!desktopEl) return;
 
     function handleCaptureClick(e: MouseEvent) {
       if (!editMode) return;
@@ -309,24 +323,17 @@ export function TemplateLivePreview({
       clearPreviewHoverHighlight(hoveredElementRef);
     }
 
-    desktopEl?.addEventListener("click", handleCaptureClick, true);
-    desktopEl?.addEventListener("mousemove", handleMouseMove, true);
-    desktopEl?.addEventListener("mouseleave", handleMouseLeave);
-
-    iframeDoc?.addEventListener("click", handleCaptureClick, true);
-    iframeDoc?.addEventListener("mousemove", handleMouseMove, true);
-    iframeDoc?.addEventListener("mouseleave", handleMouseLeave);
+    desktopEl.addEventListener("click", handleCaptureClick, true);
+    desktopEl.addEventListener("mousemove", handleMouseMove, true);
+    desktopEl.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      if (moveRaf !== null) { cancelAnimationFrame(moveRaf); moveRaf = null; }
-      desktopEl?.removeEventListener("click", handleCaptureClick, true);
-      desktopEl?.removeEventListener("mousemove", handleMouseMove, true);
-      desktopEl?.removeEventListener("mouseleave", handleMouseLeave);
-      iframeDoc?.removeEventListener("click", handleCaptureClick, true);
-      iframeDoc?.removeEventListener("mousemove", handleMouseMove, true);
-      iframeDoc?.removeEventListener("mouseleave", handleMouseLeave);
+      if (moveRaf !== null) cancelAnimationFrame(moveRaf);
+      desktopEl.removeEventListener("click", handleCaptureClick, true);
+      desktopEl.removeEventListener("mousemove", handleMouseMove, true);
+      desktopEl.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [editMode, blocks, site, onSelectElement, iframeReady]);
+  }, [isDesktop, editMode, blocks, site, onSelectElement]);
 
   function handlePreviewClick(e: React.MouseEvent) {
     if (!editMode) return;
@@ -359,16 +366,96 @@ export function TemplateLivePreview({
     clearPreviewHoverHighlight(hoveredElementRef);
   }
 
+  // Fires once the iframe's document/body is mounted (and again whenever this
+  // callback's identity changes below, i.e. whenever editMode/blocks/site/etc.
+  // change) — PreviewIframe calls this and stores its return value, calling it
+  // as a cleanup before the next call or on unmount. This is what actually
+  // wires up click + hover inside the responsive iframe.
   const handleResponsiveDocumentReady = useCallback(
     (body: HTMLElement) => {
+      const doc = body.ownerDocument;
+
+      // 1. Manually inject the hover styles into the iframe's head
+      let styleEl = doc.getElementById("iframe-editor-styles");
+      if (!styleEl) {
+        styleEl = doc.createElement("style");
+        styleEl.id = "iframe-editor-styles";
+        doc.head.appendChild(styleEl);
+      }
+
+      styleEl.textContent = `
+        .preview-edit-canvas.edit-active {
+          cursor: default;
+        }
+        .preview-edit-canvas.edit-active .preview-edit-hovered:not(.preview-edit-selected) {
+          outline: 2px dashed ${theme.accent}cc !important;
+          outline-offset: 3px !important;
+          cursor: pointer !important;
+          transform: scale(1.01);
+          transition: outline 0.12s ease, transform 0.12s ease;
+        }
+        .preview-edit-canvas.move-active .preview-edit-hovered:not(.preview-edit-selected) {
+          outline: 2px dashed ${theme.accent}dd !important;
+          outline-offset: 4px !important;
+          cursor: move !important;
+          transform: scale(1.01);
+          transition: outline 0.12s ease, transform 0.12s ease;
+        }
+        .preview-edit-canvas.edit-active .preview-edit-selected,
+        .preview-edit-selected {
+          outline: 2px solid ${theme.accent} !important;
+          outline-offset: 3px !important;
+          box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
+          transform: scale(1.02) !important;
+          z-index: 35 !important;
+          position: relative !important;
+          transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
+        }
+        .preview-hover-lift:hover {
+          transform: translateY(-4px) !important;
+          box-shadow: 0 12px 24px -6px rgba(0,0,0,0.2) !important;
+          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        }
+      `;
+
+      // 2. Apply theme variables and bind interactions
       body.style.setProperty("--preview-editor-accent", theme.accent);
-      body.ownerDocument.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
+      doc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
       tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device);
-      // Signal the unified listener useEffect to re-run so it can bind to this
-      // now-available iframe document with fresh closures.
-      setIframeReady((n) => n + 1);
+
+      return bindResponsivePreviewInteractions(body, {
+        editMode,
+        blocks,
+        site,
+        device,
+        onSelectElement,
+        hoverRef: hoveredElementRef,
+        onMouseDown: (e) => {
+          handleContentFreeDragStart(
+            e as unknown as React.MouseEvent,
+            editMode,
+            moveMode,
+            device,
+            scale,
+            onChangeElementStyle,
+            setDragGuides,
+            setDraggingElementId,
+          );
+        },
+      });
     },
-    [blocks, selectedElementId, site.previewEdits, device, theme.accent],
+    [
+      blocks,
+      selectedElementId,
+      site,
+      device,
+      theme.accent,
+      editMode,
+      moveMode,
+      scale,
+      onSelectElement,
+      onChangeElementStyle,
+    ],
   );
 
   function handleToggleEditMode() {
@@ -400,156 +487,164 @@ export function TemplateLivePreview({
   }
 
   const previewContent = (
-    <div
-      ref={contentRef}
-      className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
-      style={{ background: bg, color: ink }}
-      onClick={handlePreviewClick}
-      onMouseDown={handleContentMouseDown}
-      onMouseMove={handlePreviewMouseMove}
-      onMouseLeave={handlePreviewMouseLeave}
-    >
-      {sorted.map((block) => {
-        const variant = (block.props as { variant?: string }).variant;
-        const Cmp = getBlockComponent(block.props.kind, variant);
-        if (!Cmp) return null;
+    <>
 
-        const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
-        const isResizingThis = resizingBlock?.id === block.id;
-        const currentHeight = block.height ?? 200;
-        const displayName = block.label ?? block.name ?? block.props.kind;
-        const isNewBlock = Boolean(
-          block.isCustom ||
-          (block as Record<string, unknown>).isNew ||
-          (block.props as { isCustom?: boolean })?.isCustom ||
-          block.props?.kind === "spacer",
-        );
+      <div
+        ref={contentRef}
+        className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
+        style={{ background: bg, color: ink }}
+        onClick={handlePreviewClick}
+        onMouseDown={handleContentMouseDown}
+        onMouseMove={handlePreviewMouseMove}
+        onMouseLeave={handlePreviewMouseLeave}
+      >
+        {sorted.map((block) => {
+          const variant = (block.props as { variant?: string }).variant;
+          const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
+          if (!Cmp) return null;
 
-        return (
-          <DraggableBlockWrapper
-            key={block.id}
-            block={block}
-            blocks={blocks}
-            onReorderBlocks={onReorderBlocks}
-            ink={ink}
-          >
-            <div
-              data-block-id={block.id}
-              data-block-kind={block.props.kind}
-              className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-                }`}
-              style={{
-                ...(isActive ? { outlineColor: theme.accent } : undefined),
-                minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
-                position: "relative",
-              }}
+          const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
+          const isResizingThis = resizingBlock?.id === block.id;
+          const currentHeight = block.height ?? 200;
+          const displayName = block.label ?? block.name ?? block.props.kind;
+          const componentProps =
+            block.props.kind === "navbar" || block.props.kind === "footer"
+              ? { ...block.props, logo: site.logo }
+              : block.props;
+          const isNewBlock = Boolean(
+            block.isCustom ||
+            (block as Record<string, unknown>).isNew ||
+            (block.props as { isCustom?: boolean })?.isCustom ||
+            block.props?.kind === "spacer",
+          );
+
+          return (
+            <DraggableBlockWrapper
+              key={block.id}
+              block={block}
+              blocks={blocks}
+              onReorderBlocks={onReorderBlocks}
+              ink={ink}
+              moveMode={moveMode}
             >
-              {/* Active / Selected Block Floating Controls Bar */}
-              {isActive && (
-                <div
-                  data-blend-ignore
-                  className="absolute top-2 right-2 z-30 flex items-center gap-1.5 rounded-full bg-foreground text-background px-2.5 py-1 text-[11px] font-semibold shadow-lift pointer-events-auto select-none"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className="truncate max-w-[140px] capitalize">{displayName}</span>
-                  {isNewBlock && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const patch = blendBlockWithNeighbors(
-                          block.id,
-                          blocks,
-                          theme,
-                          site,
-                          contentRef.current,
-                        );
-                        onUpdateBlock(block.id, patch);
-                      }}
-                      className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
-                      title="Blend block style & colors dynamically with portfolio"
-                    >
-                      <PencilLine className="h-3 w-3 text-accent" />
-                      Blend
-                    </button>
-                  )}
-                  {isDesktop && block.height && (
-                    <span className="text-[10px] font-mono opacity-80">{block.height}px</span>
-                  )}
-                </div>
-              )}
+              <div
+                data-block-id={block.id}
+                data-block-kind={block.props.kind}
+                className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                  }`}
+                style={{
+                  ...(isActive ? { outlineColor: theme.accent } : undefined),
+                  minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
+                  position: "relative",
+                }}
+              >
+                {/* Active / Selected Block Floating Controls Bar */}
+                {isActive && (
+                  <div
+                    data-blend-ignore
+                    className="absolute top-2 right-2 z-30 flex items-center gap-1.5 rounded-full bg-foreground text-background px-2.5 py-1 text-[11px] font-semibold shadow-lift pointer-events-auto select-none"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="truncate max-w-[140px] capitalize">{displayName}</span>
+                    {isNewBlock && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const patch = blendBlockWithNeighbors(
+                            block.id,
+                            blocks,
+                            theme,
+                            site,
+                            contentRef.current,
+                          );
+                          onUpdateBlock(block.id, patch);
+                        }}
+                        className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
+                        title="Blend block style & colors dynamically with portfolio"
+                      >
+                        <PencilLine className="h-3 w-3 text-accent" />
+                        Blend
+                      </button>
+                    )}
+                    {isDesktop && block.height && (
+                      <span className="text-[10px] font-mono opacity-80">{block.height}px</span>
+                    )}
+                  </div>
+                )}
 
-              {isNewBlock ? (
-                <div style={{ height: "100%" }} className="[&>*]:h-full">
+                {isNewBlock ? (
+                  <div style={{ height: "100%" }} className="[&>*]:h-full">
+                    <Cmp
+                      id={block.id}
+                      props={componentProps}
+                      theme={theme}
+                      onChange={(patch: Record<string, unknown>) =>
+                        editMode ? onUpdateBlock(block.id, patch) : undefined
+                      }
+                    />
+                  </div>
+                ) : (
                   <Cmp
                     id={block.id}
-                    props={block.props}
+                    props={componentProps}
                     theme={theme}
                     onChange={(patch: Record<string, unknown>) =>
                       editMode ? onUpdateBlock(block.id, patch) : undefined
                     }
                   />
-                </div>
-              ) : (
-                <Cmp
-                  id={block.id}
-                  props={block.props}
-                  theme={theme}
-                  onChange={(patch: Record<string, unknown>) =>
-                    editMode ? onUpdateBlock(block.id, patch) : undefined
-                  }
-                />
-              )}
+                )}
 
-              {draggingElementId?.startsWith(`${block.id}:`) && (
-                <GuideOverlay guides={dragGuides} />
-              )}
+                {draggingElementId?.startsWith(`${block.id}:`) && (
+                  <GuideOverlay guides={dragGuides} />
+                )}
 
-              {/* Bottom Drag Height Resize Handle — desktop-only */}
-              {isDesktop && (
-                <div
-                  data-blend-ignore
-                  onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
-                  className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
-                  title="Drag to resize block height smoothly"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                {/* Bottom Drag Height Resize Handle — desktop-only */}
+                {isDesktop && (
                   <div
-                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+                    data-blend-ignore
+                    onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
+                    className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
+                    title="Drag to resize block height smoothly"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div
+                      className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
                         ? "bg-foreground shadow-md scale-110 opacity-100"
                         : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                      }`}
-                  >
-                    <div className="h-0.5 w-6 rounded-full bg-background/80" />
-                  </div>
-                  {isResizingThis && (
-                    <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
-                      Height: {block.height}px
+                        }`}
+                    >
+                      <div className="h-0.5 w-6 rounded-full bg-background/80" />
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </DraggableBlockWrapper>
-        );
-      })}
+                    {isResizingThis && (
+                      <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
+                        Height: {block.height}px
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </DraggableBlockWrapper>
+          );
+        })}
 
-      {!sorted.some((b) => b.props.kind === "footer") && (
-        <div
-          className="px-8 md:px-16 py-6 text-[11px] flex items-center justify-between"
-          style={{ borderTop: `1px solid ${ink}10`, color: `${ink}40` }}
-        >
-          <span>© 2026 {site.name}</span>
-          <span>
-            Built with <span style={{ color: theme.accent }}>Portflu</span>
-          </span>
-        </div>
-      )}
-    </div>
+        {!sorted.some((b) => b.props.kind === "footer") && (
+          <div
+            className="px-8 md:px-16 py-6 text-[11px] flex items-center justify-between"
+            style={{ borderTop: `1px solid ${ink}10`, color: `${ink}40` }}
+          >
+            <span>© 2026 {site.name}</span>
+            <span>
+              Built with <span style={{ color: theme.accent }}>Portflu</span>
+            </span>
+          </div>
+        )}
+      </div>
+    </>
   );
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface-elevated">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface-elevated border border-border rounded-2xl overflow-hidden shadow-sm">
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="truncate text-xs font-medium text-ink-soft">Website Editor</span>
@@ -567,8 +662,8 @@ export function TemplateLivePreview({
             <button
               onClick={() => onDeviceChange("desktop")}
               className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                ? "bg-foreground text-background"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
                 }`}
               title="Desktop Preview"
             >
@@ -578,8 +673,8 @@ export function TemplateLivePreview({
             <button
               onClick={() => onDeviceChange("responsive")}
               className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                ? "bg-foreground text-background"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
                 }`}
               title="Responsive Preview"
             >
@@ -592,8 +687,8 @@ export function TemplateLivePreview({
           <button
             onClick={handleToggleEditMode}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
               }`}
             title={
               editMode
@@ -608,8 +703,8 @@ export function TemplateLivePreview({
           <button
             onClick={handleToggleMoveModeClick}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
               }`}
             title={moveMode ? "Turn off move mode" : "Turn on move mode"}
             aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
@@ -619,14 +714,23 @@ export function TemplateLivePreview({
 
           <div className="h-5 w-px bg-border" />
 
-          {onSave && isChanged && (
+          {onSave && (
             <button
-              onClick={handleSaveClick}
-              className="flex h-8 cursor-pointer items-center gap-2 rounded-md bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90"
-              title="Save changes"
+              onClick={canSave ? handleSaveClick : undefined}
+              disabled={!canSave}
+              className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${canSave
+                  ? "cursor-pointer bg-foreground text-background hover:opacity-90"
+                  : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
+                }`}
+              title={
+                canSave
+                  ? "Save changes"
+                  : `Make ${REQUIRED_CHANGES - changesMade} more change${REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
+                  } to enable saving`
+              }
             >
               <Save className="h-4 w-4" />
-              Save
+              {canSave ? "Save" : `Save`}
             </button>
           )}
 
@@ -651,12 +755,16 @@ export function TemplateLivePreview({
       {isDesktop ? (
         <div
           ref={desktopScrollRef}
-          className="simple-scrollbar flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6"
+          className="simple-scrollbar flex-1 min-h-0 overflow-auto p-4 md:p-6"
           style={{ overscrollBehavior: "contain" }}
         >
           <div
             ref={frameRef}
-            className="mx-auto min-h-full w-full border border-border bg-background shadow-lift"
+            className="mx-auto min-h-full border border-border bg-background shadow-lift"
+            style={{
+              width: DEFAULT_DESKTOP_WIDTH,
+              zoom: scale,
+            }}
           >
             {previewContent}
           </div>
@@ -748,17 +856,22 @@ export function TemplateLivePreview({
       <style>{`
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .preview-edit-canvas.edit-active [data-preview-edit-id] {
-          cursor: pointer;
-        }
-        .preview-edit-canvas.move-active [data-preview-edit-id] {
-          cursor: move;
+        .preview-edit-canvas.edit-active {
+          cursor: default;
         }
         .preview-edit-canvas.edit-active .preview-edit-hovered:not(.preview-edit-selected) {
           outline: 2px dashed ${theme.accent}cc !important;
           outline-offset: 3px !important;
           cursor: pointer !important;
-          transition: outline 0.12s ease;
+          transform: scale(1.01);
+          transition: outline 0.12s ease, transform 0.12s ease;
+        }
+        .preview-edit-canvas.move-active .preview-edit-hovered:not(.preview-edit-selected) {
+          outline: 2px dashed ${theme.accent}dd !important;
+          outline-offset: 4px !important;
+          cursor: move !important;
+          transform: scale(1.01);
+          transition: outline 0.12s ease, transform 0.12s ease;
         }
         .preview-edit-canvas.edit-active .preview-edit-selected,
         .preview-edit-selected {

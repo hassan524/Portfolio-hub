@@ -1,7 +1,7 @@
 {
   "id": "copywriter-editorial-serif",
-  "name": "Copywriter — Editorial Serif",
-  "category": "Copywriter",
+  "name": "Shadow Grid",
+  "category": "Marketing Agency",
   "tagline": "Clarity is the whole job.",
   "isPro": false,
   "theme": {
@@ -726,5 +726,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

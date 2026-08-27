@@ -1,7 +1,7 @@
 {
   "id": "chef-corporate-blue",
-  "name": "Chef — Corporate Blue",
-  "category": "Chef",
+  "name": "Rustic Slate",
+  "category": "Restaurant",
   "tagline": "Chef and recipe developer.",
   "isPro": false,
   "theme": {
@@ -725,5 +725,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }

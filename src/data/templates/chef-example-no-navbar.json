@@ -1,7 +1,7 @@
 {
   "id": "chef-example-no-navbar",
-  "name": "Chef — Sunset Warm",
-  "category": "Chef",
+  "name": "Ocean Space",
+  "category": "Cafe / Coffee Shop",
   "tagline": "Bold, no navbar, straight into the hero",
   "isPro": false,
   "theme": {
@@ -682,5 +682,6 @@
         "lastEditedAt": null
       }
     }
-  ]
+  ],
+  "logo": null
 }
