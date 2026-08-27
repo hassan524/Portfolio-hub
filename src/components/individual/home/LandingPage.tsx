@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { PageShell } from "@/components/individual/PageShell";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
-import { TemplateFullPreview } from "@/components/editor/TemplateFullPreview";
 import type { SiteData } from "@/types/builder.schema";
 
 // Subcomponents
@@ -17,27 +16,15 @@ import { FinalCTA } from "./ui/FinalCTA";
 
 export function LandingPage() {
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
-  const [fullPreviewOpen, setFullPreviewOpen] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const openFullPreview = (template: SiteData) => {
+  const openPreview = (template: SiteData) => {
     setDialogTemplate(template);
-    setFullPreviewOpen(true);
+    setDialogOpen(true);
   };
 
-  const closeFullPreview = () => {
-    setFullPreviewOpen(false);
-    setTimeout(() => setDialogTemplate(null), 300);
-  };
-
-  const continueToEditor = (template: SiteData) => {
-    setDialogTemplate(template);
-    setFullPreviewOpen(false);
-    setEditorOpen(true);
-  };
-
-  const closeEditor = () => {
-    setEditorOpen(false);
+  const closePreview = () => {
+    setDialogOpen(false);
     setTimeout(() => setDialogTemplate(null), 300);
   };
 
@@ -45,7 +32,7 @@ export function LandingPage() {
     <PageShell>
       <Hero />
       <LogoStrip />
-      <TemplateShowcase onPreview={openFullPreview} />
+      <TemplateShowcase onPreview={openPreview} />
       <HowItWorks />
       <FeatureGrid />
       <LiveEditorPreview />
@@ -53,17 +40,10 @@ export function LandingPage() {
       <FAQ />
       <FinalCTA />
 
-      <TemplateFullPreview
-        site={dialogTemplate}
-        open={fullPreviewOpen}
-        onClose={closeFullPreview}
-        onContinue={continueToEditor}
-      />
-
       <TemplatePreviewDialog
         template={dialogTemplate}
-        open={editorOpen}
-        onClose={closeEditor}
+        open={dialogOpen}
+        onClose={closePreview}
       />
     </PageShell>
   );

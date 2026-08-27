@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/individual/PageShell";
 import { PortfolioCard } from "@/components/common/PortfolioCard";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
-import { TemplateFullPreview } from "@/components/editor/TemplateFullPreview";
 import { templates, allCategories } from "@/data/templates";
 import type { SiteData } from "@/types/builder.schema";
 
@@ -52,9 +51,6 @@ export function TemplatesPage() {
   const [cat, setCat] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
-
-  // Two-step flow: full-site scroll preview first, then the live editor dialog.
-  const [fullPreviewOpen, setFullPreviewOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
 
   const filtered = cat === "All" ? templates : templates.filter((t) => t.category === cat);
@@ -77,19 +73,8 @@ export function TemplatesPage() {
     setVisibleCount(PAGE_SIZE);
   }, [cat]);
 
-  const openFullPreview = (template: SiteData) => {
+  const openEditor = (template: SiteData) => {
     setDialogTemplate(template);
-    setFullPreviewOpen(true);
-  };
-
-  const closeFullPreview = () => {
-    setFullPreviewOpen(false);
-    setTimeout(() => setDialogTemplate(null), 300);
-  };
-
-  const continueToEditor = (template: SiteData) => {
-    setDialogTemplate(template);
-    setFullPreviewOpen(false);
     setEditorOpen(true);
   };
 
@@ -132,7 +117,7 @@ export function TemplatesPage() {
               id={t.id}
               t={t}
               isCreated={false}
-              onPreview={openFullPreview}
+              onPreview={openEditor}
             />
           ))}
         </div>
@@ -167,13 +152,6 @@ export function TemplatesPage() {
           </Link>
         </div>
       </section>
-
-      <TemplateFullPreview
-        site={dialogTemplate}
-        open={fullPreviewOpen}
-        onClose={closeFullPreview}
-        onContinue={continueToEditor}
-      />
 
       <TemplatePreviewDialog
         template={dialogTemplate}
