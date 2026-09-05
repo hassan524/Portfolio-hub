@@ -10,6 +10,8 @@ import {
 } from "react";
 import { Maximize2, Minimize2, Monitor, Move, Save, Smartphone, X, PencilLine } from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
+import { getImageOverrides } from "@/lib/imageOverrideUtils";
+import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
 import type {
@@ -288,7 +290,13 @@ export function TemplateLivePreview({
     if (iframeDoc?.body) {
       iframeDoc.body.style.setProperty("--preview-editor-accent", theme.accent);
       iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
-      tagAndApplyPreviewStyles(iframeDoc.body, blocks, selectedElementId, site.previewEdits, device);
+      tagAndApplyPreviewStyles(
+        iframeDoc.body,
+        blocks,
+        selectedElementId,
+        site.previewEdits,
+        device,
+      );
     }
   }, [blocks, contentRef, selectedElementId, site.previewEdits, device, theme.accent]);
 
@@ -319,7 +327,10 @@ export function TemplateLivePreview({
       });
     }
     function handleMouseLeave() {
-      if (moveRaf !== null) { cancelAnimationFrame(moveRaf); moveRaf = null; }
+      if (moveRaf !== null) {
+        cancelAnimationFrame(moveRaf);
+        moveRaf = null;
+      }
       clearPreviewHoverHighlight(hoveredElementRef);
     }
 
@@ -333,17 +344,11 @@ export function TemplateLivePreview({
       desktopEl.removeEventListener("mousemove", handleMouseMove, true);
       desktopEl.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isDesktop, editMode, blocks, site, onSelectElement]);
+  }, [isDesktop, editMode, blocks, site, onSelectElement, contentRef]);
 
   function handlePreviewClick(e: React.MouseEvent) {
     if (!editMode) return;
-    handleInteractivePreviewClick(
-      e,
-      editMode,
-      blocks,
-      site,
-      onSelectElement,
-    );
+    handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
   }
 
   const mouseMoveRafRef = useRef<number | null>(null);
@@ -488,7 +493,6 @@ export function TemplateLivePreview({
 
   const previewContent = (
     <>
-
       <div
         ref={contentRef}
         className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
@@ -503,7 +507,8 @@ export function TemplateLivePreview({
           const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
           if (!Cmp) return null;
 
-          const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
+          const isActive =
+            !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
           const isResizingThis = resizingBlock?.id === block.id;
           const currentHeight = block.height ?? 200;
           const displayName = block.label ?? block.name ?? block.props.kind;
@@ -530,8 +535,9 @@ export function TemplateLivePreview({
               <div
                 data-block-id={block.id}
                 data-block-kind={block.props.kind}
-                className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-                  }`}
+                className={`relative group/block ${
+                  isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                }`}
                 style={{
                   ...(isActive ? { outlineColor: theme.accent } : undefined),
                   minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
@@ -573,8 +579,21 @@ export function TemplateLivePreview({
                   </div>
                 )}
 
-                {isNewBlock ? (
-                  <div style={{ height: "100%" }} className="[&>*]:h-full">
+                <RenderedImageOverrides
+                  overrides={getImageOverrides(componentProps as Record<string, unknown>)}
+                >
+                  {isNewBlock ? (
+                    <div style={{ height: "100%" }} className="[&>*]:h-full">
+                      <Cmp
+                        id={block.id}
+                        props={componentProps}
+                        theme={theme}
+                        onChange={(patch: Record<string, unknown>) =>
+                          editMode ? onUpdateBlock(block.id, patch) : undefined
+                        }
+                      />
+                    </div>
+                  ) : (
                     <Cmp
                       id={block.id}
                       props={componentProps}
@@ -583,17 +602,8 @@ export function TemplateLivePreview({
                         editMode ? onUpdateBlock(block.id, patch) : undefined
                       }
                     />
-                  </div>
-                ) : (
-                  <Cmp
-                    id={block.id}
-                    props={componentProps}
-                    theme={theme}
-                    onChange={(patch: Record<string, unknown>) =>
-                      editMode ? onUpdateBlock(block.id, patch) : undefined
-                    }
-                  />
-                )}
+                  )}
+                </RenderedImageOverrides>
 
                 {draggingElementId?.startsWith(`${block.id}:`) && (
                   <GuideOverlay guides={dragGuides} />
@@ -609,10 +619,11 @@ export function TemplateLivePreview({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div
-                      className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
-                        ? "bg-foreground shadow-md scale-110 opacity-100"
-                        : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                        }`}
+                      className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${
+                        isResizingThis
+                          ? "bg-foreground shadow-md scale-110 opacity-100"
+                          : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                      }`}
                     >
                       <div className="h-0.5 w-6 rounded-full bg-background/80" />
                     </div>
@@ -661,10 +672,11 @@ export function TemplateLivePreview({
           <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
             <button
               onClick={() => onDeviceChange("desktop")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
-                }`}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
+                isDesktop
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+              }`}
               title="Desktop Preview"
             >
               <Monitor className="h-4 w-4" />
@@ -672,10 +684,11 @@ export function TemplateLivePreview({
 
             <button
               onClick={() => onDeviceChange("responsive")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
-                }`}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
+                !isDesktop
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+              }`}
               title="Responsive Preview"
             >
               <Smartphone className="h-4 w-4" />
@@ -686,10 +699,11 @@ export function TemplateLivePreview({
 
           <button
             onClick={handleToggleEditMode}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
+              editMode
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+            }`}
             title={
               editMode
                 ? "Exit edit mode — hover to preview selection; hold Alt for a container"
@@ -702,10 +716,11 @@ export function TemplateLivePreview({
 
           <button
             onClick={handleToggleMoveModeClick}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
+              moveMode
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+            }`}
             title={moveMode ? "Turn off move mode" : "Turn on move mode"}
             aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
           >
@@ -718,15 +733,17 @@ export function TemplateLivePreview({
             <button
               onClick={canSave ? handleSaveClick : undefined}
               disabled={!canSave}
-              className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${canSave
+              className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${
+                canSave
                   ? "cursor-pointer bg-foreground text-background hover:opacity-90"
                   : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
-                }`}
+              }`}
               title={
                 canSave
                   ? "Save changes"
-                  : `Make ${REQUIRED_CHANGES - changesMade} more change${REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
-                  } to enable saving`
+                  : `Make ${REQUIRED_CHANGES - changesMade} more change${
+                      REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
+                    } to enable saving`
               }
             >
               <Save className="h-4 w-4" />

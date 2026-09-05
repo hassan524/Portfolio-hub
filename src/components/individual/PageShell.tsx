@@ -24,8 +24,7 @@ export function PageShell({
   const centered = align === "center";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {hasBanner && (
           <section className="border-b border-border">

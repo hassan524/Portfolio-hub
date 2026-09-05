@@ -4,6 +4,7 @@ import { GripVertical, Plus, PencilLine, ImageUp, X, Loader2 } from "lucide-reac
 
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 
+import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 
 import {
@@ -16,6 +17,8 @@ import {
 } from "@/lib/functions/template";
 
 import { uploadSiteLogo } from "@/lib/uploadLogo";
+import { IMAGE_OVERRIDES_PROP, getImageOverrides } from "@/lib/imageOverrideUtils";
+import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -28,7 +31,9 @@ type Props = {
   onSectionChange: (id: string) => void;
   onThemeChange: (patch: Partial<Theme>) => void;
   // widened to include logo
-  onSiteMetaChange: (patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>) => void;
+  onSiteMetaChange: (
+    patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
+  ) => void;
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
   onReorderBlocks: (blocks: Block[]) => void;
   onSave?: (site: SiteData) => void;
@@ -44,7 +49,6 @@ export function TemplateSidebar({
   onUpdateBlock,
   onReorderBlocks,
 }: Props) {
-
   const sortedBlocks = useMemo(
     () => [...site.blocks].sort((a, b) => a.order - b.order),
     [site.blocks],
@@ -86,7 +90,7 @@ export function TemplateSidebar({
       </div>
 
       <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
-        <TabsList className="w-full h-8 shrink-0 grid grid-cols-2 border-b border-border bg-background/30 p-0 rounded-none">
+        <TabsList className="w-full h-8 shrink-0 grid grid-cols-3 border-b border-border bg-background/30 p-0 rounded-none">
           <TabsTrigger
             value="blocks"
             className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
@@ -98,6 +102,12 @@ export function TemplateSidebar({
             className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
           >
             Text
+          </TabsTrigger>
+          <TabsTrigger
+            value="images"
+            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
+          >
+            Images
           </TabsTrigger>
         </TabsList>
 
@@ -136,6 +146,20 @@ export function TemplateSidebar({
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="images" className="mt-0">
+            <div className="space-y-3">
+              <SectionLabel>Images</SectionLabel>
+              <ImagesPanel
+                blocks={sortedBlocks}
+                theme={theme}
+                site={site}
+                onUpdateBlock={onUpdateBlock}
+                onSiteMetaChange={onSiteMetaChange}
+                onSectionChange={onSectionChange}
+              />
+            </div>
+          </TabsContent>
         </div>
       </Tabs>
     </aside>
@@ -158,8 +182,12 @@ function ThemeCircleRow({
     { key: "bg", label: "Background", fallback: "#ffffff" },
     { key: "ink", label: "Text", fallback: "#000000" },
     { key: "accent", label: "Accent", fallback: "#000000" },
-    ...(theme.accent2 !== undefined ? [{ key: "accent2" as keyof Theme, label: "Accent 2", fallback: "#000000" }] : []),
-    ...(theme.surface !== undefined ? [{ key: "surface" as keyof Theme, label: "Surface", fallback: "#ffffff" }] : []),
+    ...(theme.accent2 !== undefined
+      ? [{ key: "accent2" as keyof Theme, label: "Accent 2", fallback: "#000000" }]
+      : []),
+    ...(theme.surface !== undefined
+      ? [{ key: "surface" as keyof Theme, label: "Surface", fallback: "#ffffff" }]
+      : []),
   ];
 
   return (
@@ -292,7 +320,9 @@ function ThemeCircle({
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-56 space-y-2 border-border bg-surface p-2.5 z-50">
-        <div className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">{label}</div>
+        <div className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+          {label}
+        </div>
 
         <div
           ref={svRef}
@@ -314,7 +344,9 @@ function ThemeCircle({
           ref={hueRef}
           onPointerDown={dragHue}
           className="relative h-2.5 w-full cursor-pointer select-none rounded-full"
-          style={{ background: "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)" }}
+          style={{
+            background: "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)",
+          }}
         >
           <div
             className="pointer-events-none absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.5)]"
@@ -323,7 +355,10 @@ function ThemeCircle({
         </div>
 
         <div className="flex items-center gap-1.5">
-          <div className="h-6 w-6 shrink-0 rounded border border-border" style={{ backgroundColor: hexInput }} />
+          <div
+            className="h-6 w-6 shrink-0 rounded border border-border"
+            style={{ backgroundColor: hexInput }}
+          />
           <Input
             value={hexInput}
             onChange={(e) => {
@@ -342,7 +377,13 @@ function ThemeCircle({
 /* --- color math --- */
 function hexToRgb(hex: string) {
   const clean = hex.replace("#", "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  const full =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : clean;
   const int = parseInt(full || "000000", 16);
   return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
 }
@@ -351,13 +392,19 @@ function rgbToHex(r: number, g: number, b: number) {
   return (
     "#" +
     [r, g, b]
-      .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"))
+      .map((v) =>
+        Math.max(0, Math.min(255, Math.round(v)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
       .join("")
   );
 }
 
 function rgbToHsv(r: number, g: number, b: number) {
-  r /= 255; g /= 255; b /= 255;
+  r /= 255;
+  g /= 255;
+  b /= 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const d = max - min;
@@ -376,7 +423,9 @@ function hsvToRgb(h: number, s: number, v: number) {
   const c = v * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = v - c;
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (h < 60) [r, g, b] = [c, x, 0];
   else if (h < 120) [r, g, b] = [x, c, 0];
   else if (h < 180) [r, g, b] = [0, c, x];
@@ -635,6 +684,284 @@ function TextPanel({
   );
 }
 
+/* ---------------------------------------------------------------- */
+/* Images tab — render each block exactly like the live preview     */
+/* does (getBlockComponent), then look at the real DOM it produces. */
+/* Any block whose rendered output contains <img> tags gets a small */
+/* heading + a grid of thumbnails; hovering a thumbnail reveals a    */
+/* pencil to swap that image out.                                   */
+/* ---------------------------------------------------------------- */
+
+type ImagePath = (string | number)[];
+
+function ImagesPanel({
+  blocks,
+  theme,
+  site,
+  onUpdateBlock,
+  onSiteMetaChange,
+  onSectionChange,
+}: {
+  blocks: Block[];
+  theme: Theme;
+  site: SiteData;
+  onUpdateBlock: Props["onUpdateBlock"];
+  onSiteMetaChange: Props["onSiteMetaChange"];
+  onSectionChange: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      {blocks.map((block) => (
+        <BlockImagesEntry
+          key={block.id}
+          block={block}
+          theme={theme}
+          site={site}
+          onUpdateBlock={onUpdateBlock}
+          onSiteMetaChange={onSiteMetaChange}
+          onSectionChange={onSectionChange}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BlockImagesEntry({
+  block,
+  theme,
+  site,
+  onUpdateBlock,
+  onSiteMetaChange,
+  onSectionChange,
+}: {
+  block: Block;
+  theme: Theme;
+  site: SiteData;
+  onUpdateBlock: Props["onUpdateBlock"];
+  onSiteMetaChange: Props["onSiteMetaChange"];
+  onSectionChange: (id: string) => void;
+}) {
+  const probeRef = useRef<HTMLDivElement>(null);
+  const [images, setImages] = useState<
+    { src: string; originalSrc: string; path: ImagePath | null; siteKey?: "logo" }[]
+  >([]);
+
+  const variant = (block.props as { variant?: string }).variant;
+  const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
+  const componentProps = useMemo(
+    () =>
+      block.props.kind === "navbar" || block.props.kind === "footer"
+        ? { ...block.props, logo: site.logo }
+        : block.props,
+    [block.props, site.logo],
+  );
+
+  // Scan the ACTUAL rendered output for real <img> tags — same component
+  // the live preview uses, no guessing based on prop names.
+  useEffect(() => {
+    const el = probeRef.current;
+    if (!el) {
+      setImages([]);
+      return;
+    }
+
+    const imgEls = Array.from(el.querySelectorAll("img"));
+    if (imgEls.length === 0) {
+      setImages([]);
+      return;
+    }
+
+    const pathBySrc = buildImagePathMap(componentProps);
+
+    const found = imgEls
+      .map((img) => {
+        const src = img.getAttribute("src") ?? "";
+        const originalSrc = img.dataset.originalSrc || src;
+        return {
+          src,
+          originalSrc,
+          siteKey: site.logo && originalSrc === site.logo ? "logo" : undefined,
+          path: pathBySrc.get(originalSrc) ?? pathBySrc.get(src) ?? null,
+        };
+      })
+      .filter((entry) => entry.src.length > 0);
+
+    setImages(found);
+  }, [block.props, Cmp, componentProps, site.logo]);
+
+  if (!Cmp) return null;
+
+  const displayName = block.label ?? block.name ?? block.props.kind;
+
+  return (
+    <div>
+      {/* Hidden probe render — same Cmp/props/theme as the live preview,
+          just off-screen and non-interactive. Only used to detect <img>s. */}
+      <div
+        ref={probeRef}
+        aria-hidden
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          opacity: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <RenderedImageOverrides
+          overrides={getImageOverrides(componentProps as Record<string, unknown>)}
+        >
+          <Cmp id={block.id} props={componentProps} theme={theme} onChange={() => {}} />
+        </RenderedImageOverrides>
+      </div>
+
+      {images.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => onSectionChange(block.props.kind)}
+            className="text-left text-[10px] font-bold uppercase tracking-[0.16em] text-foreground hover:underline cursor-pointer capitalize"
+          >
+            {displayName}
+          </button>
+          <div className="grid grid-cols-4 gap-2">
+            {images.map((img, idx) => (
+              <BlockImageThumb
+                key={`${block.id}-${idx}`}
+                url={img.src}
+                editable={img.originalSrc.length > 0}
+                onReplace={(newUrl) => {
+                  const currentOverrides = getImageOverrides(
+                    block.props as Record<string, unknown>,
+                  );
+
+                  if (img.siteKey === "logo") {
+                    onSiteMetaChange({ logo: newUrl });
+                    return;
+                  }
+
+                  if (!img.path) {
+                    onUpdateBlock(block.id, {
+                      [IMAGE_OVERRIDES_PROP]: {
+                        ...currentOverrides,
+                        [img.originalSrc]: newUrl,
+                      },
+                    });
+                    return;
+                  }
+
+                  const nextProps = setNestedValue(block.props, img.path, newUrl) as Record<
+                    string,
+                    unknown
+                  >;
+                  onUpdateBlock(block.id, nextProps);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BlockImageThumb({
+  url,
+  editable,
+  onReplace,
+}: {
+  url: string;
+  editable: boolean;
+  onReplace: (url: string) => void;
+}) {
+  const [isUploading, setIsUploading] = useState(false);
+
+  async function handleFile(file: File) {
+    setIsUploading(true);
+    try {
+      const nextUrl = await uploadSiteLogo(file);
+      onReplace(nextUrl);
+    } catch {
+      // keep the existing image if the upload fails
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  return (
+    <label
+      className={`group relative block aspect-square overflow-hidden rounded-md border border-border bg-background ${
+        editable ? "cursor-pointer" : "cursor-default"
+      }`}
+      title={editable ? "Click to replace image" : undefined}
+    >
+      <img src={url} alt="" className="h-full w-full object-cover" />
+      <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/40">
+        {isUploading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+        ) : editable ? (
+          <PencilLine className="h-3.5 w-3.5 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+        ) : null}
+      </div>
+      {editable && (
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+            e.target.value = "";
+          }}
+        />
+      )}
+    </label>
+  );
+}
+
+// Walks block.props and records the path to every string leaf, keyed by its
+// value. Used to map a rendered <img src> back to the prop that produced it.
+function buildImagePathMap(
+  value: unknown,
+  path: ImagePath = [],
+  map: Map<string, ImagePath> = new Map(),
+): Map<string, ImagePath> {
+  if (typeof value === "string") {
+    if (!map.has(value)) map.set(value, path);
+    return map;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => buildImagePathMap(item, [...path, index], map));
+    return map;
+  }
+  if (value && typeof value === "object") {
+    Object.entries(value as Record<string, unknown>).forEach(([k, v]) => {
+      buildImagePathMap(v, [...path, k], map);
+    });
+    return map;
+  }
+  return map;
+}
+
+// Immutable set-at-path, handling both object and array segments.
+function setNestedValue(obj: unknown, path: ImagePath, newValue: unknown): unknown {
+  if (path.length === 0) return newValue;
+  const [head, ...rest] = path;
+
+  if (Array.isArray(obj)) {
+    const clone = [...obj];
+    clone[head as number] = setNestedValue(clone[head as number], rest, newValue);
+    return clone;
+  }
+
+  const record = (obj && typeof obj === "object" ? obj : {}) as Record<string, unknown>;
+  return {
+    ...record,
+    [head]: setNestedValue(record[head as string], rest, newValue),
+  };
+}
+
 function EditableValueList({
   value,
   onChange,
@@ -648,7 +975,7 @@ function EditableValueList({
     <div className="space-y-2">
       {Object.entries(value).map(([key, current]) => {
         const label = prefix ? `${prefix}.${key}` : key;
-        if (key === "kind" || key === "variant") return null;
+        if (key === "kind" || key === "variant" || key === IMAGE_OVERRIDES_PROP) return null;
 
         if (typeof current === "string") {
           return (

@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comic+Relief:wght@400;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
 @import "tailwindcss" source(none);
 @source "../src";
@@ -45,7 +46,7 @@
   --radius: 0.875rem;
 
   /* Dark SaaS base — near-black with a faint green undertone */
-  --background: oklch(0.14 0.012 135);
+  --background: oklch(0% 0 0);
   --surface: oklch(0.17 0.014 135);
   --surface-elevated: oklch(0.21 0.016 135);
   --foreground: oklch(0.98 0.004 120);
@@ -58,11 +59,11 @@
   --popover-foreground: oklch(0.98 0.004 120);
 
   /* Primary = green (sparklines, stat chips, status dots, small accents) */
-  --primary: oklch(0.77 0.20 131);
+  --primary: oklch(0.448 0.119 151.328);
   --primary-foreground: oklch(0.16 0.02 135);
 
   /* Secondary = yellow-lime (the filled CTA buttons) */
-  --secondary: oklch(0.85 0.21 129);
+  --secondary: oklch(0% 0 0);
   --secondary-foreground: oklch(0.16 0.02 135);
 
   --muted: oklch(0.23 0.012 135);
@@ -223,4 +224,51 @@
 
 .font-instrument {
   font-family: "Instrument Serif", serif;
+}
+
+.outfit {
+  font-family: "Outfit", sans-serif;
+}
+
+.comic-relief-regular {
+  font-family: "Comic Relief", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.comic-relief-bold {
+  font-family: "Comic Relief", system-ui;
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@utility animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+
+@keyframes line-right {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(300%); opacity: 0; }
+}
+
+@keyframes line-left {
+  0% { transform: translateX(100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(-300%); opacity: 0; }
+}
+
+@utility animate-line-right {
+  animation: line-right 2.5s ease-in-out infinite;
+}
+
+@utility animate-line-left {
+  animation: line-left 2.5s ease-in-out infinite;
 }

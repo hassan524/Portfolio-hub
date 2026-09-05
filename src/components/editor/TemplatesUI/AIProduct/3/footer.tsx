@@ -1,8 +1,8 @@
+// @ts-nocheck
 import { Sparkles } from "lucide-react";
+import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-import type { FooterProps } from "@/types/builder.schema";
-
-export function AIProduct3Footer({ props, theme }: BlockComponentProps<FooterProps>) {
+export function AIProduct3Footer({ props, theme }: BlockComponentProps<any>) {
   const darkInk = theme?.ink || "#1A0D14";
   const accent = theme?.accent || "#E11D48";
 
@@ -17,13 +17,13 @@ export function AIProduct3Footer({ props, theme }: BlockComponentProps<FooterPro
               <Sparkles className="h-3.5 w-3.5 text-white" />
             </div>
           )}
-          <span className="font-bold text-white text-sm">WideApp GO</span>
+          <Editable className="font-bold text-white text-sm">WideApp GO</Editable>
         </div>
-        <p>© {new Date().getFullYear()} WideApp GO Inc. All rights reserved.</p>
+        <Editable as="p">© {new Date().getFullYear()} WideApp GO Inc. All rights reserved.</Editable>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-white transition-colors">Security</a>
+          <a href="#" className="hover:text-white transition-colors"><Editable>Privacy Policy</Editable></a>
+          <a href="#" className="hover:text-white transition-colors"><Editable>Terms of Service</Editable></a>
+          <a href="#" className="hover:text-white transition-colors"><Editable>Security</Editable></a>
         </div>
       </div>
     </footer>

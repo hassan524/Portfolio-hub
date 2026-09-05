@@ -1,15 +1,17 @@
-import { useRef, type ElementType, type CSSProperties, type FocusEvent } from "react";
+import { useRef, type ElementType, type CSSProperties, type FocusEvent, type ReactNode } from "react";
 import { handleEditableBlur } from "@/lib/functions/template";
 
 export function Editable({
   value,
   onChange,
+  children,
   as: Tag = "div",
   className,
   style,
 }: {
-  value: string;
-  onChange: (v: string) => void;
+  value?: string;
+  onChange?: (v: string) => void;
+  children?: ReactNode;
   as?: ElementType;
   className?: string;
   style?: CSSProperties;
@@ -22,10 +24,12 @@ export function Editable({
       data-editable="true"
       contentEditable
       suppressContentEditableWarning
-      onBlur={(e: FocusEvent<HTMLElement>) => handleEditableBlur(e, onChange)}
+      onBlur={onChange ? (e: FocusEvent<HTMLElement>) => handleEditableBlur(e, onChange) : undefined}
       className={`${className ?? ""} outline-none focus:ring-2 focus:ring-offset-2 rounded-sm cursor-text`}
       style={style}
-      dangerouslySetInnerHTML={{ __html: value }}
-    />
+      {...(value !== undefined ? { dangerouslySetInnerHTML: { __html: value } } : {})}
+    >
+      {value === undefined ? children : undefined}
+    </Tag>
   );
 }

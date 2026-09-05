@@ -1,0 +1,99 @@
+How editor changes and deploy work
+
+Simple answer:
+Yes. When you change text, colors, layout, logo, images, or styles in the editor,
+the deployed site should show the same changes.
+
+The main idea:
+The editor keeps one main object called "site".
+
+That "site" object has:
+- site name
+- category
+- tagline
+- logo URL
+- theme colors
+- blocks
+- text inside blocks
+- image URLs inside blocks
+- style edits from live preview
+
+This object is saved as JSON.
+
+What is JSON?
+JSON is just a text format for data.
+It is not the UI.
+It is the saved information that tells the UI what to show.
+
+Example:
+If you change a heading from "My Work" to "Our Projects",
+that new text is saved in the site JSON.
+
+If you change a color,
+that new color is saved in the site JSON.
+
+If you change an image,
+the image is uploaded to Supabase, and the Supabase image URL is saved in the
+site JSON.
+
+Logo:
+Yes, the logo uses Supabase.
+When you upload a logo, the file goes to the Supabase "site-assets" bucket.
+The portfolio stores the public URL for that logo.
+
+Images:
+The sidebar Images tab also uses Supabase now.
+When you replace an image, the new image goes to Supabase.
+Then the portfolio stores the new Supabase URL.
+
+Deploy:
+When you click Save & Deploy, the app creates a new React viewer app.
+That deployed app gets a file called:
+src/site.json
+
+That file contains the current edited site data.
+
+So the deploy does not guess what changed.
+It uses the same site data that the editor is showing.
+
+What files go to deploy?
+Deploy gets:
+- the viewer React app files
+- the template block component files
+- the block registry
+- the image override helper
+- src/site.json with your latest changes
+- package.json
+
+Why images still work after deploy:
+Uploaded images are stored in Supabase.
+The deployed site reads the image URLs from site.json.
+Because those URLs are public Supabase URLs, the deployed site can show them.
+
+Why hardcoded template images can be replaced:
+Some template components have images written directly inside the component code.
+For those, the editor saves an image override in the block data.
+
+Example:
+Original image URL -> New Supabase image URL
+
+The live preview uses this override.
+The deployed site also uses this override.
+
+So the preview and deploy stay the same.
+
+One approach used now:
+Use the site JSON as the source of truth.
+Use Supabase for uploaded image files.
+Use deployment files only to publish the viewer app and the latest site JSON.
+
+That means:
+- Text changes: saved in JSON
+- Color/theme changes: saved in JSON
+- Block order changes: saved in JSON
+- Block height changes: saved in JSON
+- Logo changes: image uploaded to Supabase, URL saved in JSON
+- Image changes: image uploaded to Supabase, URL saved in JSON
+- Live preview style changes: saved in JSON
+- Deploy: builds from the same JSON
+

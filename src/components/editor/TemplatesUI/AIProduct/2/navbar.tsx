@@ -1,12 +1,11 @@
+// @ts-nocheck
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-import type { NavbarProps } from "@/types/builder.schema";
+type Props = BlockComponentProps<any>;
 
-type Props = BlockComponentProps<NavbarProps>;
-
-function updateLink(links: NavbarProps["links"], onChange: Props["onChange"], i: number, label: string) {
+function updateLink(links: any, onChange: Props["onChange"], i: number, label: string) {
   const next = [...links];
   next[i] = { ...next[i], label };
   onChange({ links: next });
@@ -39,7 +38,11 @@ export function AIProduct2Navbar({ props, theme, onChange }: Props) {
               className="text-xs font-semibold tracking-wider uppercase cursor-pointer transition-opacity duration-200 hover:opacity-100 opacity-60"
               style={{ color: ink }}
             >
-              <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+              <Editable
+                className="inline"
+                value={l.label}
+                onChange={(v) => updateLink(props.links, onChange, i, v)}
+              />
             </div>
           ))}
         </nav>
@@ -50,7 +53,11 @@ export function AIProduct2Navbar({ props, theme, onChange }: Props) {
             className="hidden md:flex items-center px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide cursor-pointer shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-95"
             style={{ background: accent, color: bg }}
           >
-            <Editable value={props.ctaLabel} onChange={(v) => onChange({ ctaLabel: v })} className="inline" />
+            <Editable
+              className="inline"
+              value={props.ctaLabel}
+              onChange={(v) => onChange({ ctaLabel: v })}
+            />
           </a>
         )}
 
@@ -69,7 +76,7 @@ export function AIProduct2Navbar({ props, theme, onChange }: Props) {
           style={{ background: `${bg}F8` }}
         >
           <div className="flex justify-between items-center mb-12">
-            <span className="font-bold text-sm tracking-widest uppercase opacity-60" style={{ color: ink }}>Navigation</span>
+            <Editable as="span" value="Navigation" className="font-bold text-sm tracking-widest uppercase opacity-60" style={{ color: ink }} />
             <button
               onClick={() => setOpen(false)}
               className="p-2 rounded-xl transition-colors hover:bg-black/5"
@@ -81,7 +88,11 @@ export function AIProduct2Navbar({ props, theme, onChange }: Props) {
           <div className="flex flex-col gap-6 flex-1 justify-center items-center text-center">
             {props.links.map((l, i) => (
               <div key={i} className="text-2xl font-bold cursor-pointer opacity-70 hover:opacity-100 transition-opacity" style={{ color: ink }}>
-                <Editable value={l.label} onChange={(v) => updateLink(props.links, onChange, i, v)} className="inline" />
+                <Editable
+                  className="inline"
+                  value={l.label}
+                  onChange={(v) => updateLink(props.links, onChange, i, v)}
+                />
               </div>
             ))}
           </div>

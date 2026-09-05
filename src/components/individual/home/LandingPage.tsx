@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PageShell } from "@/components/individual/PageShell";
 import { TemplatePreviewDialog } from "@/components/editor/TemplatePreviewDialog";
 import type { SiteData } from "@/types/builder.schema";
+import {FinalCTA }from "@/components/individual/home/ui/FinalCTA";
 
 // Subcomponents
 import { Hero } from "./ui/Hero";
@@ -11,9 +12,9 @@ import { HowItWorks } from "./ui/HowItWorks";
 import { FeatureGrid } from "./ui/FeatureGrid";
 import { LiveEditorPreview } from "./ui/LiveEditorPreview";
 import { Testimonials } from "./ui/Testimonials";
-import { FAQ } from "./ui/FAQ";
-import { FinalCTA } from "./ui/FinalCTA";
-
+import { FAQSection } from "./ui/FAQ";
+import { TopSection } from "../TopSection";
+import { Header } from "../Header";
 export function LandingPage() {
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,14 +31,18 @@ export function LandingPage() {
 
   return (
     <PageShell>
-      <Hero />
-      <LogoStrip />
+      <TopSection>
+        <Header />
+        <Hero />
+      </TopSection>
+
+      {/* <LogoStrip />  */}
       <TemplateShowcase onPreview={openPreview} />
       <HowItWorks />
       <FeatureGrid />
       <LiveEditorPreview />
       <Testimonials />
-      <FAQ />
+      {/* <FAQSection /> */}
       <FinalCTA />
 
       <TemplatePreviewDialog

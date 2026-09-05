@@ -34,8 +34,11 @@ export function Header() {
   const APP_NAV_LINKS = [
     { label: "Dashboard", to: portfoliosUrl },
     { label: "Templates", to: "/templates" as const },
+    { label: "Features", to: "/features" as const },
     ...(!hasPaid ? [{ label: "Pricing", to: "/pricing" as const }] : []),
+    { label: "About", to: "/about" as const },
     { label: "Help", to: "/help" as const },
+    { label: "Contact", to: "/contact" as const },
   ];
 
   const NAV_LINKS = isLoggedIn ? APP_NAV_LINKS : PUBLIC_NAV_LINKS;
@@ -90,10 +93,10 @@ export function Header() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className={`flex h-16 w-full items-center justify-between border-b px-5 sm:px-8 backdrop-blur-xl transition-all duration-300 ${
+        className={`relative flex h-16 w-full items-center justify-between px-5 sm:px-8 backdrop-blur-xl transition-all duration-300 ${
           scrolled
-            ? "bg-surface-elevated/90 border-border/50 shadow-lift"
-            : "bg-surface-elevated/90 border-border/40"
+            ? "bg-transparent shadow-lift"
+            : "bg-transparent"
         }`}
       >
         {/* ─── Logo + Desktop Nav ─── */}
@@ -106,7 +109,9 @@ export function Header() {
             />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+        </div>
+
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -116,8 +121,7 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-          </nav>
-        </div>
+        </nav>
 
         {/* ─── Desktop CTA ─── */}
         <div className="hidden md:flex items-center gap-3">
@@ -154,7 +158,7 @@ export function Header() {
                         duration: 0.2,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="absolute right-0 top-11 w-64 rounded-2xl border border-border/50 bg-surface-elevated/90 backdrop-blur-xl shadow-lift overflow-hidden z-50"
+                      className="absolute right-0 top-11 w-64 rounded-2xl border border-border/50 bg-black backdrop-blur-xl shadow-lift overflow-hidden z-50"
                     >
                       {/* User info */}
                       <div className="px-4 py-4 border-b border-border/50">
@@ -284,7 +288,7 @@ export function Header() {
               duration: 0.3,
               ease: "easeInOut",
             }}
-            className="md:hidden absolute left-0 right-0 top-full w-full overflow-hidden border-b border-border/40 bg-surface-elevated/95 backdrop-blur-xl shadow-lift"
+            className="md:hidden absolute left-0 right-0 top-full w-full overflow-hidden border-b border-border/40 bg-black backdrop-blur-xl shadow-lift"
           >
             <div className="flex flex-col px-2">
               {NAV_LINKS.map((link, i) => (

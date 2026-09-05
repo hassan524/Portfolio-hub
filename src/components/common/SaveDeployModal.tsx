@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, X, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Check, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DeployPlatform } from "./Deploymodal";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import deployapi from "@/api/deploy";
 
 export type { DeployPlatform };
 export type SaveMode = "draft" | "deploy";
@@ -14,6 +15,7 @@ export interface SaveDeployModalProps {
   onConfirmSave: (mode: SaveMode, name: string, description: string) => void;
   onProceedToDeploy?: (name: string, description: string) => void;
   siteName?: string;
+  onNameChange?: (name: string) => void;
   deployedPlatform?: DeployPlatform;
   setDeployedPlatform?: (platform: DeployPlatform) => void;
   saving?: boolean;
@@ -39,6 +41,7 @@ const SAVE_MODES: SaveModeOption[] = [
 ];
 
 const MIN_CHARS = 50;
+const CHECK_DEBOUNCE_MS = 500;
 
 type Step = "choice" | "info";
 const STEP_ORDER: Step[] = ["choice", "info"];
@@ -84,6 +87,7 @@ export function SaveDeployModal({
   onOpenChange,
   onConfirmSave,
   onProceedToDeploy,
+  onNameChange,
   siteName = "my-portfolio",
   saving = false,
 }: SaveDeployModalProps) {
@@ -93,8 +97,19 @@ export function SaveDeployModal({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
+  // "idle" | "checking" | "available" | "taken" | "error"
+  const [availability, setAvailability] = useState("idle");
+  const [liveUrl, setLiveUrl] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  // holds the pending debounce timer — typed as "timer or undefined" so
+  // clearTimeout() accepts it (this is what was throwing the ts error)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // counts each check so a slow, old response can't overwrite a newer one
+  const seqRef = useRef(0);
+
   const chars = charCount(description);
-  const canContinueFromInfo = name.trim().length > 0 && chars >= MIN_CHARS;
+  const canContinueFromInfo = name.trim().length > 0 && chars >= MIN_CHARS && availability !== "taken";
   // Only meaningful once the user has actually typed something — no preview
   // before that, so nothing appears "pre-decided" on their behalf.
   const hasTypedName = name.trim().length > 0;
@@ -114,10 +129,52 @@ export function SaveDeployModal({
       setDirection(1);
       setStepRaw("choice");
       setSaveMode("deploy");
-      setName("");
+      setName(siteName && siteName !== "my-portfolio" ? siteName : "");
       setDescription("");
+      setAvailability("idle");
+      setLiveUrl("");
+      setSuggestions([]);
     }
   }, [open]);
+
+  const handleNameChange = (nextName: string) => {
+    setName(nextName);
+    onNameChange?.(nextName);
+  };
+
+  // Live availability check — debounced.
+  // 1. user types -> slug changes -> this effect re-runs
+  // 2. cancel whatever timer was waiting, start a fresh 500ms one
+  // 3. if they keep typing, step 2 keeps cancelling/restarting it
+  // 4. once they pause for 500ms, it fires and calls the backend,
+  //    which asks Vercel if that project name is taken
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+
+    if (saveMode !== "deploy" || !hasTypedName) {
+      setAvailability("idle");
+      return;
+    }
+
+    setAvailability("checking");
+    const mySeq = ++seqRef.current;
+
+    debounceRef.current = setTimeout(() => {
+      deployapi
+        .checkNameAvailability("vercel", slug)
+        .then((res) => {
+          if (seqRef.current !== mySeq) return; // a newer check already started, ignore this stale one
+          setAvailability(res.data.available ? "available" : "taken");
+          setLiveUrl(res.data.url);
+          setSuggestions(res.data.suggestions || []);
+        })
+        .catch(() => {
+          if (seqRef.current === mySeq) setAvailability("error");
+        });
+    }, CHECK_DEBOUNCE_MS);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [slug, saveMode, hasTypedName]);
 
   // Closes the dialog — blocked while a save is actually in progress.
   const close = useCallback(() => {
@@ -230,17 +287,58 @@ export function SaveDeployModal({
                   <input
                     id="portfolio-name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => handleNameChange(e.target.value)}
                     placeholder={siteName}
                     disabled={saving}
                     className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
                   />
+
                   {saveMode === "deploy" && hasTypedName && (
-                    <p className="text-[10px] leading-relaxed text-neutral-500">
-                      Your link will be related to this name — something like{" "}
-                      <span className="font-mono text-neutral-300">{slug}.vercel.app</span>.
-                      Keep it short, no spaces.
-                    </p>
+                    <div className="flex items-start gap-1.5 text-[10px] leading-relaxed">
+                      {availability === "checking" && (
+                        <>
+                          <Loader2 className="h-3 w-3 mt-0.5 shrink-0 animate-spin text-neutral-400" />
+                          <span className="text-neutral-500">
+                            Checking <span className="font-mono text-neutral-300">{slug}.vercel.app</span>…
+                          </span>
+                        </>
+                      )}
+                      {availability === "available" && (
+                        <>
+                          <Check className="h-3 w-3 mt-0.5 shrink-0 text-emerald-400" />
+                          <span className="text-neutral-500">
+                            <span className="font-mono text-primary">{liveUrl}</span> is available
+                          </span>
+                        </>
+                      )}
+                      {availability === "taken" && (
+                        <div className="w-full">
+                          <div className="flex items-start gap-1.5">
+                            <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 text-red-400" />
+                            <span className="text-neutral-500">
+                              <span className="font-mono text-red-300">{liveUrl}</span> is already taken
+                            </span>
+                          </div>
+                          {suggestions.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1.5 pl-4.5">
+                              {suggestions.map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => handleNameChange(s)}
+                                  className="rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] font-mono text-neutral-300 hover:border-neutral-500 hover:text-white"
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {availability === "error" && (
+                        <span className="text-neutral-500">Couldn't check right now — you can still continue.</span>
+                      )}
+                    </div>
                   )}
                 </div>
 

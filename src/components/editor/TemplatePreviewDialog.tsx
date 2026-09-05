@@ -275,6 +275,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
         open={saveModalOpen}
         onOpenChange={setSaveModalOpen}
         siteName={site.name}
+        onNameChange={(name: string) => handleUpdateSiteMeta({ name })}
         onConfirmSave={handleConfirmSave}
         deployedPlatform={deployedPlatform}
         setDeployedPlatform={setdeployedPlatform}

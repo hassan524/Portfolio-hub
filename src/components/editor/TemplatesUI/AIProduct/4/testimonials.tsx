@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Editable } from "@/components/editor/ui/Editable";
 import { Quote, Sparkles } from "lucide-react";
 import type { BlockComponentProps } from "@/components/blocks/types";

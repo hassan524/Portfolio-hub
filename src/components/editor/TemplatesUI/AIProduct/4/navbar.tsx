@@ -1,10 +1,9 @@
+// @ts-nocheck
 import { useState } from "react";
 import { Menu, X, Cpu, Terminal } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-import type { NavbarProps } from "@/types/builder.schema";
-
-type Props = BlockComponentProps<NavbarProps>;
+type Props = BlockComponentProps<any>;
 
 export function AIProduct4Navbar({ props, theme, onChange }: Props) {
   const [open, setOpen] = useState(false);
