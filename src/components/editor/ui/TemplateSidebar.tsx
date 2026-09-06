@@ -780,7 +780,7 @@ function BlockImagesEntry({
         return {
           src,
           originalSrc,
-          siteKey: site.logo && originalSrc === site.logo ? "logo" : undefined,
+          siteKey: site.logo && originalSrc === site.logo ? ("logo" as const) : undefined,
           path: pathBySrc.get(originalSrc) ?? pathBySrc.get(src) ?? null,
         };
       })

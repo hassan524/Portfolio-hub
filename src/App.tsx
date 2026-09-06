@@ -13,7 +13,7 @@ import { PortfoliosPage } from "./components/individual/portfolios/PortfoliosPag
 import { PrivacyPage } from "@/components/individual/privacy/PrivacyPage";
 import { RefundPage } from "@/components/individual/refund/RefundPage";
 import { SocialRedirectPage } from "@/components/individual/social/SocialRedirectPage";
-import { StatusPage } from "@/components/individual/status/StatusPage";
+import { SettingsPage } from "@/components/individual/settings/SettingsPage";
 import { TemplatesPage } from "@/components/individual/templates/TemplatesPage";
 import { TermsPage } from "@/components/individual/terms/TermsPage";
 import { PricingPage } from "@/components/individual/pricing/PricingPage";
@@ -173,7 +173,14 @@ export default function App() {
             />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/refunds" element={<RefundPage />} />
-            <Route path="/status" element={<StatusPage />} />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/templates"
               element={

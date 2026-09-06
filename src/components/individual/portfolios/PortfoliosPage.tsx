@@ -16,7 +16,7 @@ export function PortfoliosPage() {
           <div>
             <p className="eyebrow mb-3">Workspace</p>
             <h1 className="text-3xl font-medium leading-tight tracking-tight text-foreground">
-              Your <span className="font-serif italic text-primary">portfolios</span>, instrumented
+              Your portfolios, instrumented
             </h1>
             <p className="mt-2 max-w-[56ch] text-sm text-muted-foreground">
               {portfolios.length} projects · {live} live · {fmt.format(totalViews)} views in the last

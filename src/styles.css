@@ -215,6 +215,37 @@
   height: 0;
 }
 
+.templates-category-select-content {
+  overflow: hidden;
+  animation: none !important;
+  transition: none !important;
+}
+
+.templates-category-select-content [data-radix-select-viewport] {
+  height: 18rem;
+  max-height: 18rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  animation: none !important;
+  transition: none !important;
+  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+  scrollbar-width: thin;
+}
+
+.templates-category-select-content [data-radix-select-viewport]::-webkit-scrollbar {
+  width: 5px;
+}
+
+.templates-category-select-content [data-radix-select-viewport]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.templates-category-select-content [data-radix-select-viewport]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 9999px;
+}
+
 
 
 /* font  */

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { FaXTwitter, FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa6";
 
 export function Footer() {
@@ -10,71 +10,66 @@ export function Footer() {
         { label: "Templates", to: "/templates" },
         { label: "Features", to: "/features" },
         { label: "Pricing", to: "/pricing" },
-        { label: "Changelog", to: "/changelog" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { label: "About", to: "/about" },
-        { label: "Contact", to: "/contact" },
-        { label: "Careers", to: "/careers" },
-        { label: "Blog", to: "/blog" },
       ],
     },
     {
       title: "Resources",
       links: [
         { label: "Help Center", to: "/help" },
-        { label: "Documentation", to: "/docs" },
-        { label: "Community", to: "/community" },
-        { label: "Status", to: "/status" },
+        { label: "Contact Us", to: "/contact" },
+        { label: "Refund Policy", to: "/refunds" },
       ],
     },
     {
-      title: "Legal",
+      title: "Company",
       links: [
-        { label: "Privacy", to: "/privacy" },
-        { label: "Terms", to: "/terms" },
-        { label: "Refunds", to: "/refunds" },
-        { label: "Cookies", to: "/cookies" },
+        { label: "About Us", to: "/about" },
+        { label: "Privacy Policy", to: "/privacy" },
+        { label: "Terms of Service", to: "/terms" },
+        { label: "Cookie Policy", to: "/cookies" },
       ],
     },
   ];
 
   const socials = [
-    { icon: FaXTwitter, href: "https://twitter.com" },
-    { icon: FaGithub, href: "https://github.com" },
-    { icon: FaLinkedin, href: "https://linkedin.com" },
-    { icon: FaInstagram, href: "https://instagram.com" },
+    { icon: FaXTwitter, href: "https://twitter.com", label: "Twitter" },
+    { icon: FaGithub, href: "https://github.com", label: "GitHub" },
+    { icon: FaLinkedin, href: "https://linkedin.com", label: "LinkedIn" },
+    { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
   ];
 
   return (
-    <footer className="relative border-t border-border bg-surface overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6 pt-20 pb-10">
-        <div className="grid grid-cols-2 gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
-          {/* Brand column */}
-          <div className="col-span-2 lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-brand">
-                <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </span>
-              <span className="poppins text-lg font-semibold text-white">Portflu</span>
+    <footer className="relative border-t border-border/60 bg-surface text-ink overflow-hidden" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+      {/* Decorative subtle ambient glow */}
+      <div className="pointer-events-none absolute -top-24 right-1/4 h-64 w-64 rounded-full bg-emerald-500/5 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-accent/5 blur-3xl" />
+
+      <div className="mx-auto max-w-7xl px-6 pt-16 pb-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
+          {/* Brand Column */}
+          <div className="lg:col-span-2 pr-4 space-y-4">
+            <Link to="/" className="inline-flex items-center gap-2.5 cursor-pointer group">
+              <img
+                src="/logo.png"
+                alt="Portflu"
+                className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              />
             </Link>
 
-            <p className="mt-5 max-w-xs text-sm text-ink-soft leading-relaxed">
-              The fastest way to publish a portfolio you're proud of. Free,
-              forever — with premium templates included.
+            <p className="max-w-sm text-sm text-ink-soft leading-relaxed">
+              Build and publish high-converting, professional portfolios in minutes with customizable templates and instant hosting.
             </p>
 
-            <div className="mt-6 flex items-center gap-2.5">
-              {socials.map(({ icon: Icon, href }, i) => (
+            {/* Social Icons */}
+            <div className="pt-2 flex items-center gap-2.5">
+              {socials.map(({ icon: Icon, href, label }) => (
                 <a
-                  key={i}
+                  key={label}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className="grid h-9 w-9 place-items-center rounded-full border border-border text-ink-soft transition-colors duration-300 hover:text-white hover:border-white/25 hover:bg-white/5"
+                  aria-label={label}
+                  className="grid h-9 w-9 place-items-center rounded-xl border border-border/60 bg-white/[0.02] text-ink-soft transition-all duration-200 hover:text-white hover:border-emerald-500/40 hover:bg-emerald-950/40 hover:scale-105 cursor-pointer"
                 >
                   <Icon className="h-4 w-4" />
                 </a>
@@ -82,20 +77,20 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Link columns */}
+          {/* Link Group Columns */}
           {linkGroups.map((group) => (
-            <div key={group.title}>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50">
+            <div key={group.title} className="space-y-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-soft/80">
                 {group.title}
               </h4>
-              <ul className="mt-5 space-y-3">
+              <ul className="space-y-2.5">
                 {group.links.map((l) => (
                   <li key={l.label}>
                     <Link
                       to={l.to}
-                      className="text-sm text-ink-soft hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-white hover:translate-x-0.5 transition-all duration-200 cursor-pointer group"
                     >
-                      {l.label}
+                      <span>{l.label}</span>
                     </Link>
                   </li>
                 ))}
@@ -104,25 +99,23 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-t border-border pt-8">
-          <p className="text-xs text-ink-soft">
-            © {new Date().getFullYear()} Portflu. Crafted for creators everywhere.
-          </p>
+        {/* Bottom Bar */}
+        <div className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/40 pt-8 text-xs text-ink-soft">
+          <p>© {new Date().getFullYear()} Portflu. All rights reserved.</p>
 
           <div className="flex items-center gap-6">
-            <Link to="/privacy" className="text-xs text-ink-soft hover:text-white transition-colors">
-              Privacy
+            <Link to="/privacy" className="hover:text-white transition-colors cursor-pointer">
+              Privacy Policy
             </Link>
-            <Link to="/terms" className="text-xs text-ink-soft hover:text-white transition-colors">
-              Terms
+            <Link to="/terms" className="hover:text-white transition-colors cursor-pointer">
+              Terms of Service
             </Link>
-            <span className="text-xs text-ink-soft">
-              Made with care, everywhere.
-            </span>
+            <Link to="/cookies" className="hover:text-white transition-colors cursor-pointer">
+              Cookie Settings
+            </Link>
           </div>
         </div>
       </div>
     </footer>
   );
-}
+}
