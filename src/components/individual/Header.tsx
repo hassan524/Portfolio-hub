@@ -1,7 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, LayoutDashboard, ChevronRight, Settings } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export function Header() {
@@ -21,6 +21,7 @@ export function Header() {
 
   // Public (logged-out) nav — full marketing set
   const PUBLIC_NAV_LINKS = [
+    { label: "Home", to: "/" as const },
     // { label: "Templates", to: "/templates" as const }, 
     { label: "Features", to: "/features" as const },
     { label: "Pricing", to: "/pricing" as const },
@@ -32,6 +33,7 @@ export function Header() {
   // App (logged-in) nav — trimmed to what a user actually needs,
   // Pricing stays visible only if they haven't upgraded yet
   const APP_NAV_LINKS = [
+    { label: "Home", to: "/" as const },
     { label: "Dashboard", to: portfoliosUrl },
     { label: "Templates", to: "/templates" as const },
     { label: "Features", to: "/features" as const },
@@ -50,6 +52,14 @@ export function Header() {
 
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   // Close avatar dropdown on outside click
   useEffect(() => {
@@ -111,15 +121,25 @@ export function Header() {
 
         </div>
 
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
+        <nav
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex"
+          style={{ fontFamily: "'Open Sans', sans-serif" }}
+        >
             {NAV_LINKS.map((link) => (
-              <Link
+              <NavLink
                 key={link.label}
                 to={link.to}
-                className="relative px-3 py-2 text-[14px] font-medium text-ink-soft hover:text-ink transition-colors rounded-lg hover:bg-white/5"
+                  end={link.to === "/"}
+                className={({ isActive }) =>
+                  `relative rounded-lg px-3 py-2 text-[15px] font-medium transition-colors hover:bg-white/5 ${
+                    isActive
+                      ? "bg-white/10 text-ink"
+                      : "text-ink-soft hover:text-ink"
+                  }`
+                }
               >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
         </nav>
 
@@ -281,16 +301,39 @@ export function Header() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: "easeInOut",
-            }}
-            className="md:hidden absolute left-0 right-0 top-full w-full overflow-hidden border-b border-border/40 bg-black backdrop-blur-xl shadow-lift"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -12 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-y-auto bg-background md:hidden"
           >
-            <div className="flex flex-col px-2">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/40 px-5">
+              <Link
+                to="/"
+                onClick={() => setOpen(false)}
+                className="flex items-center"
+              >
+                <img
+                  src="/logo.png"
+                  alt="Portflu"
+                  className="h-8 w-auto object-contain"
+                />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 text-ink transition-colors hover:bg-white/5"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div
+              className="flex flex-1 flex-col px-5 pb-8 pt-6"
+              style={{ fontFamily: "'Open Sans', sans-serif" }}
+            >
               {NAV_LINKS.map((link, i) => (
                 <motion.div
                   key={link.label}
@@ -300,24 +343,26 @@ export function Header() {
                     delay: i * 0.05,
                     duration: 0.3,
                   }}
-                  className={
-                    i !== NAV_LINKS.length - 1
-                      ? "border-b border-border/30"
-                      : ""
-                  }
+                  className="border-b border-white/15"
                 >
-                  <Link
+                  <NavLink
                     to={link.to}
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between px-3 py-4 text-base font-semibold text-ink hover:text-ink-soft transition-colors"
+                    end={link.to === "/"}
+                    className={({ isActive }) =>
+                      `flex items-center justify-between px-1 py-5 text-lg font-semibold transition-colors ${
+                        isActive
+                          ? "text-ink"
+                          : "text-ink hover:text-ink-soft"
+                      }`
+                    }
                   >
                     {link.label}
-                    <ChevronRight className="h-4 w-4 text-ink-soft" />
-                  </Link>
+                  </NavLink>
                 </motion.div>
               ))}
 
-              <div className="mt-4 mb-3 px-3 space-y-3">
+              <div className="mt-auto space-y-3 pt-10">
                 {isLoggedIn ? (
                   <>
                     <div className="flex items-center gap-3 pb-1">
@@ -334,7 +379,7 @@ export function Header() {
 
                     <button
                       onClick={handleSignOut}
-                      className="w-full rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
+                      className="w-full rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-white/5"
                     >
                       Sign out
                     </button>
@@ -344,7 +389,7 @@ export function Header() {
                     <Link
                       to="/auth/login"
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-center rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink hover:bg-white/5 transition-colors"
+                      className="flex items-center justify-center rounded-full border border-border px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-white/5"
                     >
                       Sign In
                     </Link>
@@ -352,7 +397,7 @@ export function Header() {
                     <Link
                       to="/auth/signup"
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft"
+                      className="flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-soft transition-opacity hover:opacity-90"
                     >
                       Get started
                     </Link>

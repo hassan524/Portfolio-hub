@@ -14,7 +14,7 @@ import { LiveEditorPreview } from "./ui/LiveEditorPreview";
 import { Testimonials } from "./ui/Testimonials";
 import { FAQSection } from "./ui/FAQ";
 import { TopSection } from "../TopSection";
-import { Header } from "../Header";
+
 export function LandingPage() {
   const [dialogTemplate, setDialogTemplate] = useState<SiteData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,10 +29,9 @@ export function LandingPage() {
     setTimeout(() => setDialogTemplate(null), 300);
   };
 
-  return (
+    return (
     <PageShell>
       <TopSection>
-        <Header />
         <Hero />
       </TopSection>
 
