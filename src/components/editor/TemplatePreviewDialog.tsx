@@ -26,6 +26,7 @@ import {
 } from "@/lib/functions/template";
 import { DeployModal } from "../common/Deploymodal";
 import { toast } from "sonner";
+import { PortfolioRow } from "@/types/portfolio";
 
 interface Props {
   template: SiteData | null;
@@ -47,7 +48,7 @@ const FALLBACK_THEME: Theme = {
 export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const navigate = useNavigate();
   const { profile } = useAppContext();
-
+  const [portfolio, setPortfolio] = useState<PortfolioRow | null>(null);
   const [activeSection, setActiveSection] = useState<string>("hero");
   const [isSaving, setIsSaving] = useState(false);
   const [site, setSite] = useState<SiteData | null>(null);
@@ -164,17 +165,18 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
     setIsSaving(true);
     try {
       const response = await portfolioApi.createPortfolio(name, description, site, template.id, mode);
-      const portfolio = response.data;
-
+      const portfolio = response.data.portfolio;
+      setPortfolio(portfolio);
       setSaveModalOpen(false);
 
       if (portfolio.isdraft) {
+
         toast.success("Saved as draft!");
         navigate(`/dashboard/${portfolio.id}`);
+
       } else {
 
         const files = await buildViewerAppFiles(site);
-        console.log("Generated files for deployment:", files);
         setDeployFiles(files);
 
         toast.success("Portfolio saved!");
@@ -283,11 +285,12 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       />
 
       <DeployModal
+        portfolio={portfolio}
         open={DeployModalOpen}
         onOpenChange={setDeployModalOpen}
         name={site.name}
-        description={site.tagline}
         files={deployFiles}
+        portfolioId={site?.id}
       />
 
     </>

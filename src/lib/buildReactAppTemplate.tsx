@@ -198,10 +198,18 @@ export async function buildViewerAppFiles(site: SiteData) {
   });
 
   const appTsx = `
+import { useEffect } from "react";
 import siteData from "./site.json";
 ${importLines.join("\n")}
 
 export default function App() {
+  useEffect(() => {
+    fetch("https://localhost:5000/api/portfolio/track/" + siteData.id, {
+      method: "POST",
+      keepalive: true,
+    });
+  }, []);
+
   return (
     <main style={{ minHeight: "100vh", background: siteData.theme.bg, color: siteData.theme.ink }}>
       ${renderLines.join("\n      ")}

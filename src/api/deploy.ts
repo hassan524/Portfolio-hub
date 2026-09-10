@@ -9,11 +9,11 @@ const deployApi = {
 
   authorizeNetlify: () => api.get("/deploy/netlify/authorize"),
 
-  deployVercel: (files: Record<string, string>, projectName?: string) =>
-    api.post("/deploy/vercel/deploy", { files, projectName }),
+  deployVercel: (files: Record<string, string>, projectName?: string, PortfolioID?: string) =>
+    api.post("/deploy/vercel/deploy", { files, projectName, PortfolioID }),
 
-  deployNetlify: (files: Record<string, string>, projectName?: string) =>
-    api.post("/deploy/netlify/deploy", { files, projectName }),
+  deployNetlify: (files: Record<string, string>, projectName?: string, PortfolioID?: string) =>
+    api.post("/deploy/netlify/deploy", { files, projectName, PortfolioID }),
 
   checkNameAvailability: (platform: "vercel" | "netlify", name: string) =>
     api.get(`/deploy/${platform}/check-name`, { params: { name } }),

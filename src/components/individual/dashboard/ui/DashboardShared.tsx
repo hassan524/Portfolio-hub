@@ -30,38 +30,36 @@ export function RangeToggle({
 
 export function MetricBand() {
   return (
-    <div className="col-span-12 flex flex-wrap items-center justify-between gap-8 bg-background p-8">
-      <div className="flex items-baseline gap-7">
-        <div>
-          <p className="eyebrow mb-2">Total views</p>
-          <p className="numeric text-4xl font-medium text-foreground">124,892</p>
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="rounded-xl border border-border bg-surface p-4">
+        <p className="text-xs font-medium text-muted-foreground">Total Views</p>
+        <div className="mt-1.5 flex items-baseline justify-between">
+          <p className="numeric text-2xl font-semibold text-foreground">124,892</p>
+          <span className="text-[11px] font-medium text-emerald-500">+12.4%</span>
         </div>
-        <div className="h-10 w-40">
-          <Sparkline data={viewSeries} className="size-full" />
-        </div>
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-          +12.4%
-        </span>
       </div>
-      <div className="flex gap-10 text-right">
-        <div>
-          <p className="eyebrow mb-2">Unique</p>
-          <p className="numeric text-xl font-medium text-foreground">61,204</p>
+
+      <div className="rounded-xl border border-border bg-surface p-4">
+        <p className="text-xs font-medium text-muted-foreground">Deployment Status</p>
+        <div className="mt-1.5 flex items-center justify-between">
+          <p className="text-sm font-semibold text-foreground">Production Ready</p>
+          <span className="size-2 rounded-full bg-emerald-500" />
         </div>
-        <div>
-          <p className="eyebrow mb-2">Avg duration</p>
-          <p className="numeric text-xl font-medium text-foreground">02:45</p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-surface p-4">
+        <p className="text-xs font-medium text-muted-foreground">Custom Domain</p>
+        <div className="mt-1.5 flex items-center justify-between">
+          <p className="text-sm font-semibold text-foreground">Active (SSL)</p>
+          <span className="text-[11px] text-muted-foreground font-mono">HTTPS</span>
         </div>
-        <div>
-          <p className="eyebrow mb-2">Bounce rate</p>
-          <p className="numeric text-xl font-medium text-foreground">24.2%</p>
-        </div>
-        <div>
-          <p className="eyebrow mb-2">Live now</p>
-          <p className="numeric flex items-center justify-end gap-2 text-xl font-medium text-foreground">
-            84
-            <span className="size-1.5 rounded-full bg-primary glow-dot" />
-          </p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-surface p-4">
+        <p className="text-xs font-medium text-muted-foreground">Last Deployed</p>
+        <div className="mt-1.5 flex items-baseline justify-between">
+          <p className="text-sm font-semibold text-foreground">2 mins ago</p>
+          <span className="font-mono text-[10px] text-muted-foreground">main@3a9f1b</span>
         </div>
       </div>
     </div>
@@ -80,19 +78,19 @@ export function BarRow({
   mono?: boolean;
 }) {
   return (
-    <div className="group grid grid-cols-12 items-center gap-4 border-t border-border py-3">
+    <div className="grid grid-cols-12 items-center gap-4 border-t border-border py-2.5">
       <span
-        className={`col-span-6 flex items-center gap-2.5 text-sm text-foreground ${mono ? "font-mono text-[12px]" : ""}`}
+        className={`col-span-6 flex items-center gap-2.5 text-sm text-foreground ${mono ? "font-mono text-xs" : ""}`}
       >
-        <span className="size-4 shrink-0 rounded-sm bg-surface-raised" />
+        <span className="size-3 shrink-0 rounded-sm bg-muted" />
         {label}
       </span>
       <span className="numeric col-span-3 text-right text-sm text-muted-foreground">{value}</span>
-      <span className="col-span-3 flex items-center justify-end gap-3">
-        <span className="h-1 w-20 overflow-hidden rounded-full bg-muted">
+      <span className="col-span-3 flex items-center justify-end gap-2.5">
+        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
           <span className="block h-full bg-primary" style={{ width: `${share}%` }} />
         </span>
-        <span className="numeric w-8 text-right text-[11px] text-subtle">{share}%</span>
+        <span className="numeric w-7 text-right text-[11px] text-muted-foreground">{share}%</span>
       </span>
     </div>
   );
@@ -100,48 +98,33 @@ export function BarRow({
 
 export function DeployRow({ d }: { d: (typeof deployments)[number] }) {
   return (
-    <div className="group flex items-center justify-between gap-6 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border-strong">
-      <div className="flex min-w-0 items-center gap-4">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-3.5 transition-colors">
+      <div className="flex min-w-0 items-center gap-3">
         <span
           className={`size-2 shrink-0 rounded-full ${
             d.state === "ready"
-              ? "bg-primary glow-dot"
+              ? "bg-emerald-500"
               : d.state === "building"
-                ? "animate-pulse bg-warning"
+                ? "bg-amber-500"
                 : "bg-destructive"
           }`}
         />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">{d.message}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-subtle">
+          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
             {d.branch} @ {d.sha} · {d.when} · {d.by}
           </p>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-4">
+      <div className="flex shrink-0 items-center gap-3">
         <StatusChip state={d.state} />
         <a
           href={`https://${d.url}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden rounded bg-background px-2 py-1 font-mono text-[10px] text-subtle md:block underline decoration-primary/40 underline-offset-2 hover:text-primary transition-colors cursor-pointer"
+          className="hidden rounded border border-border bg-background px-2 py-1 font-mono text-[10px] text-muted-foreground hover:text-foreground transition-colors md:block"
         >
           {d.url}
-        </a>
-        <a
-          href={`https://${d.url}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-subtle opacity-0 transition-opacity group-hover:opacity-100 cursor-pointer hover:text-primary"
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
         </a>
       </div>
     </div>

@@ -10,8 +10,6 @@ import {
 } from "react";
 import { Maximize2, Minimize2, Monitor, Move, Save, Smartphone, X, PencilLine } from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
-import { getImageOverrides } from "@/lib/imageOverrideUtils";
-import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
 import type {
@@ -19,7 +17,7 @@ import type {
   PreviewElementEdit,
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
-import type { SiteData, Block } from "@/types/builder.schema";
+import type { SiteData, Block, Theme } from "@/types/builder.schema";
 import {
   calculateViewportScale,
   tagAndApplyPreviewStyles,
@@ -53,6 +51,121 @@ const VIEWPORT_PADDING = 40;
 
 type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
 
+const MINI_FALLBACK_THEME: Theme = {
+  bg: "#ffffff",
+  ink: "#111111",
+  accent: "#6366f1",
+  fontHeading: "inherit",
+  fontBody: "inherit",
+  corners: "soft",
+  spacing: "cozy",
+};
+
+// ============================================================================
+// ABOUT TAB — per-section "screenshots" (real rendered sections, scaled down)
+// ============================================================================
+
+const SECTION_SCREENSHOT_WIDTH = 1200;
+
+// Renders ONE block at full width then scales it down to fit the card,
+// like a real screenshot of that section — not a live editable canvas.
+function SectionScreenshot({
+  block,
+  site,
+  theme,
+}: {
+  block: Block;
+  site: PreviewEditableSite;
+  theme: Theme;
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.25);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    const wrapperEl = wrapperRef.current;
+    const innerEl = innerRef.current;
+    if (!wrapperEl || !innerEl) return;
+
+    const update = () => {
+      setScale(wrapperEl.clientWidth / SECTION_SCREENSHOT_WIDTH);
+      setContentHeight(innerEl.scrollHeight);
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(wrapperEl);
+    ro.observe(innerEl);
+
+    return () => ro.disconnect();
+  }, []);
+
+  const variant = (block.props as { variant?: string }).variant;
+  const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
+  if (!Cmp) return null;
+
+  const displayName = block.label ?? block.name ?? block.props.kind;
+
+  return (
+    <div className="rounded-xl border border-border bg-background shadow-md overflow-hidden">
+      {/* Caption bar — just a label, not editor chrome */}
+      <div className="h-8 border-b border-border bg-surface flex items-center px-3 shrink-0">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground capitalize">
+          {displayName}
+        </span>
+      </div>
+
+      {/* Scaled-down screenshot of just this section */}
+      <div
+        ref={wrapperRef}
+        className="relative w-full overflow-hidden pointer-events-none select-none"
+        style={{ height: contentHeight * scale }}
+      >
+        <div
+          ref={innerRef}
+          style={{
+            width: SECTION_SCREENSHOT_WIDTH,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            background: theme.bg,
+            color: theme.ink,
+          }}
+        >
+          <Cmp id={block.id} props={block.props} theme={theme} onChange={() => {}} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Stacks a screenshot per section, skipping navbar + footer.
+function SectionScreenshotList({ site }: { site: PreviewEditableSite }) {
+  const theme = site.theme ?? MINI_FALLBACK_THEME;
+  const sorted = [...(site.blocks ?? [])]
+    .sort((a, b) => a.order - b.order)
+    .filter((b) => b.props.kind !== "navbar" && b.props.kind !== "footer");
+
+  return (
+    <div className="flex flex-col gap-4">
+      {sorted.map((b) => (
+        <SectionScreenshot key={b.id} block={b} site={site} theme={theme} />
+      ))}
+    </div>
+  );
+}
+
+// One line in the "What's Included" breakdown.
+function FeatureLine({ title, description }: { title: string; description: string }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-foreground">{title}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
 export function TemplateLivePreview({
   site,
   device,
@@ -71,6 +184,8 @@ export function TemplateLivePreview({
   onSave,
   changeCount,
   contentRef,
+  activeTab,
+  setActiveTab,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -102,6 +217,8 @@ export function TemplateLivePreview({
   onSave?: (site: SiteData) => void;
   changeCount?: number;
   contentRef: RefObject<HTMLDivElement | null>;
+  activeTab: "editor" | "about";
+  setActiveTab: (tab: "editor" | "about") => void;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -290,13 +407,7 @@ export function TemplateLivePreview({
     if (iframeDoc?.body) {
       iframeDoc.body.style.setProperty("--preview-editor-accent", theme.accent);
       iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
-      tagAndApplyPreviewStyles(
-        iframeDoc.body,
-        blocks,
-        selectedElementId,
-        site.previewEdits,
-        device,
-      );
+      tagAndApplyPreviewStyles(iframeDoc.body, blocks, selectedElementId, site.previewEdits, device);
     }
   }, [blocks, contentRef, selectedElementId, site.previewEdits, device, theme.accent]);
 
@@ -327,10 +438,7 @@ export function TemplateLivePreview({
       });
     }
     function handleMouseLeave() {
-      if (moveRaf !== null) {
-        cancelAnimationFrame(moveRaf);
-        moveRaf = null;
-      }
+      if (moveRaf !== null) { cancelAnimationFrame(moveRaf); moveRaf = null; }
       clearPreviewHoverHighlight(hoveredElementRef);
     }
 
@@ -344,11 +452,17 @@ export function TemplateLivePreview({
       desktopEl.removeEventListener("mousemove", handleMouseMove, true);
       desktopEl.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isDesktop, editMode, blocks, site, onSelectElement, contentRef]);
+  }, [isDesktop, editMode, blocks, site, onSelectElement]);
 
   function handlePreviewClick(e: React.MouseEvent) {
     if (!editMode) return;
-    handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
+    handleInteractivePreviewClick(
+      e,
+      editMode,
+      blocks,
+      site,
+      onSelectElement,
+    );
   }
 
   const mouseMoveRafRef = useRef<number | null>(null);
@@ -493,6 +607,7 @@ export function TemplateLivePreview({
 
   const previewContent = (
     <>
+
       <div
         ref={contentRef}
         className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
@@ -507,8 +622,7 @@ export function TemplateLivePreview({
           const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
           if (!Cmp) return null;
 
-          const isActive =
-            !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
+          const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
           const isResizingThis = resizingBlock?.id === block.id;
           const currentHeight = block.height ?? 200;
           const displayName = block.label ?? block.name ?? block.props.kind;
@@ -535,9 +649,8 @@ export function TemplateLivePreview({
               <div
                 data-block-id={block.id}
                 data-block-kind={block.props.kind}
-                className={`relative group/block ${
-                  isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-                }`}
+                className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
+                  }`}
                 style={{
                   ...(isActive ? { outlineColor: theme.accent } : undefined),
                   minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
@@ -579,21 +692,8 @@ export function TemplateLivePreview({
                   </div>
                 )}
 
-                <RenderedImageOverrides
-                  overrides={getImageOverrides(componentProps as Record<string, unknown>)}
-                >
-                  {isNewBlock ? (
-                    <div style={{ height: "100%" }} className="[&>*]:h-full">
-                      <Cmp
-                        id={block.id}
-                        props={componentProps}
-                        theme={theme}
-                        onChange={(patch: Record<string, unknown>) =>
-                          editMode ? onUpdateBlock(block.id, patch) : undefined
-                        }
-                      />
-                    </div>
-                  ) : (
+                {isNewBlock ? (
+                  <div style={{ height: "100%" }} className="[&>*]:h-full">
                     <Cmp
                       id={block.id}
                       props={componentProps}
@@ -602,8 +702,17 @@ export function TemplateLivePreview({
                         editMode ? onUpdateBlock(block.id, patch) : undefined
                       }
                     />
-                  )}
-                </RenderedImageOverrides>
+                  </div>
+                ) : (
+                  <Cmp
+                    id={block.id}
+                    props={componentProps}
+                    theme={theme}
+                    onChange={(patch: Record<string, unknown>) =>
+                      editMode ? onUpdateBlock(block.id, patch) : undefined
+                    }
+                  />
+                )}
 
                 {draggingElementId?.startsWith(`${block.id}:`) && (
                   <GuideOverlay guides={dragGuides} />
@@ -619,11 +728,10 @@ export function TemplateLivePreview({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div
-                      className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${
-                        isResizingThis
-                          ? "bg-foreground shadow-md scale-110 opacity-100"
-                          : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                      }`}
+                      className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+                        ? "bg-foreground shadow-md scale-110 opacity-100"
+                        : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                        }`}
                     >
                       <div className="h-0.5 w-6 rounded-full bg-background/80" />
                     </div>
@@ -657,98 +765,117 @@ export function TemplateLivePreview({
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface-elevated border border-border rounded-2xl overflow-hidden shadow-sm">
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="truncate text-xs font-medium text-ink-soft">Website Editor</span>
+        <div className="flex items-center rounded-lg border border-border bg-surface p-0.5 select-none">
+          <button
+            onClick={() => setActiveTab("editor")}
+            className={`px-3 py-1 text-xs cursor-pointer rounded-md transition-all ${
+              activeTab === "editor"
+                ? "bg-foreground text-background shadow-sm"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+            }`}
+          >
+            Editor
+          </button>
+          <button
+            onClick={() => setActiveTab("about")}
+            className={`px-3 py-1 text-xs cursor-pointer rounded-md transition-all ${
+              activeTab === "about"
+                ? "bg-foreground text-background shadow-sm"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+            }`}
+          >
+            About
+          </button>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {!isDesktop && (
-            <span className="select-none text-[10px] tabular-nums text-ink-soft/70">
-              {Math.round(width)}×{Math.round(height)}
-              {scale < 0.999 && ` · ${Math.round(scale * 100)}%`}
-            </span>
-          )}
+          {activeTab === "editor" && (
+            <>
+              {!isDesktop && (
+                <span className="select-none text-[10px] tabular-nums text-ink-soft/70">
+                  {Math.round(width)}×{Math.round(height)}
+                  {scale < 0.999 && ` · ${Math.round(scale * 100)}%`}
+                </span>
+              )}
 
-          <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
-            <button
-              onClick={() => onDeviceChange("desktop")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
-              title="Desktop Preview"
-            >
-              <Monitor className="h-4 w-4" />
-            </button>
+              <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
+                <button
+                  onClick={() => onDeviceChange("desktop")}
+                  className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
+                    ? "bg-foreground text-background"
+                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                    }`}
+                  title="Desktop Preview"
+                >
+                  <Monitor className="h-4 w-4" />
+                </button>
 
-            <button
-              onClick={() => onDeviceChange("responsive")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${
-                !isDesktop
-                  ? "bg-foreground text-background"
-                  : "text-ink-soft hover:bg-secondary hover:text-ink"
-              }`}
-              title="Responsive Preview"
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
-          </div>
+                <button
+                  onClick={() => onDeviceChange("responsive")}
+                  className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
+                    ? "bg-foreground text-background"
+                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                    }`}
+                  title="Responsive Preview"
+                >
+                  <Smartphone className="h-4 w-4" />
+                </button>
+              </div>
 
-          <div className="ml-1" />
+              <div className="ml-1" />
 
-          <button
-            onClick={handleToggleEditMode}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              editMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
-            title={
-              editMode
-                ? "Exit edit mode — hover to preview selection; hold Alt for a container"
-                : "Enter edit mode"
-            }
-            aria-label={editMode ? "Exit edit mode" : "Enter edit mode"}
-          >
-            <PencilLine className="h-4 w-4" />
-          </button>
+              <button
+                onClick={handleToggleEditMode}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${editMode
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title={
+                  editMode
+                    ? "Exit edit mode — hover to preview selection; hold Alt for a container"
+                    : "Enter edit mode"
+                }
+                aria-label={editMode ? "Exit edit mode" : "Enter edit mode"}
+              >
+                <PencilLine className="h-4 w-4" />
+              </button>
 
-          <button
-            onClick={handleToggleMoveModeClick}
-            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${
-              moveMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
-            }`}
-            title={moveMode ? "Turn off move mode" : "Turn on move mode"}
-            aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
-          >
-            <Move className="h-4 w-4" />
-          </button>
+              <button
+                onClick={handleToggleMoveModeClick}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${moveMode
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title={moveMode ? "Turn off move mode" : "Turn on move mode"}
+                aria-label={moveMode ? "Turn off move mode" : "Turn on move mode"}
+              >
+                <Move className="h-4 w-4" />
+              </button>
 
-          <div className="h-5 w-px bg-border" />
+              <div className="h-5 w-px bg-border" />
 
-          {onSave && (
-            <button
-              onClick={canSave ? handleSaveClick : undefined}
-              disabled={!canSave}
-              className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${
-                canSave
-                  ? "cursor-pointer bg-foreground text-background hover:opacity-90"
-                  : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
-              }`}
-              title={
-                canSave
-                  ? "Save changes"
-                  : `Make ${REQUIRED_CHANGES - changesMade} more change${
-                      REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
-                    } to enable saving`
-              }
-            >
-              <Save className="h-4 w-4" />
-              {canSave ? "Save" : `Save`}
-            </button>
+              {onSave && (
+                <button
+                  onClick={canSave ? handleSaveClick : undefined}
+                  disabled={!canSave}
+                  className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${canSave
+                      ? "cursor-pointer bg-foreground text-background hover:opacity-90"
+                      : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
+                    }`}
+                  title={
+                    canSave
+                      ? "Save changes"
+                      : `Make ${REQUIRED_CHANGES - changesMade} more change${REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
+                      } to enable saving`
+                  }
+                >
+                  <Save className="h-4 w-4" />
+                  {canSave ? "Save" : `Save`}
+                </button>
+              )}
+
+              <div className="h-5 w-px bg-border" />
+            </>
           )}
 
           <button
@@ -769,7 +896,82 @@ export function TemplateLivePreview({
         </div>
       </div>
 
-      {isDesktop ? (
+      {activeTab === "about" ? (
+        <div className="flex-1 overflow-y-auto bg-surface-elevated p-8 flex flex-col md:flex-row gap-8 items-start justify-center">
+          {/* Section screenshots — real rendered sections, scaled down. No navbar/footer. */}
+          <div className="w-full md:w-1/2 max-w-lg shrink-0 max-h-[75vh] overflow-y-auto simple-scrollbar pr-1">
+            <SectionScreenshotList site={site} />
+          </div>
+
+          {/* Description & metadata column */}
+          <div className="flex-1 max-w-md flex flex-col gap-5 text-left">
+            <div>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-accent bg-accent/10 px-2.5 py-1 rounded">
+                {site.category || "Template"}
+              </span>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                {site.name}
+              </h2>
+              {site.tagline && (
+                <p className="mt-2 text-sm font-mono text-muted-foreground leading-relaxed">
+                  {site.tagline}
+                </p>
+              )}
+            </div>
+
+            {/* What's Included — bold white heading on a dark bar, plain-English breakdown */}
+            <div className="rounded-xl overflow-hidden border border-border">
+              <div className="bg-foreground px-4 py-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-background">
+                  What's Included
+                </h3>
+              </div>
+              <div className="bg-surface p-4 flex flex-col gap-3">
+                {/* TODO(Hassan): swap this dummy copy for real per-template descriptions */}
+                <FeatureLine
+                  title="Hero Section"
+                  description="A large intro image with a headline and a button that takes visitors straight to the contact form."
+                />
+                <FeatureLine
+                  title="4 Services"
+                  description="Four service cards, each with an icon, title, and one-line description of what you offer."
+                />
+                <FeatureLine
+                  title="Projects Showcase"
+                  description="A gallery of your work with images, titles, and short descriptions for each project."
+                />
+                <FeatureLine
+                  title="Testimonials"
+                  description="Quotes from past clients to build trust with new visitors."
+                />
+                <FeatureLine
+                  title="Contact Form"
+                  description="A working form so visitors can reach out to you directly, no email app needed."
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-blue-100/50 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-950/20 p-4">
+              <h4 className="text-xs font-semibold text-blue-850 dark:text-blue-300">
+                Privacy & Terms of Service
+              </h4>
+              <p className="mt-1.5 text-xs text-blue-600 dark:text-blue-400/90 leading-relaxed">
+                You don't need to worry about privacy policies and terms, we'll handle all of it itself.
+              </p>
+            </div>
+
+            {/* Sitemap — same box pattern as privacy/ToS, own color, sits at the end */}
+            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-950/20 p-4">
+              <h4 className="text-xs font-semibold text-emerald-850 dark:text-emerald-300">
+                Sitemap.xml
+              </h4>
+              <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400/90 leading-relaxed">
+                A sitemap.xml is generated automatically for every published site, so search engines can find and index all of your pages.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : isDesktop ? (
         <div
           ref={desktopScrollRef}
           className="simple-scrollbar flex-1 min-h-0 overflow-auto p-4 md:p-6"

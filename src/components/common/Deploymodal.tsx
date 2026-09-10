@@ -13,15 +13,16 @@ import {
 } from "@/components/individual/deploy/OAuthCompletePage";
 import { finalizeDeployFiles } from "@/lib/buildReactAppTemplate";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
+import { PortfolioRow } from "@/types/portfolio";
 export type DeployPlatform = "vercel" | "netlify";
 
 export interface DeployModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   name?: string;
-  description?: string;
+  portfolio?: PortfolioRow | null;
   files?: Record<string, string> | null;
+  portfolioId: string | null;
 }
 
 type DeployStatus = { vercel: boolean; netlify: boolean };
@@ -33,6 +34,7 @@ const TARGETS: {
   tagline: string;
   icon: string;
   about: string;
+
 }[] = [
     {
       id: "vercel",
@@ -74,7 +76,7 @@ function backendBase() {
     : import.meta.env.VITE_BACKEND_URL;
 }
 
-export function DeployModal({ open, onOpenChange, name, description, files }: DeployModalProps) {
+export function DeployModal({ open, onOpenChange, name, portfolio, files, portfolioId }: DeployModalProps) {
   const navigate = useNavigate();
 
   const [selectedPlatform, setSelectedPlatform] = useState<DeployPlatform>("vercel");
@@ -270,11 +272,10 @@ export function DeployModal({ open, onOpenChange, name, description, files }: De
 
     try {
       if (!files) throw new Error("No portfolio files found to deploy");
-
       const { data } =
         selectedPlatform === "vercel"
-          ? await deployapi.deployVercel(files, name)
-          : await deployapi.deployNetlify(files, name);
+          ? await deployapi.deployVercel(files, name, portfolio?.id || undefined)
+          : await deployapi.deployNetlify(files, name, portfolio?.id || undefined);
 
       pushLog("Upload complete. Waiting for it to go live…");
       setStage("building");

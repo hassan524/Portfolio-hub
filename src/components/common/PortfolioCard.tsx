@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { SiteData, Theme } from "@/types/builder.schema";
 import { getBlockComponent } from "@/lib/blockRegistry";
+import { usePortfolioViews30d } from "@/hooks/usePortfolios";
+import { timeAgo } from "@/utils/TimeAgo";
 
 const FALLBACK_THEME: Theme = {
   bg: "#ffffff",
@@ -15,27 +17,33 @@ const FALLBACK_THEME: Theme = {
 
 const CANVAS_WIDTH = 1200;
 
+function truncate(text: string, max: number) {
+  return text.length > max ? text.slice(0, max).trimEnd() + "…" : text;
+}
+
 type PortfolioCardProps = {
   id: string;
   t: SiteData;
   isCreated?: boolean;
-  views30d?: number;
-  lastEdited?: string;
+  lastEdited?: string; // now a raw date/ISO string, formatted internally
   sparkline?: React.ReactNode;
   fmt?: Intl.NumberFormat;
   onPreview?: (t: SiteData) => void;
+  description: string | null;
 };
 
 export function PortfolioCard({
   id,
   t,
   isCreated = true,
-  views30d = 0,
   lastEdited,
   sparkline,
   fmt = new Intl.NumberFormat(),
   onPreview,
+  description,
 }: PortfolioCardProps) {
+  const { views30d, loading: viewsLoading } = usePortfolioViews30d(isCreated ? id : "");
+
   const content = (
     <>
       <div className="relative aspect-video overflow-hidden bg-background">
@@ -55,37 +63,30 @@ export function PortfolioCard({
               {t.name}
             </h3>
 
-            {t.tagline && (
-              <p className="mt-1 font-mono text-[11px] text-subtle truncate">
-                {t.tagline}
+            {description && (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {truncate(description, 59)}
               </p>
             )}
           </div>
 
-          {isCreated && views30d > 0 && sparkline && (
+          {isCreated && views30d !== null && views30d > 0 && sparkline && (
             <div className="h-6 w-16 shrink-0">{sparkline}</div>
           )}
         </div>
 
         {isCreated ? (
-          <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-            <div>
-              <p className="eyebrow mb-1">Views 30d</p>
-              <p className="numeric text-sm text-foreground">
-                {views30d ? fmt.format(views30d) : "—"}
-              </p>
-            </div>
+          <div className="mt-4 flex items-start justify-between border-t border-border pt-3">
 
-            <div className="text-right">
-              <p className="eyebrow mb-1">Edited</p>
-              <p className="text-sm text-muted-foreground">
-                {lastEdited ?? "—"}
-              </p>
-            </div>
 
-            <span className="translate-x-1 text-xs font-semibold text-subtle opacity-0 transition-all group-hover:translate-x-0 group-hover:text-primary group-hover:opacity-100">
-              Open →
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xs text-muted-foreground">
+                Edited
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {lastEdited ? timeAgo(lastEdited) : "—"}
+              </span>
+            </div>
           </div>
         ) : null}
       </div>
@@ -95,7 +96,7 @@ export function PortfolioCard({
   if (isCreated) {
     return (
       <Link
-        to={`/dashboard?portfolioId=${encodeURIComponent(id)}`}
+        to={`/dashboard?pid=${encodeURIComponent(id)}`}
         className="group panel overflow-hidden transition-colors hover:border-border-strong"
       >
         {content}
@@ -163,7 +164,7 @@ function CardView({ t }: { t: SiteData }) {
               id={b.id}
               props={b.props}
               theme={theme}
-              onChange={() => {}}
+              onChange={() => { }}
             />
           );
         })}

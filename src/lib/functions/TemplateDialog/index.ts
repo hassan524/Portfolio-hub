@@ -117,7 +117,6 @@ export function updateSiteMeta(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
   patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
 ): void {
-  console.log("updateSiteMeta called with patch:", patch);
   setSite((prev) => (prev ? { ...prev, ...patch } : prev));
 }
 
