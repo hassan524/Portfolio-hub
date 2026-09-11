@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { Sparkles } from "lucide-react";
 
 export interface PageShellProps {
   eyebrow?: string;
@@ -24,32 +25,36 @@ export function PageShell({
   const centered = align === "center";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      {/* Subtle background ambient overlay */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.08),rgba(255,255,255,0))]" aria-hidden="true" />
+
       <Header />
-      <main className="flex-1">
+      
+      <main className="flex-1 relative z-10">
         {hasBanner && (
-          <section className="border-b border-border">
-            <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
+          <section className="relative border-b border-border/60 bg-surface/30">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-14">
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className={centered ? "text-center mx-auto" : undefined}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className={centered ? "text-center max-w-3xl mx-auto space-y-3" : "max-w-3xl space-y-3"}
               >
                 {eyebrow && (
-                  <span className="inline-flex items-center gap-2 text-xs font-medium tracking-wide text-accent">
-                    <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-                    {eyebrow}
-                  </span>
+                  <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground ${centered ? "justify-center" : ""}`}>
+                    <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                    <span>{eyebrow}</span>
+                  </div>
                 )}
                 {title && (
-                  <h1 className="mt-3 font-display text-3xl md:text-4xl lg:text-[2.75rem] font-semibold leading-[1.1] tracking-tight">
+                  <h1 className="font-display text-3xl sm:text-4xl md:text-[2.75rem] font-bold leading-[1.15] tracking-tight text-foreground">
                     {title}
                   </h1>
                 )}
                 {subtitle && (
                   <p
-                    className={`mt-4 max-w-xl text-sm md:text-[15px] text-ink-soft leading-relaxed ${
+                    className={`text-sm sm:text-base text-muted-foreground leading-relaxed font-normal ${
                       centered ? "mx-auto" : ""
                     }`}
                   >
@@ -60,10 +65,11 @@ export function PageShell({
             </div>
           </section>
         )}
+
         {children &&
           (hasBanner ? (
             <section
-              className={containerClassName ?? "mx-auto max-w-5xl px-6 py-10 md:py-14"}
+              className={containerClassName ?? "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12"}
             >
               {children}
             </section>
@@ -71,6 +77,7 @@ export function PageShell({
             children
           ))}
       </main>
+      
       <Footer />
     </div>
   );
@@ -80,8 +87,8 @@ export const SiteLayout = PageShell;
 
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="max-w-2xl space-y-6 text-sm leading-relaxed text-ink [&_h2]:font-display [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-0 [&_p]:text-ink-soft [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2">
+    <div className="max-w-3xl space-y-6 text-sm sm:text-base leading-relaxed text-foreground/90 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_p]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:text-muted-foreground [&_li]:mb-2">
       {children}
     </div>
   );
-}
+}

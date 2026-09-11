@@ -15,7 +15,6 @@ export interface PortfolioRow {
   description: string | null;
 }
 
-export type PortfolioStatus = "draft" | "published" | "unpublished";
 
 export interface Portfolio {
   id: string;
@@ -30,6 +29,5 @@ export interface Portfolio {
   domain: string | null;
   title: string;
   description: string | null;
-  status: PortfolioStatus;
 }
 

@@ -1,20 +1,10 @@
-export function StatusChip({
-  state,
-}: {
-  state?: "live" | "building" | "draft" | "ready" | "error";
-}) {
-  const map = {
-    live: { label: "Live", tone: "text-primary bg-primary/10", dot: "bg-primary" },
-    ready: { label: "Ready", tone: "text-primary bg-primary/10", dot: "bg-primary" },
-    building: { label: "Building", tone: "text-warning bg-warning/10", dot: "bg-warning" },
-    draft: { label: "Draft", tone: "text-subtle bg-muted", dot: "bg-subtle" },
-    error: { label: "Failed", tone: "text-destructive bg-destructive/10", dot: "bg-destructive" },
-  } as const;
-
-  const s = state && map[state] ? map[state] : map.draft; // fallback
+export function StatusChip({ isDeployed }: { isDeployed?: boolean }) {
+  const s = isDeployed
+    ? { label: "Published", tone: "text-foreground bg-card border border-border/80", dot: "bg-emerald-400" }
+    : { label: "Draft", tone: "text-muted-foreground bg-muted/60 border border-border/40", dot: "bg-muted-foreground/60" };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${s.tone}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${s.tone}`}>
       <span className={`size-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>

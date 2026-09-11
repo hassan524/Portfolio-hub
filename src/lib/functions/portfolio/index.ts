@@ -1,10 +1,5 @@
-import {PortfolioRow, PortfolioStatus, Portfolio} from "@/types/portfolio";
+import {PortfolioRow, Portfolio} from "@/types/portfolio";
 
-
-function deriveStatus(row: PortfolioRow): PortfolioStatus {
-  if (row.isdraft) return "draft";
-  return row.isdeployed ? "published" : "unpublished";
-}
 
 function extractDomain(liveurl: string | null): string | null {
   if (!liveurl) return null;
@@ -29,6 +24,5 @@ export function mapPortfolio(row: PortfolioRow): Portfolio {
     domain: extractDomain(row.liveurl),
     title: row.name,
     description: row.description,
-    status: deriveStatus(row),
   };
 }

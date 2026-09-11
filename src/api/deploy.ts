@@ -9,8 +9,12 @@ const deployApi = {
 
   authorizeNetlify: () => api.get("/deploy/netlify/authorize"),
 
-  deployVercel: (files: Record<string, string>, projectName?: string, PortfolioID?: string) =>
-    api.post("/deploy/vercel/deploy", { files, projectName, PortfolioID }),
+deployVercel: (files: Record<string, string>, projectName?: string, PortfolioID?: string) =>
+  api.post(
+    "/deploy/vercel/deploy",
+    { files, projectName, PortfolioID },
+    { timeout: 120000 } // 2 min — covers the backend's waitForDeploymentReady (up to 90s) + buffer
+  ),
 
   deployNetlify: (files: Record<string, string>, projectName?: string, PortfolioID?: string) =>
     api.post("/deploy/netlify/deploy", { files, projectName, PortfolioID }),

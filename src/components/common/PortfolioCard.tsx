@@ -29,7 +29,7 @@ type PortfolioCardProps = {
   sparkline?: React.ReactNode;
   fmt?: Intl.NumberFormat;
   onPreview?: (t: SiteData) => void;
-  description: string | null;
+  description?: string | null;
 };
 
 export function PortfolioCard({

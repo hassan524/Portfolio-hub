@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import portfolioApi from "@/api/portfolioApi";
 import { mapPortfolio } from "@/lib/functions/portfolio";
-import { PortfolioRow, PortfolioStatus, Portfolio } from "@/types/portfolio";
+import { PortfolioRow, Portfolio } from "@/types/portfolio";
 
 export function usePortfolios(userId?: string) {
   return useQuery<Portfolio[]>({

@@ -43,7 +43,7 @@ export function Header() {
   const location = useLocation();
 
   const userId = authUser?.id || profile?.id || "";
-  const portfoliosUrl = userId ? `/portfolios?userId=${encodeURIComponent(userId)}` : "/portfolios";
+  const portfoliosUrl = `/portfolios`
 
   const isLoggedIn = !!session;
   const hasPaid = profile?.is_paid;

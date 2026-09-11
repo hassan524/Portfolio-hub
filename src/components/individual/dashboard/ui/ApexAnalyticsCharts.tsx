@@ -10,23 +10,22 @@ interface ViewsChartProps {
 export function ViewsAreaChart({ dates = [], seriesData = [], loading }: ViewsChartProps) {
   if (loading) {
     return (
-      <div className="flex h-[280px] w-full animate-pulse items-center justify-center rounded-lg bg-muted/40">
-        <span className="text-xs text-muted-foreground">Loading traffic…</span>
+      <div className="flex h-[280px] w-full animate-pulse items-center justify-center rounded-xl bg-card border border-border/60">
+        <span className="text-xs text-muted-foreground">Loading traffic analytics…</span>
       </div>
     );
   }
 
-  if (!seriesData.length || seriesData.every((v) => v === 0)) {
-    return (
-      <div className="flex h-[280px] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border">
-        <span className="text-sm text-muted-foreground">No views yet in this range</span>
-        <span className="text-xs text-subtle">Views will show up here once people visit</span>
-      </div>
-    );
-  }
+  const isDemo = !seriesData.length || seriesData.every((v) => v === 0);
+  const activeDates = isDemo
+    ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    : dates;
+  const activeSeries = isDemo
+    ? [14, 28, 42, 38, 65, 84, 98]
+    : seriesData;
 
-  const maxVal = Math.max(...seriesData);
-  const maxIdx = seriesData.indexOf(maxVal);
+  const maxVal = Math.max(...activeSeries);
+  const maxIdx = activeSeries.indexOf(maxVal);
 
   const options: ApexOptions = {
     chart: {
@@ -36,10 +35,10 @@ export function ViewsAreaChart({ dates = [], seriesData = [], loading }: ViewsCh
       fontFamily: "inherit",
       animations: { easing: "easeinout", speed: 400 },
     },
-    colors: ["#10b981"],
+    colors: ["#6366f1"],
     fill: {
       type: "gradient",
-      gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.03, stops: [0, 95, 100] },
+      gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.02, stops: [0, 95, 100] },
     },
     stroke: { curve: "smooth", width: 2.5 },
     dataLabels: { enabled: false },
@@ -52,11 +51,11 @@ export function ViewsAreaChart({ dates = [], seriesData = [], loading }: ViewsCh
       padding: { top: 20 },
     },
     xaxis: {
-      categories: dates,
+      categories: activeDates,
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: { style: { colors: "#888888", fontSize: "11px" }, rotate: 0 },
-      tickAmount: dates.length > 10 ? Math.floor(dates.length / 2) : undefined,
+      tickAmount: activeDates.length > 10 ? Math.floor(activeDates.length / 2) : undefined,
     },
     yaxis: {
       labels: {
@@ -71,15 +70,15 @@ export function ViewsAreaChart({ dates = [], seriesData = [], loading }: ViewsCh
     annotations: {
       points: [
         {
-          x: dates[maxIdx],
+          x: activeDates[maxIdx],
           y: maxVal,
-          marker: { size: 4, fillColor: "#10b981", strokeColor: "#fff", strokeWidth: 2 },
+          marker: { size: 4, fillColor: "#6366f1", strokeColor: "#fff", strokeWidth: 2 },
           label: {
             text: String(maxVal),
             borderWidth: 0,
             offsetY: -10,
             style: {
-              color: "#10b981",
+              color: "#6366f1",
               background: "transparent",
               fontSize: "11px",
               fontWeight: 600,
@@ -91,8 +90,14 @@ export function ViewsAreaChart({ dates = [], seriesData = [], loading }: ViewsCh
   };
 
   return (
-    <div className="w-full">
-      <Chart options={options} series={[{ name: "Pageviews", data: seriesData }]} type="area" height={280} />
+    <div className="w-full space-y-2">
+      {isDemo && (
+        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 px-1">
+          <span className="size-1.5 rounded-full bg-indigo-400" />
+          <span>Demo preview trajectory (live views recorded automatically upon visit)</span>
+        </div>
+      )}
+      <Chart options={options} series={[{ name: "Pageviews", data: activeSeries }]} type="area" height={260} />
     </div>
   );
 }
