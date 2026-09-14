@@ -1,4 +1,4 @@
-import {PortfolioRow, Portfolio} from "@/types/portfolio";
+import { PortfolioRow, Portfolio, PortfolioOverview, PortfolioOverviewRow } from "@/types/portfolio";
 
 
 function extractDomain(liveurl: string | null): string | null {
@@ -24,5 +24,23 @@ export function mapPortfolio(row: PortfolioRow): Portfolio {
     domain: extractDomain(row.liveurl),
     title: row.name,
     description: row.description,
+  };
+}
+
+export function mapPortfolioOverview(row: PortfolioOverviewRow): PortfolioOverview {
+  return {
+    id: row.id,
+    title: row.name,
+    description: row.description,
+    domain: row.customdomain || extractDomain(row.liveurl),
+    liveUrl: row.liveurl,
+    isDeployed: row.isdeployed,
+    platform: row.platform,
+    avgResponseMs: row.avgResponseMs,
+    category: row.sitedata?.category ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deployments: row.deployments ?? [],
+    totalViews: row.totalviews,
   };
 }

@@ -197,16 +197,22 @@ export async function buildViewerAppFiles(site: SiteData) {
     );
   });
 
-  const appTsx = `
+const appTsx = `
 import { useEffect } from "react";
 import siteData from "./site.json";
 ${importLines.join("\n")}
 
 export default function App() {
+
   useEffect(() => {
     fetch("https://localhost:5000/api/portfolio/track/" + siteData.id, {
       method: "POST",
       keepalive: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        referrer: document.referrer || null,
+        path: window.location.pathname,
+      }),
     });
   }, []);
 

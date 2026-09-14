@@ -21,8 +21,8 @@ export const portfolioApi = {
     return api.get(`/portfolio/${portfolioId}`);
   },
 
-  getPortfolioTraffic: (portfolioId: string, range: string) => {
-    return api.get(`/portfolio/${portfolioId}/traffic`, { params: { range } });
+  getPortfolioViewsRange: (portfolioId: string, range: string) => {
+    return api.get(`/portfolio/${portfolioId}/viewsRange`, { params: { range } });
   },
 
   getPortfolioViews30d: (portfolioId: string) => {
@@ -32,6 +32,14 @@ export const portfolioApi = {
   getPortfolioViewsTotal: (portfolioId: string) => {
     return api.get(`/portfolio/${portfolioId}/views-total`);
   },
+
+  getPortfolioOverview: (portfolioId: string) => {
+    return api.get(`/portfolio/${portfolioId}/overview`);
+  },
+
+  getPortfolioTraffic: (portfolioId: string) => {
+    return api.get(`/portfolio/${portfolioId}/traffic`);
+  }
 
 };
 

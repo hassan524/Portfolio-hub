@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Toggle } from "./DashboardShared";
-import { Globe, ShieldCheck, Server, AlertTriangle, Check, Copy, Info } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 export function SettingsTab({ domain }: { domain: string }) {
   const [currentDomain, setCurrentDomain] = useState(domain);
@@ -22,32 +22,25 @@ export function SettingsTab({ domain }: { domain: string }) {
   };
 
   return (
-    <div className="w-full space-y-8 py-3">
-      {/* Domain & Hosting Section Panel */}
-      <section className="rounded-2xl border border-border/80 bg-card/40 p-5 sm:p-6 space-y-6 shadow-soft">
-        <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-          <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-            <Globe className="size-4 sm:size-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-foreground">
-              Custom Domain
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Connect your personalized web domain to your live portfolio
-            </p>
-          </div>
+    <div className="w-full space-y-8 py-2">
+      {/* Domain Section */}
+      <section className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-7 space-y-6">
+        <div className="pb-4 border-b border-white/[0.06]">
+          <h2 className="text-base font-semibold text-white">Custom Domain</h2>
+          <p className="text-sm text-white/30 mt-1">
+            Connect your domain to your live portfolio
+          </p>
         </div>
 
         <div className="space-y-6">
-          {/* Domain Input Field Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/70 bg-background/60">
+          {/* Domain Input */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-md border border-white/[0.06] bg-white/[0.02]">
             <div className="space-y-1">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-white/60">
                 Domain Name
               </h3>
-              <p className="text-xs text-muted-foreground">
-                Enter your domain address (e.g. <code className="font-mono text-primary font-semibold">alexdeveloper.com</code>).
+              <p className="text-xs text-white/30">
+                e.g. <code className="font-mono text-white/50">alexdeveloper.com</code>
               </p>
             </div>
 
@@ -57,11 +50,11 @@ export function SettingsTab({ domain }: { domain: string }) {
                 value={currentDomain}
                 onChange={(e) => setCurrentDomain(e.target.value)}
                 placeholder="my-domain.com"
-                className="w-full sm:w-64 rounded-xl border border-border/80 bg-background px-3.5 py-2.5 font-mono text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all"
+                className="w-full sm:w-64 rounded-md border border-white/[0.08] bg-black px-3.5 py-2.5 font-mono text-xs text-white/70 outline-none focus:border-white/20 transition-colors"
               />
               <button
                 onClick={handleSaveDomain}
-                className="rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0"
+                className="rounded-md bg-white px-4 py-2.5 text-xs font-semibold text-black hover:bg-white/90 cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0"
               >
                 {savedDomain ? (
                   <>
@@ -75,40 +68,39 @@ export function SettingsTab({ domain }: { domain: string }) {
             </div>
           </div>
 
-          {/* DNS Instructions Card */}
-          <div className="rounded-xl border border-border/60 bg-background/40 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-              <Info className="size-4 text-primary shrink-0" />
-              <span>Required DNS Configuration</span>
+          {/* DNS Records */}
+          <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+            <div>
+              <p className="text-xs font-semibold text-white/60">Required DNS Configuration</p>
+              <p className="text-xs text-white/25 mt-1">
+                Add these records at your domain provider (GoDaddy, Namecheap, Cloudflare):
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Add these DNS records at your domain provider (GoDaddy, Namecheap, Cloudflare):
-            </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="flex items-center justify-between rounded-lg border border-border/70 bg-card/60 p-3 text-xs gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center justify-between rounded-md border border-white/[0.06] bg-black/40 p-3 text-xs gap-2">
                 <div className="min-w-0">
-                  <span className="font-semibold text-muted-foreground block text-[10px] uppercase">A Record (Root)</span>
-                  <code className="font-mono font-bold text-foreground break-all text-[11px] sm:text-xs">76.76.21.21</code>
+                  <span className="text-white/30 block text-[10px] uppercase tracking-wider">A Record (Root)</span>
+                  <code className="font-mono font-semibold text-white/70 text-xs">76.76.21.21</code>
                 </div>
                 <button
                   onClick={() => copyDnsRecord("76.76.21.21")}
-                  className="text-muted-foreground hover:text-foreground p-1.5 rounded transition-colors shrink-0 cursor-pointer"
+                  className="text-white/20 hover:text-white/50 p-1.5 cursor-pointer shrink-0"
                 >
-                  {copiedRecord === "76.76.21.21" ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                  {copiedRecord === "76.76.21.21" ? <Check className="size-3.5 text-[#86efac]" /> : <Copy className="size-3.5" />}
                 </button>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/70 bg-card/60 p-3 text-xs gap-2">
+              <div className="flex items-center justify-between rounded-md border border-white/[0.06] bg-black/40 p-3 text-xs gap-2">
                 <div className="min-w-0">
-                  <span className="font-semibold text-muted-foreground block text-[10px] uppercase">CNAME Record (www)</span>
-                  <code className="font-mono font-bold text-foreground break-all text-[11px] sm:text-xs">cname.portfoliohub.dev</code>
+                  <span className="text-white/30 block text-[10px] uppercase tracking-wider">CNAME Record (www)</span>
+                  <code className="font-mono font-semibold text-white/70 break-all text-xs">cname.portfoliohub.dev</code>
                 </div>
                 <button
                   onClick={() => copyDnsRecord("cname.portfoliohub.dev")}
-                  className="text-muted-foreground hover:text-foreground p-1.5 rounded transition-colors shrink-0 cursor-pointer"
+                  className="text-white/20 hover:text-white/50 p-1.5 cursor-pointer shrink-0"
                 >
-                  {copiedRecord === "cname.portfoliohub.dev" ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                  {copiedRecord === "cname.portfoliohub.dev" ? <Check className="size-3.5 text-[#86efac]" /> : <Copy className="size-3.5" />}
                 </button>
               </div>
             </div>
@@ -116,28 +108,21 @@ export function SettingsTab({ domain }: { domain: string }) {
         </div>
       </section>
 
-      {/* Visibility & Privacy Section Panel */}
-      <section className="rounded-2xl border border-border/80 bg-card/40 p-5 sm:p-6 space-y-6 shadow-soft">
-        <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-          <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-            <ShieldCheck className="size-4 sm:size-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-foreground">
-              Privacy & Search Visibility
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Control search engine indexing and visitor access rules
-            </p>
-          </div>
+      {/* Privacy Section */}
+      <section className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-7 space-y-6">
+        <div className="pb-4 border-b border-white/[0.06]">
+          <h2 className="text-base font-semibold text-white">Privacy & Visibility</h2>
+          <p className="text-sm text-white/30 mt-1">
+            Search engine indexing and access controls
+          </p>
         </div>
 
-        <div className="divide-y divide-border/50">
-          <div className="py-4 flex items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Search Indexing</h3>
-              <p className="text-xs text-muted-foreground">
-                Allow Google and Bing search engines to show your portfolio.
+        <div className="divide-y divide-white/[0.05]">
+          <div className="py-5 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-white/70">Search Indexing</h3>
+              <p className="text-xs text-white/30">
+                Allow Google and Bing to show your portfolio.
               </p>
             </div>
             <div className="shrink-0">
@@ -145,11 +130,11 @@ export function SettingsTab({ domain }: { domain: string }) {
             </div>
           </div>
 
-          <div className="py-4 flex items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Password Protection</h3>
-              <p className="text-xs text-muted-foreground">
-                Require visitors to enter a passphrase to view your site.
+          <div className="py-5 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-white/70">Password Protection</h3>
+              <p className="text-xs text-white/30">
+                Require a passphrase to view your site.
               </p>
             </div>
             <div className="shrink-0">
@@ -157,11 +142,11 @@ export function SettingsTab({ domain }: { domain: string }) {
             </div>
           </div>
 
-          <div className="py-4 flex items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Cookieless Analytics</h3>
-              <p className="text-xs text-muted-foreground">
-                Track visitor count while preserving user privacy.
+          <div className="py-5 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-white/70">Cookieless Analytics</h3>
+              <p className="text-xs text-white/30">
+                Track visitors while preserving privacy.
               </p>
             </div>
             <div className="shrink-0">
@@ -171,39 +156,32 @@ export function SettingsTab({ domain }: { domain: string }) {
         </div>
       </section>
 
-      {/* Danger Zone Section Panel */}
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 sm:p-6 space-y-5 shadow-soft">
-        <div className="flex items-center gap-3 border-b border-destructive/20 pb-4">
-          <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-destructive/15 text-destructive border border-destructive/30 shrink-0">
-            <AlertTriangle className="size-4 sm:size-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-foreground">
-              Danger Zone
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Irreversible management actions for your portfolio
-            </p>
-          </div>
+      {/* Danger Zone */}
+      <section className="rounded-lg border border-red-500/15 bg-red-500/[0.03] p-5 sm:p-7 space-y-6">
+        <div className="pb-4 border-b border-red-500/10">
+          <h2 className="text-base font-semibold text-white">Danger Zone</h2>
+          <p className="text-sm text-white/30 mt-1">
+            Irreversible actions
+          </p>
         </div>
 
-        <div className="space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/60 bg-background/80">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-md border border-white/[0.06] bg-white/[0.02]">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Transfer Project</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Move ownership of this portfolio to another workspace.
+              <h3 className="text-sm font-medium text-white/70">Transfer Project</h3>
+              <p className="text-xs text-white/30 mt-0.5">
+                Move ownership to another workspace.
               </p>
             </div>
-            <button className="shrink-0 rounded-xl border border-border/80 bg-surface px-4 py-2 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer self-start sm:self-auto">
+            <button className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/50 hover:text-white/80 hover:bg-white/[0.06] cursor-pointer self-start sm:self-auto">
               Transfer
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-md border border-red-500/15 bg-red-500/[0.04]">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-destructive">Delete Portfolio</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h3 className="text-sm font-medium text-red-400">Delete Portfolio</h3>
+              <p className="text-xs text-white/30 mt-0.5">
                 Permanently remove this project and all data.
               </p>
             </div>
@@ -213,7 +191,7 @@ export function SettingsTab({ domain }: { domain: string }) {
                   alert("Portfolio deleted.");
                 }
               }}
-              className="shrink-0 rounded-xl bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground hover:opacity-90 transition-all cursor-pointer shadow-sm self-start sm:self-auto"
+              className="shrink-0 rounded-md bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 cursor-pointer self-start sm:self-auto"
             >
               Delete Portfolio
             </button>

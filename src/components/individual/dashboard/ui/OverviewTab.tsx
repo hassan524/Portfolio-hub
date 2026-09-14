@@ -1,55 +1,12 @@
-import { useState } from "react";
 import { MetricBand } from "./DashboardShared";
-import {
-  Globe,
-  ShieldCheck,
-  GitBranch,
-  History,
-  ArrowUpRight,
-  LayoutTemplate,
-  Tag,
-  CalendarPlus,
-  CalendarClock,
-  Monitor,
-  Smartphone,
-  ExternalLink,
-  CheckCircle2,
-  Server,
-  Zap,
-  Share2,
-  RefreshCw,
-  Sparkles,
-  Download,
-} from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-interface DeployEvent {
-  id: string;
-  status: "success" | "failed" | "building";
-  commitMessage?: string | null;
-  timestamp: string; // ISO
-}
+import { Skeleton } from "@/components/ui/skeleton";
+import type { PortfolioOverview } from "@/types/portfolio";
 
 interface OverviewTabProps {
-  portfolio?: {
-    id: string;
-    title: string;
-    domain?: string | null;
-    description?: string | null;
-    isDeployed?: boolean;
-    platform?: "vercel" | "netlify" | null;
-    lastDeployedAt?: string | null;
-    sslStatus?: "active" | "pending" | "none";
-    templateName?: string | null;
-    templateId?: string | null;
-    category?: string | null;
-    createdAt?: string | null;
-    updatedAt?: string | null;
-    liveUrl?: string | null;
-  };
-  deployHistory?: DeployEvent[];
-  range: string;
-  setRange: (r: string) => void;
+  portfolio?: PortfolioOverview | null;
+  loading?: boolean;
   onShare?: () => void;
 }
 
@@ -73,286 +30,266 @@ function formatDate(iso?: string | null) {
   });
 }
 
-function DetailRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-}) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between text-xs py-2.5 gap-2">
-      <span className="flex items-center gap-2 text-muted-foreground font-medium shrink-0">
-        <Icon className="size-3.5 text-muted-foreground/80" />
-        {label}
-      </span>
-      <span className="font-semibold text-foreground truncate max-w-[130px] sm:max-w-[200px] text-right">{value}</span>
+    <div className="flex items-center justify-between py-3 text-sm">
+      <span className="text-white/40">{label}</span>
+      <span className="font-medium text-white/80">{value}</span>
     </div>
   );
 }
 
-export function OverviewTab({
-  portfolio,
-  deployHistory = [
-    {
-      id: "dep-1",
-      status: "success",
-      commitMessage: "Published latest portfolio updates & theme adjustments",
-      timestamp: portfolio?.lastDeployedAt || new Date().toISOString(),
-    },
-    {
-      id: "dep-2",
-      status: "success",
-      commitMessage: "Updated project showcase section & bio",
-      timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    },
-    {
-      id: "dep-3",
-      status: "success",
-      commitMessage: "Initial portfolio deployment on edge network",
-      timestamp: portfolio?.createdAt || new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
-    },
-  ],
-  onShare,
-}: OverviewTabProps) {
-  const navigate = useNavigate();
-  const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
-  const [iframeKey, setIframeKey] = useState(0);
-  const [iframeError, setIframeError] = useState(false);
+function DeploymentSkeletonRow() {
+  return (
+    <div className="relative flex gap-4">
+      <Skeleton className="mt-2 size-2.5 shrink-0 rounded-full bg-white/[0.06]" />
+      <div className="flex-1 rounded-md border border-white/[0.06] bg-white/[0.02] p-3.5 space-y-2">
+        <Skeleton className="h-3.5 w-3/4 bg-white/[0.06]" />
+        <Skeleton className="h-3 w-1/3 bg-white/[0.06]" />
+      </div>
+    </div>
+  );
+}
 
-  const liveUrl =
-    portfolio?.liveUrl ||
-    (portfolio?.domain ? `https://${portfolio.domain}` : "https://portfoliohub.dev/demo");
+export function OverviewTab({ portfolio, loading, onShare }: OverviewTabProps) {
+  const navigate = useNavigate();
+
+  const liveUrl = portfolio?.liveUrl || "https://portfoliohub.dev/demo";
 
   const platformLabel =
     portfolio?.platform === "vercel"
       ? "Vercel Edge"
       : portfolio?.platform === "netlify"
-      ? "Netlify CDN"
-      : "PortfolioHub Cloud";
+        ? "Netlify CDN"
+        : "Not deployed yet";
 
-  const sslLabel =
-    portfolio?.sslStatus === "active"
-      ? "Active TLS"
-      : portfolio?.sslStatus === "pending"
-      ? "Setting up SSL..."
-      : "Standard HTTPS";
+  const responseLabel =
+    portfolio?.avgResponseMs != null ? `${portfolio.avgResponseMs}ms avg response` : "No data yet";
 
-  const deployedTime = formatRelativeTime(portfolio?.lastDeployedAt);
+  const sslActive = !!(portfolio?.isDeployed && portfolio?.liveUrl?.startsWith("https://"));
+
+  const deployments = portfolio?.deployments ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Metric Cards */}
-      <section className="space-y-2.5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Performance & Overview
+      <section className="space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">
+          Performance
         </h3>
-        <MetricBand />
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 space-y-2">
+                <Skeleton className="h-3 w-16 bg-white/[0.06]" />
+                <Skeleton className="h-6 w-20 bg-white/[0.06]" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <MetricBand
+            totalViews={Number(portfolio?.totalViews) || 0}
+            isDeployed={portfolio?.isDeployed ?? false}
+            liveUrl={portfolio?.liveUrl ?? null}
+            updatedAt={portfolio?.updatedAt ?? new Date().toISOString()}
+          />
+        )}
       </section>
 
-      {/* Main Grid: Pipeline, Portfolio Info & Deploy History */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-        {/* Left Column: Deployment Pipeline Status */}
-        <section className="lg:col-span-7 space-y-5 sm:space-y-6">
-          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-soft">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Left Column */}
+        <section className="lg:col-span-7 space-y-6 lg:space-y-8">
+          {/* Hosting & Infrastructure */}
+          <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6 space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-foreground">
-                  Hosting & Security
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Your site hosting status and health
-                </p>
+                <h3 className="text-sm font-semibold text-white">Hosting & Infrastructure</h3>
+                <p className="text-xs text-white/30 mt-1">Where and how your site runs</p>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-                <CheckCircle2 className="size-3.5" />
-                Healthy
-              </span>
+              {portfolio?.isDeployed && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#86efac]">
+                  <span className="size-1.5 rounded-full bg-[#86efac]" />
+                  Healthy
+                </span>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="rounded-xl border border-border/60 bg-background/80 p-3.5 sm:p-4 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                  <Server className="size-3.5 text-primary shrink-0" />
-                  <span>Cloud Hosting</span>
-                </div>
-                <p className="text-xs text-muted-foreground font-medium">{platformLabel}</p>
-                <div className="text-[11px] text-emerald-500 font-mono flex items-center gap-1.5 pt-0.5">
-                  <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <span>Fast Response (18ms)</span>
-                </div>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-2">
+                    <Skeleton className="h-3 w-20 bg-white/[0.06]" />
+                    <Skeleton className="h-4 w-28 bg-white/[0.06]" />
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-1.5">
+                  <p className="text-xs font-medium text-white/50">Cloud Provider</p>
+                  <p className="text-sm font-medium text-white/85">{platformLabel}</p>
+                </div>
 
-              <div className="rounded-xl border border-border/60 bg-background/80 p-3.5 sm:p-4 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                  <ShieldCheck className="size-3.5 text-emerald-500 shrink-0" />
-                  <span>SSL Security</span>
+                <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-1.5">
+                  <p className="text-xs font-medium text-white/50">Response Time</p>
+                  <p className="text-sm font-medium text-white/85">{responseLabel}</p>
                 </div>
-                <p className="text-xs text-muted-foreground font-medium">{sslLabel}</p>
-                <div className="text-[11px] text-muted-foreground font-mono pt-0.5">
-                  Automatic SSL Active
-                </div>
-              </div>
-            </div>
 
-            <div className="rounded-xl border border-border/60 bg-background/80 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <Zap className="size-3.5 text-amber-400 shrink-0" />
-                <span>Tech Stack</span>
+                <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-1.5">
+                  <p className="text-xs font-medium text-white/50">Tech Stack</p>
+                  <p className="text-sm font-medium text-white/85">React + Vite</p>
+                </div>
+
+                <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 space-y-1.5">
+                  <p className="text-xs font-medium text-white/50">Encryption</p>
+                  <p className="text-sm font-medium text-white/85">
+                    {sslActive ? "HTTPS / TLS" : "Not active"}
+                  </p>
+                </div>
               </div>
-              <span className="font-mono text-xs font-medium text-foreground bg-surface px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-border/60">
-                React + Vite Edge
-              </span>
+            )}
+
+            <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-4 flex items-center justify-between gap-3">
+              <span className="text-xs font-medium text-white/50 shrink-0">Live URL</span>
+              {loading ? (
+                <Skeleton className="h-3.5 w-40 bg-white/[0.06]" />
+              ) : (
+                <a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs text-white/60 hover:text-white/90 truncate"
+                >
+                  {liveUrl.replace(/^https?:\/\//, "")}
+                </a>
+              )}
             </div>
           </div>
 
           {/* Deploy History */}
-          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-soft">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3.5">
-              <div className="flex items-center gap-2">
-                <History className="size-4 text-primary" />
-                <h3 className="text-sm sm:text-base font-bold text-foreground">
-                  Release History
-                </h3>
+          <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6 space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+              <h3 className="text-sm font-semibold text-white">Release History</h3>
+              {!loading && (
+                <span className="text-xs text-white/25 font-mono">
+                  {deployments.length} deploys
+                </span>
+              )}
+            </div>
+
+            {loading ? (
+              <div className="space-y-4">
+                <DeploymentSkeletonRow />
+                <DeploymentSkeletonRow />
+                <DeploymentSkeletonRow />
               </div>
-              <span className="text-xs text-muted-foreground font-mono">
-                {deployHistory.length} deploys
-              </span>
-            </div>
-
-            <ol className="space-y-3">
-              {deployHistory.map((event, i) => (
-                <li key={event.id} className="relative flex gap-3 sm:gap-4">
-                  {i !== deployHistory.length - 1 && (
-                    <span className="absolute left-[7px] top-4 h-[calc(100%+12px)] w-px bg-border/60" />
-                  )}
-                  <span
-                    className={`relative mt-1.5 size-2.5 sm:size-3 shrink-0 rounded-full border-2 border-background ${
-                      event.status === "success"
-                        ? "bg-emerald-500"
+            ) : deployments.length === 0 ? (
+              <p className="text-xs text-white/25">No deployments yet.</p>
+            ) : (
+              <ol className="space-y-4">
+                {deployments.map((event, i) => (
+                  <li key={event.id} className="relative flex gap-4">
+                    {i !== deployments.length - 1 && (
+                      <span className="absolute left-[5px] top-4 h-[calc(100%+16px)] w-px bg-white/[0.06]" />
+                    )}
+                    <span
+                      className={`relative mt-2 size-2.5 shrink-0 rounded-full ${event.status === "success"
+                        ? "bg-[#86efac]"
                         : event.status === "failed"
-                        ? "bg-red-500"
-                        : "bg-amber-400"
-                    }`}
-                  />
-                  <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-border/60 bg-background/80 p-3 text-xs gap-1.5 min-w-0">
-                    <div className="space-y-0.5 min-w-0 pr-2">
-                      <p className="font-semibold text-foreground text-xs leading-snug">
-                        {event.commitMessage || "Site deployment update"}
-                      </p>
-                      <p className="font-mono text-[11px] text-muted-foreground flex items-center gap-1.5">
-                        <span>main</span>
-                        <span>•</span>
-                        <span className="text-emerald-400">Published</span>
-                      </p>
+                          ? "bg-red-400"
+                          : "bg-amber-300"
+                        }`}
+                    />
+                    <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between rounded-md border border-white/[0.06] bg-white/[0.02] p-3.5 text-sm gap-2 min-w-0">
+                      <div className="min-w-0 pr-2">
+                        <p className="text-sm text-white/70 leading-snug truncate">
+                          {event.message || "Site deployment update"}
+                        </p>
+                        {event.url && (
+                          <a
+                            href={event.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-xs text-white/25 mt-1 hover:text-white/50 truncate block"
+                          >
+                            {event.url.replace(/^https?:\/\//, "")}
+                          </a>
+                        )}
+                      </div>
+                      <span className="font-mono text-xs text-white/25 shrink-0">
+                        {formatRelativeTime(event.createdAt)}
+                      </span>
                     </div>
-                    <span className="font-mono text-[11px] text-muted-foreground shrink-0 self-start sm:self-auto">
-                      {formatRelativeTime(event.timestamp)}
-                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </section >
+
+        {/* Right Column */}
+        < section className="lg:col-span-5 space-y-6 lg:space-y-8" >
+          <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6 space-y-4">
+            <div className="pb-4 border-b border-white/[0.06]">
+              <h3 className="text-sm font-semibold text-white">Project Details</h3>
+              <p className="text-xs text-white/30 mt-1">Configuration</p>
+            </div>
+
+            {loading ? (
+              <div className="space-y-3 py-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-16 bg-white/[0.06]" />
+                    <Skeleton className="h-3 w-24 bg-white/[0.06]" />
                   </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Right Column: Portfolio Details Specifications */}
-        <section className="lg:col-span-5 space-y-5 sm:space-y-6">
-          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-soft">
-            <div className="border-b border-border/60 pb-3.5">
-              <h3 className="text-sm sm:text-base font-bold text-foreground">
-                Project Details
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Site setup and configuration
-              </p>
-            </div>
-
-            <div className="space-y-1 divide-y divide-border/50">
-              <DetailRow
-                icon={LayoutTemplate}
-                label="Active Template"
-                value={portfolio?.templateName || "Modern Developer"}
-              />
-              <DetailRow
-                icon={Tag}
-                label="Category"
-                value={portfolio?.category || "Developer Portfolio"}
-              />
-              <DetailRow
-                icon={CalendarPlus}
-                label="Created"
-                value={formatDate(portfolio?.createdAt)}
-              />
-              <DetailRow
-                icon={CalendarClock}
-                label="Updated"
-                value={formatDate(portfolio?.updatedAt)}
-              />
-              <DetailRow
-                icon={Globe}
-                label="Hosting"
-                value={platformLabel}
-              />
-              <DetailRow
-                icon={GitBranch}
-                label="Branch"
-                value="main (auto)"
-              />
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="divide-y divide-white/[0.05]">
+                <DetailRow label="Category" value={portfolio?.category || "—"} />
+                <DetailRow label="Created" value={formatDate(portfolio?.createdAt)} />
+                <DetailRow label="Updated" value={formatDate(portfolio?.updatedAt)} />
+                <DetailRow label="Hosting" value={platformLabel} />
+                <DetailRow label="Domain" value={portfolio?.domain || "—"} />
+              </div>
+            )}
           </div>
 
-          {/* Quick Actions Shortcuts */}
-          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 space-y-3.5 shadow-soft">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-1 gap-2">
+          <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-white">Quick Actions</h3>
+            <div className="space-y-2">
               <button
                 onClick={() => navigate("/templates")}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/80 p-3 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
+                className="flex w-full items-center justify-between rounded-md border border-white/[0.06] bg-white/[0.02] p-3.5 text-sm text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-colors cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  <LayoutTemplate className="size-4 text-primary" />
-                  Edit Theme & Layout
-                </span>
-                <ArrowUpRight className="size-3.5 text-muted-foreground" />
+                Edit Theme & Layout
+                <ArrowUpRight className="size-3.5 text-white/20" />
               </button>
-
               <a
+
                 href={liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/80 p-3 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
+                className="flex w-full items-center justify-between rounded-md border border-white/[0.06] bg-white/[0.02] p-3.5 text-sm text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-colors cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  <Globe className="size-4 text-emerald-400" />
-                  View Live Site
-                </span>
-                <ExternalLink className="size-3.5 text-muted-foreground" />
+                View Live Site
+                <ExternalLink className="size-3.5 text-white/20" />
               </a>
 
               <button
                 type="button"
                 onClick={() =>
-                  alert(
-                    `Exporting full source code bundle for "${portfolio?.title || "Portfolio"}"... ZIP package created.`
-                  )
+                  alert(`Exporting source code bundle for "${portfolio?.title || "Portfolio"}"...`)
                 }
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/80 p-3 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
+                className="flex w-full items-center justify-between rounded-md border border-white/[0.06] bg-white/[0.02] p-3.5 text-sm text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-colors cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  <Download className="size-4 text-indigo-400" />
-                  Export Code (ZIP)
-                </span>
-                <ArrowUpRight className="size-3.5 text-muted-foreground" />
+                Export Code (ZIP)
+                <ArrowUpRight className="size-3.5 text-white/20" />
               </button>
             </div>
-          </div>
-        </section>
-      </div>
-    </div>
+          </div >
+        </section >
+      </div >
+    </div >
   );
 }

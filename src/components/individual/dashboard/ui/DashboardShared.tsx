@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { StatusChip } from "@/components/ui/app-chrome";
 import { deployments, edits } from "@/lib/portfolio-data";
 
@@ -12,14 +11,13 @@ export function RangeToggle({
   setRange: (r: string) => void;
 }) {
   return (
-    <div className="flex gap-1 rounded-lg bg-surface p-1 ring-1 ring-inset ring-border">
+    <div className="flex gap-1 rounded-md bg-white/[0.03] p-1 border border-white/[0.07]">
       {["24H", "7D", "30D", "12M"].map((r) => (
         <button
           key={r}
           onClick={() => setRange(r)}
-          className={`numeric rounded-md px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer ${
-            range === r ? "bg-surface-raised text-foreground" : "text-subtle hover:text-foreground"
-          }`}
+          className={`numeric rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${range === r ? "bg-white text-black" : "text-white/30 hover:text-white/60"
+            }`}
         >
           {r}
         </button>
@@ -28,39 +26,55 @@ export function RangeToggle({
   );
 }
 
-export function MetricBand() {
+export function MetricBand({
+  totalViews,
+  isDeployed,
+  liveUrl,
+  updatedAt,
+}: {
+  totalViews: number;
+  isDeployed: boolean;
+  liveUrl: string | null;
+  updatedAt: string;
+}) {
+  const sslActive = isDeployed && !!liveUrl && liveUrl.startsWith("https://");
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
-      <div className="rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 shadow-soft min-w-0">
-        <p className="text-xs font-medium text-muted-foreground truncate">Total Views</p>
-        <div className="mt-1 flex items-baseline justify-between gap-1">
-          <p className="numeric text-xl sm:text-2xl font-bold tracking-tight text-foreground">124,892</p>
-          <span className="text-[10px] sm:text-[11px] font-semibold text-indigo-400 shrink-0">+12.4%</span>
+    <div className="grid grid-cols-2 gap-4 sm:gap-5 sm:grid-cols-4">
+      <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 min-w-0">
+        <p className="text-xs text-white/30">Total Views</p>
+        <p className="mt-2 numeric text-xl sm:text-2xl font-semibold text-white">
+          {fmt.format(totalViews)}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 min-w-0">
+        <p className="text-xs text-white/30">Site Status</p>
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <p className="text-sm font-medium text-white/70">
+            {isDeployed ? "Live & Active" : "Not Deployed"}
+          </p>
+          <span className={`size-1.5 rounded-full ${isDeployed ? "bg-[#86efac]" : "bg-white/20"}`} />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 shadow-soft min-w-0">
-        <p className="text-xs font-medium text-muted-foreground truncate">Site Status</p>
-        <div className="mt-1.5 flex items-center justify-between gap-1">
-          <p className="text-xs sm:text-sm font-semibold text-foreground truncate">Live & Active</p>
-          <span className="size-2 rounded-full bg-emerald-400 shrink-0" />
+      <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 min-w-0">
+        <p className="text-xs text-white/30">SSL Security</p>
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <p className="text-sm font-medium text-white/70">
+            {sslActive ? "Protected" : "Not Active"}
+          </p>
+          <span className="text-[10px] text-white/25 font-mono">
+            {sslActive ? "HTTPS" : "—"}
+          </span>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 shadow-soft min-w-0">
-        <p className="text-xs font-medium text-muted-foreground truncate">SSL Security</p>
-        <div className="mt-1.5 flex items-center justify-between gap-1">
-          <p className="text-xs sm:text-sm font-semibold text-foreground truncate">Protected</p>
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono bg-background border border-border/60 px-1.5 py-0.5 rounded shrink-0">HTTPS</span>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 shadow-soft min-w-0">
-        <p className="text-xs font-medium text-muted-foreground truncate">Last Updated</p>
-        <div className="mt-1.5 flex items-baseline justify-between gap-1">
-          <p className="text-xs sm:text-sm font-semibold text-foreground truncate">2 mins ago</p>
-          <span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground truncate hidden xs:inline">main</span>
-        </div>
+      <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 min-w-0">
+        <p className="text-xs text-white/30">Last Updated</p>
+        <p className="mt-2 text-sm font-medium text-white/70">
+          {new Date(updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+        </p>
       </div>
     </div>
   );
@@ -78,19 +92,18 @@ export function BarRow({
   mono?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-12 items-center gap-4 border-t border-border py-2.5">
+    <div className="grid grid-cols-12 items-center gap-4 border-t border-white/[0.05] py-3">
       <span
-        className={`col-span-6 flex items-center gap-2.5 text-sm text-foreground ${mono ? "font-mono text-xs" : ""}`}
+        className={`col-span-6 text-sm text-white/60 ${mono ? "font-mono text-xs" : ""}`}
       >
-        <span className="size-3 shrink-0 rounded-sm bg-muted" />
         {label}
       </span>
-      <span className="numeric col-span-3 text-right text-sm text-muted-foreground">{value}</span>
+      <span className="numeric col-span-3 text-right text-sm text-white/30">{value}</span>
       <span className="col-span-3 flex items-center justify-end gap-2.5">
-        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-          <span className="block h-full bg-primary" style={{ width: `${share}%` }} />
+        <span className="h-1 w-16 overflow-hidden rounded-sm bg-white/[0.06]">
+          <span className="block h-full bg-white/20" style={{ width: `${share}%` }} />
         </span>
-        <span className="numeric w-7 text-right text-[11px] text-muted-foreground">{share}%</span>
+        <span className="numeric w-7 text-right text-xs text-white/25">{share}%</span>
       </span>
     </div>
   );
@@ -98,20 +111,19 @@ export function BarRow({
 
 export function DeployRow({ d }: { d: (typeof deployments)[number] }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-3.5 transition-colors">
+    <div className="flex items-center justify-between gap-4 rounded-md border border-white/[0.07] bg-white/[0.02] p-3.5">
       <div className="flex min-w-0 items-center gap-3">
         <span
-          className={`size-2 shrink-0 rounded-full ${
-            d.state === "ready"
-              ? "bg-emerald-500"
-              : d.state === "building"
-                ? "bg-amber-500"
-                : "bg-destructive"
-          }`}
+          className={`size-2 shrink-0 rounded-full ${d.state === "ready"
+            ? "bg-[#86efac]"
+            : d.state === "building"
+              ? "bg-amber-300"
+              : "bg-red-400"
+            }`}
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">{d.message}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+          <p className="truncate text-sm text-white/70">{d.message}</p>
+          <p className="mt-0.5 font-mono text-xs text-white/25">
             {d.branch} @ {d.sha} · {d.when} · {d.by}
           </p>
         </div>
@@ -122,7 +134,7 @@ export function DeployRow({ d }: { d: (typeof deployments)[number] }) {
           href={`https://${d.url}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden rounded border border-border bg-background px-2 py-1 font-mono text-[10px] text-muted-foreground hover:text-foreground transition-colors md:block"
+          className="hidden rounded-md border border-white/[0.06] px-2 py-1 font-mono text-[10px] text-white/25 hover:text-white/50 transition-colors md:block"
         >
           {d.url}
         </a>
@@ -135,17 +147,16 @@ export function DeployRow({ d }: { d: (typeof deployments)[number] }) {
 export function Timeline() {
   return (
     <div className="relative space-y-6 pl-5">
-      <span className="absolute bottom-1 left-0 top-1 w-px bg-border" />
+      <span className="absolute bottom-1 left-0 top-1 w-px bg-white/[0.06]" />
       {edits.map((e, i) => (
         <div key={e.when + e.what} className="relative">
           <span
-            className={`absolute -left-[21px] top-1 size-2.5 rounded-full border-2 border-background ${
-              i === 0 ? "bg-primary" : "bg-subtle"
-            }`}
+            className={`absolute -left-[21px] top-1 size-2.5 rounded-full border-2 border-black ${i === 0 ? "bg-white" : "bg-white/20"
+              }`}
           />
-          <p className="eyebrow mb-1">{e.when}</p>
-          <p className="text-sm text-foreground">{e.what}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-subtle">
+          <p className="text-xs text-white/30 mb-1">{e.when}</p>
+          <p className="text-sm text-white/70">{e.what}</p>
+          <p className="mt-0.5 font-mono text-xs text-white/20">
             {e.target} · {e.who}
           </p>
         </div>
@@ -166,8 +177,8 @@ export function Row({
   return (
     <div className="grid grid-cols-12 items-center gap-8 py-7">
       <div className="col-span-12 md:col-span-5">
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
-        <p className="mt-1 text-[12px] text-muted-foreground">{desc}</p>
+        <h3 className="text-sm font-medium text-white/80">{title}</h3>
+        <p className="mt-1 text-xs text-white/30">{desc}</p>
       </div>
       <div className="col-span-12 flex items-center justify-end gap-3 md:col-span-7">{children}</div>
     </div>
@@ -180,193 +191,15 @@ export function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) =
       role="switch"
       aria-checked={on}
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors cursor-pointer ${on ? "bg-primary" : "bg-muted"}`}
+      className={`relative h-5 w-9 rounded-full transition-colors cursor-pointer ${on ? "bg-[#86efac]" : "bg-white/10"}`}
     >
       <span
-        className={`absolute top-0.5 size-4 rounded-full transition-all ${
-          on ? "left-[18px] bg-primary-foreground" : "left-0.5 bg-subtle"
-        }`}
+        className={`absolute top-0.5 size-4 rounded-full transition-all ${on ? "left-[18px] bg-black" : "left-0.5 bg-white/30"
+          }`}
       />
     </button>
   );
 }
 
-export function ShareModal({
-  isOpen,
-  onClose,
-  title,
-  url,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  url: string;
-}) {
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedEmbed, setCopiedEmbed] = useState(false);
-
-  if (!isOpen) return null;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(url);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
-
-  const embedCode = `<iframe src="${url}" width="100%" height="700px" frameborder="0" allowfullscreen></iframe>`;
-
-  const handleCopyEmbed = () => {
-    navigator.clipboard.writeText(embedCode);
-    setCopiedEmbed(true);
-    setTimeout(() => setCopiedEmbed(false), 2000);
-  };
-
-  const encodedUrl = encodeURIComponent(url);
-  const encodedTitle = encodeURIComponent(`Check out my developer portfolio: ${title}`);
-
-  const shareLinks = [
-    {
-      name: "Twitter / X",
-      icon: "𝕏",
-      color: "bg-black text-white hover:bg-neutral-800",
-      href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
-    },
-    {
-      name: "LinkedIn",
-      icon: "in",
-      color: "bg-[#0A66C2] text-white hover:bg-[#084e96]",
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-    },
-    {
-      name: "WhatsApp",
-      icon: "💬",
-      color: "bg-[#25D366] text-white hover:bg-[#1da851]",
-      href: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
-    },
-    {
-      name: "Email",
-      icon: "✉️",
-      color: "bg-neutral-700 text-white hover:bg-neutral-600",
-      href: `mailto:?subject=${encodedTitle}&body=Here%20is%20my%20live%20portfolio%3A%20${encodedUrl}`,
-    },
-  ];
-
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text: `Check out my portfolio site: ${title}`,
-          url,
-        });
-      } catch {
-        // user cancelled
-      }
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in-50">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border/80 bg-surface/95 p-6 sm:p-8 shadow-lift space-y-6">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-5 top-5 rounded-full p-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer"
-        >
-          ✕
-        </button>
-
-        <div className="space-y-1.5 pr-8">
-          <div className="flex items-center gap-2">
-            <span className="flex size-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">Share Live Website</span>
-          </div>
-          <h3 className="text-xl font-bold text-foreground">
-            Share {title}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Distribute your live portfolio link to recruiter contacts, social media, or embed on your custom domain.
-          </p>
-        </div>
-
-        {/* Link Input Section */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-foreground uppercase tracking-wider">Direct Live URL</label>
-          <div className="flex items-center gap-2 rounded-2xl border border-border/80 bg-background p-2">
-            <input
-              type="text"
-              readOnly
-              value={url}
-              className="flex-1 bg-transparent px-2 font-mono text-xs text-foreground outline-none truncate"
-            />
-            <button
-              onClick={handleCopyLink}
-              className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-95 transition-all cursor-pointer shrink-0"
-            >
-              {copiedLink ? "Copied!" : "Copy Link"}
-            </button>
-          </div>
-        </div>
-
-        {/* Social Sharing Grid */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-foreground uppercase tracking-wider">Quick Share</label>
-            {typeof navigator !== "undefined" && "share" in navigator && (
-              <button
-                onClick={handleNativeShare}
-                className="text-xs font-medium text-primary hover:underline cursor-pointer"
-              >
-                Native Share Options
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {shareLinks.map((s) => (
-              <a
-                key={s.name}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-bold transition-all shadow-sm cursor-pointer ${s.color}`}
-              >
-                <span>{s.icon}</span>
-                <span>{s.name}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* Embed Snippet Code */}
-        <div className="space-y-2 pt-2 border-t border-border/50">
-          <label className="text-xs font-bold text-foreground uppercase tracking-wider">Embed Code (HTML iframe)</label>
-          <div className="flex items-center gap-2 rounded-2xl border border-border/80 bg-background p-2">
-            <input
-              type="text"
-              readOnly
-              value={embedCode}
-              className="flex-1 bg-transparent px-2 font-mono text-[11px] text-muted-foreground outline-none truncate"
-            />
-            <button
-              onClick={handleCopyEmbed}
-              className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer shrink-0"
-            >
-              {copiedEmbed ? "Copied Code" : "Copy Snippet"}
-            </button>
-          </div>
-        </div>
-
-        <div className="pt-2 text-center">
-          <button
-            onClick={onClose}
-            className="w-full rounded-2xl border border-border/80 bg-surface/80 py-2.5 text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+export { ShareModal } from "./ShareModal";
+export type { ShareModalProps } from "./ShareModal";

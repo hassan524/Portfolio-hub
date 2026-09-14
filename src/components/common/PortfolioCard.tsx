@@ -97,6 +97,8 @@ export function PortfolioCard({
     return (
       <Link
         to={`/dashboard?pid=${encodeURIComponent(id)}`}
+        target="_blank"
+        rel="noopener noreferrer"
         className="group panel overflow-hidden transition-colors hover:border-border-strong"
       >
         {content}

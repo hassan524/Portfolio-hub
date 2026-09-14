@@ -1,42 +1,55 @@
-import { PageShell } from "@/components/individual/PageShell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardOverviewSkeleton } from "./DashboardOverviewSkeleton";
 
+function DarkSkeleton({ className }: { className?: string }) {
+  return (
+    <Skeleton
+      className={`rounded-md border-white/10 bg-white/10 ${className ?? ""}`}
+    />
+  );
+}
+
 export function DashboardPageSkeleton() {
   return (
-    <PageShell
-      eyebrow="Dashboard"
-      title="Loading Portfolio..."
-      subtitle="Fetching portfolio telemetry, custom domain routes, and deployment status."
-    >
-      <div className="space-y-6">
-        {/* Simplified Dashboard Header Bar Skeleton */}
-        <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-center justify-between gap-3 pb-3 border-b border-border/50">
-          {/* Status & Live URL Skeleton */}
-          <div className="flex items-center gap-2.5">
-            <Skeleton className="h-6 w-20 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
-            <Skeleton className="h-7 w-40 sm:w-56 rounded-lg bg-surface/60 border border-border/60" />
+    <div className="min-h-screen bg-black text-white">
+      <div className="sticky top-0 z-40 border-b border-white/[0.07] bg-black/95 backdrop-blur-md">
+        <header>
+          <div className="flex items-center justify-between border-b border-white/[0.05] px-4 py-2.5 sm:px-8">
+            <DarkSkeleton className="h-7 w-[88px] rounded-md" />
+            <DarkSkeleton className="size-8 rounded-md" />
           </div>
 
-          {/* Action Buttons Skeleton */}
-          <div className="flex items-center gap-2 shrink-0 self-end min-[480px]:self-auto">
-            <Skeleton className="h-8 w-20 rounded-xl bg-card border border-border/70" />
-            <Skeleton className="h-8 w-24 rounded-xl bg-foreground/20" />
-          </div>
-        </div>
+          <div className="flex items-start justify-between gap-3 px-4 py-3.5 sm:items-center sm:px-8 sm:py-4">
+            <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
+              <DarkSkeleton className="size-10 shrink-0 rounded-lg sm:size-11" />
+              <div className="min-w-0 flex-1 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <DarkSkeleton className="h-5 w-40 max-w-[55vw] bg-white/15" />
+                  <DarkSkeleton className="h-3 w-10 shrink-0" />
+                </div>
+                <DarkSkeleton className="h-3 w-full max-w-md" />
+              </div>
+            </div>
 
-        {/* Tab Navigation Pill Bar Skeleton */}
-        <div className="overflow-x-auto simple-scrollbar pb-1">
-          <div className="inline-flex p-1.5 gap-2 rounded-2xl bg-card border border-border/80 shadow-soft min-w-full sm:min-w-0">
-            <Skeleton className="h-8.5 w-28 rounded-xl bg-foreground/20" />
-            <Skeleton className="h-8.5 w-28 rounded-xl bg-muted/40" />
-            <Skeleton className="h-8.5 w-28 rounded-xl bg-muted/40" />
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <DarkSkeleton className="size-9 rounded-md" />
+              <DarkSkeleton className="size-9 rounded-md bg-white/15" />
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Main Dashboard Content Active Tab Skeleton */}
-        <DashboardOverviewSkeleton />
+        <nav className="flex gap-5 px-4 pt-3 sm:gap-6 sm:px-8 sm:pt-4">
+          <DarkSkeleton className="mb-3 h-4 w-[72px] bg-white/15" />
+          <DarkSkeleton className="mb-3 h-4 w-[72px]" />
+          <DarkSkeleton className="mb-3 h-4 w-[64px]" />
+        </nav>
       </div>
-    </PageShell>
+
+      <main>
+        <div className="px-5 py-8 sm:px-8 sm:py-10">
+          <DashboardOverviewSkeleton />
+        </div>
+      </main>
+    </div>
   );
 }

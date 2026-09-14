@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import portfolioApi from "@/api/portfolioApi";
 import { mapPortfolio } from "@/lib/functions/portfolio";
-import { PortfolioRow, Portfolio } from "@/types/portfolio";
+import { PortfolioRow, Portfolio, PortfolioOverview } from "@/types/portfolio";
+import { mapPortfolioOverview } from "@/lib/functions/portfolio";
+
 
 export function usePortfolios(userId?: string) {
   return useQuery<Portfolio[]>({
@@ -15,43 +17,6 @@ export function usePortfolios(userId?: string) {
     },
     enabled: !!userId,
   });
-}
-
-type PortfolioTrafficData = {
-  dates: string[];
-  seriesData: number[];
-};
-
-export function usePortfolioTrafficData(portfolioId: string, range: string) {
-  const [data, setData] = useState<PortfolioTrafficData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!portfolioId) return;
-
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    portfolioApi
-      .getPortfolioTraffic(portfolioId, range)
-      .then((res) => {
-        if (!cancelled) setData(res.data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message ?? "Failed to load traffic data");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [portfolioId, range]);
-
-  return { data, loading, error };
 }
 
 export function usePortfolioViews30d(portfolioId: string) {
@@ -151,4 +116,115 @@ export function usePortfolioDetail(portfolioId?: string) {
   }, [portfolioId]);
 
   return { portfolio, loading, error };
+}
+
+export function usePortfolioViewsRange(portfolioId: string, range: string) {
+  const [dates, setDates] = useState<string[]>([]);
+  const [seriesData, setSeriesData] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!portfolioId) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    portfolioApi
+      .getPortfolioViewsRange(portfolioId, range)
+      .then((res) => {
+        if (cancelled) return;
+        setDates(res.data.dates);
+        setSeriesData(res.data.seriesData);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.response?.data?.error || err.message || "Failed to load views range");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portfolioId, range]);
+
+  return { dates, seriesData, loading, error };
+}
+
+export function usePortfolioOverview(portfolioId?: string) {
+  const [overview, setOverview] = useState<PortfolioOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!portfolioId) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    portfolioApi
+      .getPortfolioOverview(portfolioId)
+      .then((res) => {
+        if (!cancelled) setOverview(mapPortfolioOverview(res.data));
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.response?.data?.error || err.message || "Failed to load overview");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portfolioId]);
+
+  return { overview, loading, error };
+}
+export function usePortfolioTraffic(portfolioId?: string) {
+  const [totalViews, setTotalViews] = useState(0);
+  const [topSources, setTopSources] = useState<{ label: string; count: number; share: number }[]>([]);
+  const [topPages, setTopPages] = useState<{ path: string; views: number }[]>([]);
+  const [topCountries, setTopCountries] = useState<{ label: string; count: number; share: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!portfolioId) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    portfolioApi
+      .getPortfolioTraffic(portfolioId)
+      .then((res) => {
+        if (cancelled) return;
+        setTotalViews(res.data.totalViews);
+        setTopSources(res.data.topSources);
+        setTopPages(res.data.topPages);
+        setTopCountries(res.data.topCountries);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.response?.data?.error || err.message || "Failed to load traffic");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portfolioId]);
+
+  return { totalViews, topSources, topPages, topCountries, loading, error };
 }
