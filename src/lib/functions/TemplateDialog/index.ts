@@ -13,6 +13,10 @@ import type {
 } from "@/types/previewEditTypes";
 import { ResponsiveBreakpoint } from "@/types/previewEditTypes";
 
+// ============================================================
+// TemplatePreviewDialog
+// ============================================================
+
 export const BREAKPOINTS: Record<ResponsiveBreakpoint, { min: number; max?: number }> = {
   desktop: { min: 1024 },
   tablet: { min: 768, max: 1023 },
