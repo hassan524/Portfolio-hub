@@ -235,10 +235,9 @@ export function TemplateLivePreview({
   // resize handles (or nudging with +/-) naturally crosses into
   // Tablet/Mobile the same way a real responsive site would.
   const effectiveBreakpoint: ResponsiveBreakpoint = useMemo(() => {
-    if (!responsiveEditMode) return "desktop";
-    const effectiveWidth = isDesktop ? DEFAULT_DESKTOP_WIDTH : width;
-    return breakpointFromWidth(effectiveWidth);
-  }, [responsiveEditMode, isDesktop, width]);
+    if (isDesktop) return "desktop";
+    return breakpointFromWidth(width);
+  }, [isDesktop, width]);
 
   // Turning Responsive Editing on forces the resizable frame (since the
   // fixed-zoom Desktop frame can't represent arbitrary breakpoint widths),

@@ -131,13 +131,13 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   };
 
   const handleChangeElementStyle = (elementId: string, patch: Partial<PreviewElementStyle>) => {
-    changeElementStyle(setSite, setSelectedElement, elementId, patch, responsiveEditMode, editBreakpoint);
+    changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint);
     setChangeCount((c) => c + 1);
   };
 
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
-      changeElementStyle(setSite, setSelectedElement, elementId, patch),
+      changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint),
     );
     setChangeCount((c) => c + 1);
   };
@@ -270,6 +270,8 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 <ElementStylePanel
                   edit={selectedElement}
                   theme={theme}
+                  responsiveEditMode={responsiveEditMode}
+                  editBreakpoint={editBreakpoint}
                   onChange={(patch) => handleChangeElementStyle(selectedElement.id, patch)}
                   onRemove={handleRemoveSelectedElement}
                   onReset={handleResetSelectedElement}

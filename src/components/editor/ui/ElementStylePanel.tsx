@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Bold,
@@ -26,7 +26,7 @@ import {
   Layers,
   Ban,
 } from "lucide-react";
-import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
+import type { PreviewElementEdit, PreviewElementStyle, ResponsiveBreakpoint } from "@/types/previewEditTypes";
 import type { Theme } from "@/types/builder.schema";
 import { isHexColor, to6DigitHex } from "@/lib/functions/template";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ import {
 type Props = {
   edit: PreviewElementEdit | null;
   theme?: Theme;
+  responsiveEditMode?: boolean;
+  editBreakpoint?: ResponsiveBreakpoint;
   onThemeChange?: (patch: Partial<Theme>) => void;
   onChange: (patch: Partial<PreviewElementStyle>) => void;
   onRemove: () => void;
@@ -570,10 +572,26 @@ function cornerKeyFromValue(radius: number | null | undefined): CornerKey {
 
 /* ---------------------------------- main panel ---------------------------------- */
 
-export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemove, onReset, onClose }: Props) {
+export function ElementStylePanel({
+  edit,
+  theme,
+  responsiveEditMode,
+  editBreakpoint,
+  onThemeChange,
+  onChange,
+  onRemove,
+  onReset,
+  onClose,
+}: Props) {
   if (!edit) return null;
 
-  const style = edit.style;
+  const style = useMemo(() => {
+    const base = { ...edit.style };
+    if (editBreakpoint && edit.style.responsive?.[editBreakpoint]) {
+      Object.assign(base, edit.style.responsive[editBreakpoint]);
+    }
+    return base;
+  }, [edit.style, editBreakpoint]);
   const isHidden = Boolean(style.removed);
   const gradient = parseGradient(style.backgroundGradient || "");
 

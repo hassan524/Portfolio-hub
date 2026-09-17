@@ -65,9 +65,9 @@ export type PreviewElementStyle = {
   entranceDuration?: number;
 
   responsive?: {
-    desktop?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
-    tablet?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
-    mobile?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
+    desktop?: Partial<Omit<PreviewElementStyle, "responsive">>;
+    tablet?: Partial<Omit<PreviewElementStyle, "responsive">>;
+    mobile?: Partial<Omit<PreviewElementStyle, "responsive">>;
   };
 
 };

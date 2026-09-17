@@ -36,10 +36,8 @@ export function resolveResponsiveValue<K extends keyof PreviewElementStyle>(
 ): PreviewElementStyle[K] {
   const responsive = style.responsive;
   if (responsive?.[breakpoint] && key in responsive[breakpoint]!) {
-    return (responsive[breakpoint] as any)[key];
-  }
-  if (breakpoint !== "desktop" && responsive?.desktop && key in responsive.desktop) {
-    return (responsive.desktop as any)[key];
+    const val = (responsive[breakpoint] as any)[key];
+    if (val !== undefined) return val;
   }
   return style[key];
 }
@@ -172,7 +170,6 @@ export function changeElementStyle(
   setSelectedElement: Dispatch<SetStateAction<PreviewElementEdit | null>>,
   elementId: string,
   patch: Partial<PreviewElementStyle>,
-  responsiveEditMode: boolean = false,
   editBreakpoint: ResponsiveBreakpoint = "desktop",
 ): void {
   setSite((prev): SiteData | null => {
@@ -181,21 +178,15 @@ export function changeElementStyle(
     const prevElements = prev.previewEdits?.elements ?? {};
     const prevStyle = prevElements[elementId]?.style ?? {};
 
-    let nextStyle: PreviewElementStyle;
-
-    if (responsiveEditMode) {
-      const prevResponsive = prevStyle.responsive ?? {};
-      const prevBreakpointSlot = prevResponsive[editBreakpoint] ?? {};
-      nextStyle = {
-        ...prevStyle,
-        responsive: {
-          ...prevResponsive,
-          [editBreakpoint]: { ...prevBreakpointSlot, ...patch },
-        },
-      };
-    } else {
-      nextStyle = { ...prevStyle, ...patch };
-    }
+    const prevResponsive = prevStyle.responsive ?? {};
+    const prevBreakpointSlot = prevResponsive[editBreakpoint] ?? {};
+    const nextStyle: PreviewElementStyle = {
+      ...prevStyle,
+      responsive: {
+        ...prevResponsive,
+        [editBreakpoint]: { ...prevBreakpointSlot, ...patch },
+      },
+    };
 
     const blockId = elementId.split(":")[0] ?? "";
     const block = prev.blocks.find((candidate) => candidate.id === blockId);
@@ -219,15 +210,15 @@ export function changeElementStyle(
       elements: nextElements,
     };
 
+    setSelectedElement((prev) =>
+      prev && prev.id === elementId ? { ...prev, style: nextStyle } : prev,
+    );
+
     return {
       ...prev,
       previewEdits: nextPreviewEdits,
     } as SiteData;
   });
-
-  setSelectedElement((prev) =>
-    prev && prev.id === elementId ? { ...prev, style: { ...prev.style, ...patch } } : prev,
-  );
 }
 
 // Marks the currently-selected element as "removed" (hidden) instead of
@@ -635,192 +626,215 @@ export function applyPreviewStyle(
     return;
   }
 
-  const imp = style.isImportant ? "important" : "";
+  const resolve = <K extends keyof PreviewElementStyle>(key: K): PreviewElementStyle[K] =>
+    resolveResponsiveValue(style, key, breakpoint);
+
+  const isImportant = resolve("isImportant");
+  const imp = isImportant ? "important" : "";
   const setProp = (prop: string, val: string | undefined | null) => {
     if (val !== undefined && val !== null && val !== "") {
       element.style.setProperty(prop, val, imp);
+    } else {
+      element.style.removeProperty(prop);
     }
   };
 
   // Typography
-  if (style.bold !== undefined || style.fontWeight !== undefined) {
-    const weight = style.bold !== undefined ? (style.bold ? "700" : "400") : (style.fontWeight || "400");
+  const bold = resolve("bold");
+  const fontWeight = resolve("fontWeight");
+  if (bold !== undefined || fontWeight !== undefined) {
+    const weight = bold !== undefined ? (bold ? "700" : "400") : (fontWeight || "400");
     setProp("font-weight", weight);
+  } else {
+    setProp("font-weight", null);
   }
-  if (style.italic !== undefined) {
-    setProp("font-style", style.italic ? "italic" : "normal");
-  }
-  if (style.underline !== undefined || style.strikethrough !== undefined) {
+
+  const italic = resolve("italic");
+  setProp("font-style", italic !== undefined && italic !== null ? (italic ? "italic" : "normal") : null);
+
+  const underline = resolve("underline");
+  const strikethrough = resolve("strikethrough");
+  if (underline !== undefined || strikethrough !== undefined) {
     const decorations: string[] = [];
-    if (style.underline) decorations.push("underline");
-    if (style.strikethrough) decorations.push("line-through");
+    if (underline) decorations.push("underline");
+    if (strikethrough) decorations.push("line-through");
     setProp("text-decoration", decorations.length > 0 ? decorations.join(" ") : "none");
-  }
-  if (style.fontFamily && style.fontFamily !== "inherit") {
-    setProp("font-family", style.fontFamily);
-  }
-
-  const effectiveFontSize = resolveResponsiveValue(style, "fontSize", breakpoint);
-  if (effectiveFontSize !== undefined && effectiveFontSize !== null) {
-    setProp("font-size", `${effectiveFontSize}px`);
+  } else {
+    setProp("text-decoration", null);
   }
 
-  if (style.lineHeight !== undefined && style.lineHeight !== null) {
-    setProp("line-height", `${style.lineHeight}`);
-  }
-  if (style.letterSpacing !== undefined && style.letterSpacing !== null) {
-    setProp("letter-spacing", `${style.letterSpacing}px`);
-  }
+  const fontFamily = resolve("fontFamily");
+  setProp("font-family", fontFamily && fontFamily !== "inherit" ? fontFamily : null);
 
-  const effectiveTextAlign = resolveResponsiveValue(style, "textAlign", breakpoint);
-  if (effectiveTextAlign) {
-    setProp("text-align", effectiveTextAlign);
-  }
+  const effectiveFontSize = resolve("fontSize");
+  setProp("font-size", effectiveFontSize !== undefined && effectiveFontSize !== null ? `${effectiveFontSize}px` : null);
 
-  if (style.textTransform && style.textTransform !== "none") {
-    setProp("text-transform", style.textTransform);
-  }
-  if (style.color) {
-    setProp("color", style.color);
-  }
-  if (style.textShadow) {
-    setProp("text-shadow", style.textShadow);
-  }
+  const lineHeight = resolve("lineHeight");
+  setProp("line-height", lineHeight !== undefined && lineHeight !== null ? `${lineHeight}` : null);
+
+  const letterSpacing = resolve("letterSpacing");
+  setProp("letter-spacing", letterSpacing !== undefined && letterSpacing !== null ? `${letterSpacing}px` : null);
+
+  const effectiveTextAlign = resolve("textAlign");
+  setProp("text-align", effectiveTextAlign || null);
+
+  const textTransform = resolve("textTransform");
+  setProp("text-transform", textTransform && textTransform !== "none" ? textTransform : null);
+
+  const color = resolve("color");
+  setProp("color", color || null);
+
+  const textShadow = resolve("textShadow");
+  setProp("text-shadow", textShadow || null);
 
   // Gradient Text
-  if (style.gradientText) {
-    setProp("background-image", style.backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
+  const gradientText = resolve("gradientText");
+  const backgroundGradient = resolve("backgroundGradient");
+  if (gradientText) {
+    setProp("background-image", backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
     setProp("-webkit-background-clip", "text");
     setProp("background-clip", "text");
     setProp("-webkit-text-fill-color", "transparent");
+  } else {
+    setProp("-webkit-background-clip", null);
+    setProp("background-clip", null);
+    setProp("-webkit-text-fill-color", null);
   }
 
   // Background & Colors
-  if (style.glassmorphism) {
+  const glassmorphism = resolve("glassmorphism");
+  const backgroundColor = resolve("backgroundColor");
+  const backgroundImage = resolve("backgroundImage");
+  if (glassmorphism) {
     setProp("background-color", "rgba(255, 255, 255, 0.08)");
     setProp("backdrop-filter", "blur(16px)");
     setProp("-webkit-backdrop-filter", "blur(16px)");
     setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
     setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
   } else {
-    if (style.backgroundColor) {
-      setProp("background-color", style.backgroundColor);
-    }
-    if (style.backgroundGradient || style.backgroundImage) {
-      setProp("background-image", style.backgroundGradient || style.backgroundImage);
-    }
+    setProp("background-color", backgroundColor || null);
+    setProp("background-image", backgroundGradient || backgroundImage || null);
   }
 
-  if (style.opacity !== undefined && style.opacity !== null) {
-    setProp("opacity", `${style.opacity}`);
-  }
+  const opacity = resolve("opacity");
+  setProp("opacity", opacity !== undefined && opacity !== null ? `${opacity}` : null);
 
   // Borders & Shadow
-  if (!style.glassmorphism) {
-    if (style.borderRadius !== undefined && style.borderRadius !== null) {
-      setProp("border-radius", `${style.borderRadius}px`);
-    }
-    if (style.borderWidth !== undefined && style.borderWidth !== null) {
-      setProp("border-width", `${style.borderWidth}px`);
-    }
-    if (style.borderStyle) {
-      setProp("border-style", style.borderStyle);
-    }
-    if (style.borderColor) {
-      setProp("border-color", style.borderColor);
-    }
-    if (style.glowAccent) {
+  if (!glassmorphism) {
+    const borderRadius = resolve("borderRadius");
+    setProp("border-radius", borderRadius !== undefined && borderRadius !== null ? `${borderRadius}px` : null);
+
+    const borderWidth = resolve("borderWidth");
+    setProp("border-width", borderWidth !== undefined && borderWidth !== null ? `${borderWidth}px` : null);
+
+    const borderStyle = resolve("borderStyle");
+    setProp("border-style", borderStyle || null);
+
+    const borderColor = resolve("borderColor");
+    setProp("border-color", borderColor || null);
+
+    const glowAccent = resolve("glowAccent");
+    const boxShadow = resolve("boxShadow");
+    if (glowAccent) {
       setProp("box-shadow", "0 0 25px rgba(99, 102, 241, 0.6), 0 0 50px rgba(99, 102, 241, 0.3)");
-    } else if (style.boxShadow && style.boxShadow !== "none") {
-      setProp("box-shadow", style.boxShadow);
+    } else {
+      setProp("box-shadow", boxShadow && boxShadow !== "none" ? boxShadow : null);
     }
 
-    if (style.backdropBlur !== undefined && style.backdropBlur !== null) {
-      const blurVal = style.backdropBlur ? `blur(${style.backdropBlur}px)` : "";
-      setProp("backdrop-filter", blurVal);
-      setProp("-webkit-backdrop-filter", blurVal);
-    }
+    const backdropBlur = resolve("backdropBlur");
+    setProp("backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? `blur(${backdropBlur}px)` : null);
+    setProp("-webkit-backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? `blur(${backdropBlur}px)` : null);
   }
 
   // Spacing & Dimensions
-  const effectivePadding = resolveResponsiveValue(style, "padding", breakpoint);
-  if (effectivePadding !== undefined && effectivePadding !== null) {
-    setProp("padding", `${effectivePadding}px`);
-  }
+  const effectivePadding = resolve("padding");
+  setProp("padding", effectivePadding !== undefined && effectivePadding !== null ? `${effectivePadding}px` : null);
 
-  if (style.margin !== undefined && style.margin !== null) {
-    setProp("margin", `${style.margin}px`);
-  }
-  if (style.width) {
-    let w = style.width.trim();
-    if (/^\d+(\.\d+)?$/.test(w)) {
-      w = `${w}px`;
-    }
-    setProp("width", w);
-  }
-  if (style.height) {
-    let h = style.height.trim();
-    if (/^\d+(\.\d+)?$/.test(h)) {
-      h = `${h}px`;
-    }
-    setProp("height", h);
-  }
+  const margin = resolve("margin");
+  setProp("margin", margin !== undefined && margin !== null ? `${margin}px` : null);
+
+  const width = resolve("width");
+  setProp("width", width ? (/^\d+(\.\d+)?$/.test(width.trim()) ? `${width.trim()}px` : width.trim()) : null);
+
+  const height = resolve("height");
+  setProp("height", height ? (/^\d+(\.\d+)?$/.test(height.trim()) ? `${height.trim()}px` : height.trim()) : null);
 
   // Important SaaS Styles
-  if (style.zIndex !== undefined && style.zIndex !== null) {
-    setProp("z-index", `${style.zIndex}`);
-  }
+  const zIndex = resolve("zIndex");
+  setProp("z-index", zIndex !== undefined && zIndex !== null ? `${zIndex}` : null);
 
-  const effectiveRemoved = resolveResponsiveValue(style, "removed", breakpoint);
+  const effectiveRemoved = resolve("removed");
+  const display = resolve("display");
   if (effectiveRemoved) {
     setProp("display", "none");
-  } else if (style.display) {
-    setProp("display", style.display);
+  } else {
+    setProp("display", display || null);
   }
 
-  if (style.cursor) {
-    setProp("cursor", style.cursor);
-  }
-  if (style.overflow) {
-    setProp("overflow", style.overflow);
-  }
+  const cursor = resolve("cursor");
+  setProp("cursor", cursor || null);
+
+  const overflow = resolve("overflow");
+  setProp("overflow", overflow || null);
 
   // Transforms
-  if (style.rotate !== undefined || style.scale !== undefined) {
-    const transforms: string[] = [];
-    if (style.rotate) transforms.push(`rotate(${style.rotate}deg)`);
-    if (style.scale) transforms.push(`scale(${style.scale})`);
-    if (transforms.length > 0) {
-      setProp("transform", transforms.join(" "));
-    }
-  }
+  const rotate = resolve("rotate");
+  const scale = resolve("scale");
+  const transforms: string[] = [];
+  if (rotate) transforms.push(`rotate(${rotate}deg)`);
+  if (scale) transforms.push(`scale(${scale})`);
+  setProp("transform", transforms.length > 0 ? transforms.join(" ") : null);
 
-  // Free positioning
-  if (style.freePositioned) {
-    const coords = device === "desktop" ? style.desktop : style.mobile;
+  // Free positioning & moving
+  const freePositioned = resolve("freePositioned");
+  if (freePositioned) {
+    const x = resolve("x");
+    const y = resolve("y");
+    const desktopCoords = resolve("desktop");
+    const mobileCoords = resolve("mobile");
+
+    let coords: { x: number; y: number } | undefined;
+    if (x !== undefined && y !== undefined && x !== null && y !== null) {
+      coords = { x, y };
+    } else if (breakpoint === "desktop") {
+      coords = desktopCoords;
+    } else {
+      coords = mobileCoords;
+    }
+
     if (coords) {
       setProp("position", "relative");
       setProp("left", `${coords.x}px`);
       setProp("top", `${coords.y}px`);
       setProp("z-index", "20");
+    } else {
+      setProp("position", null);
+      setProp("left", null);
+      setProp("top", null);
     }
+  } else {
+    setProp("position", null);
+    setProp("left", null);
+    setProp("top", null);
   }
 
   // Hover Effect
-  if (style.hoverEffect && style.hoverEffect !== "none") {
-    element.setAttribute("data-hover-fx", style.hoverEffect);
+  const hoverEffect = resolve("hoverEffect");
+  if (hoverEffect && hoverEffect !== "none") {
+    element.setAttribute("data-hover-fx", hoverEffect);
   } else {
     element.removeAttribute("data-hover-fx");
   }
 
-  // Entrance Animation + its duration (in seconds)
-  if (style.entrance && style.entrance !== "none") {
-    element.setAttribute("data-entrance-fx", style.entrance);
-    const duration = style.entranceDuration ?? 0.6;
-    setProp("animation-duration", `${duration}s`);
+  // Entrance Animation
+  const entrance = resolve("entrance");
+  const entranceDuration = resolve("entranceDuration");
+  if (entrance && entrance !== "none") {
+    element.setAttribute("data-entrance-fx", entrance);
+    setProp("animation-duration", `${entranceDuration ?? 0.6}s`);
   } else {
     element.removeAttribute("data-entrance-fx");
-    element.style.removeProperty("animation-duration");
+    setProp("animation-duration", null);
   }
 }
 
@@ -1484,10 +1498,14 @@ export function startElementFreeDrag(
 
     if (!hasMoved) return;
 
-    const patch: Partial<PreviewElementStyle> =
-      device === "desktop"
-        ? { freePositioned: true, desktop: { x: currentX, y: currentY } }
-        : { freePositioned: true, mobile: { x: currentX, y: currentY } };
+    const patch: Partial<PreviewElementStyle> = {
+      freePositioned: true,
+      x: currentX,
+      y: currentY,
+      ...(device === "desktop"
+        ? { desktop: { x: currentX, y: currentY } }
+        : { mobile: { x: currentX, y: currentY } }),
+    };
 
     onChangeElementStyle(elementId, patch);
   }

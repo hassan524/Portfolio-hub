@@ -11,7 +11,7 @@ import {
   DEPLOY_OAUTH_MESSAGE,
   type DeployOAuthCompleteMessage,
 } from "@/components/individual/deploy/OAuthCompletePage";
-import { finalizeDeployFiles } from "@/lib/buildReactAppTemplate";
+import { finalizeDeployFiles } from "@/lib/functions/deploy/finalizeDeployFiles";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PortfolioRow } from "@/types/portfolio";
 export type DeployPlatform = "vercel" | "netlify";
