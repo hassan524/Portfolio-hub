@@ -1,5 +1,7 @@
 import type { BlockKind, SiteData } from "@/types/builder.schema";
 
+export type ResponsiveBreakpoint = "desktop" | "tablet" | "mobile";
+
 export type PreviewElementStyle = {
   // Typography
   bold?: boolean;
@@ -57,6 +59,17 @@ export type PreviewElementStyle = {
 
   // Meta
   removed?: boolean;
+  textShadow?: string;
+  hoverEffect?: "none" | "grow" | "lift" | "glow" | "darken";
+  entrance?: "none" | "fade" | "slideUp" | "zoom";
+  entranceDuration?: number;
+
+  responsive?: {
+    desktop?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
+    tablet?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
+    mobile?: Partial<Pick<PreviewElementStyle, "fontSize" | "padding" | "textAlign" | "removed">>;
+  };
+
 };
 
 export type PreviewElementEdit = {

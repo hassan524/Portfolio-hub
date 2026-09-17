@@ -90,6 +90,10 @@ function PreviewIframe({
       }
 
       setMountNode(doc.body);
+      if (mountNode === doc.body && typeof cleanupRef.current === "function") {
+        cleanupRef.current();
+        cleanupRef.current = onDocumentReadyRef.current?.(doc.body);
+      }
     }
 
     // A src-less iframe's document may already be "complete" by the time
@@ -109,12 +113,15 @@ function PreviewIframe({
       iframe.removeEventListener("load", handleLoad);
       observer.disconnect();
     };
-  }, [iframeRef]);
+  }, [iframeRef, mountNode]);
 
   // Re-run whenever onDocumentReady changes (its deps include editMode, blocks,
   // site, device etc.). This replaces stale event-listener closures — e.g. the
   // one that had editMode=false before the user toggled edit mode on.
   const cleanupRef = useRef<(() => void) | void>(undefined);
+  const onDocumentReadyRef = useRef(onDocumentReady);
+  onDocumentReadyRef.current = onDocumentReady;
+
   useEffect(() => {
     if (!mountNode) return;
     // Clean up previous listeners before re-binding.

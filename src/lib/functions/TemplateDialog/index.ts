@@ -11,10 +11,34 @@ import type {
   PreviewElementEdit,
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
+import { ResponsiveBreakpoint } from "@/types/previewEditTypes";
 
-// ============================================================
-// TemplatePreviewDialog
-// ============================================================
+export const BREAKPOINTS: Record<ResponsiveBreakpoint, { min: number; max?: number }> = {
+  desktop: { min: 1024 },
+  tablet: { min: 768, max: 1023 },
+  mobile: { min: 0, max: 767 },
+};
+
+export function breakpointFromWidth(width: number): ResponsiveBreakpoint {
+  if (width >= BREAKPOINTS.desktop.min) return "desktop";
+  if (width >= BREAKPOINTS.tablet.min) return "tablet";
+  return "mobile";
+}
+
+export function resolveResponsiveValue<K extends keyof PreviewElementStyle>(
+  style: PreviewElementStyle,
+  key: K,
+  breakpoint: ResponsiveBreakpoint,
+): PreviewElementStyle[K] {
+  const responsive = style.responsive;
+  if (responsive?.[breakpoint] && key in responsive[breakpoint]!) {
+    return (responsive[breakpoint] as any)[key];
+  }
+  if (breakpoint !== "desktop" && responsive?.desktop && key in responsive.desktop) {
+    return (responsive.desktop as any)[key];
+  }
+  return style[key];
+}
 
 // Switches the editor dialog in and out of true browser fullscreen.
 export function toggleMaximize(
@@ -144,13 +168,31 @@ export function changeElementStyle(
   setSelectedElement: Dispatch<SetStateAction<PreviewElementEdit | null>>,
   elementId: string,
   patch: Partial<PreviewElementStyle>,
+  responsiveEditMode: boolean = false,
+  editBreakpoint: ResponsiveBreakpoint = "desktop",
 ): void {
   setSite((prev): SiteData | null => {
     if (!prev) return prev;
 
     const prevElements = prev.previewEdits?.elements ?? {};
     const prevStyle = prevElements[elementId]?.style ?? {};
-    const nextStyle: PreviewElementStyle = { ...prevStyle, ...patch };
+
+    let nextStyle: PreviewElementStyle;
+
+    if (responsiveEditMode) {
+      const prevResponsive = prevStyle.responsive ?? {};
+      const prevBreakpointSlot = prevResponsive[editBreakpoint] ?? {};
+      nextStyle = {
+        ...prevStyle,
+        responsive: {
+          ...prevResponsive,
+          [editBreakpoint]: { ...prevBreakpointSlot, ...patch },
+        },
+      };
+    } else {
+      nextStyle = { ...prevStyle, ...patch };
+    }
+
     const blockId = elementId.split(":")[0] ?? "";
     const block = prev.blocks.find((candidate) => candidate.id === blockId);
     const fallbackLabel = elementId.endsWith(":root")
@@ -325,6 +367,7 @@ export function handleInteractivePreviewClick(
   if (!editMode || !onSelectElement) return;
 
   const target = getPreviewElementTarget(e.target);
+  if (!target || isChromeElement(target)) return;
   const blockElement = target?.closest<HTMLElement>("[data-block-id]") ?? null;
   const element = e.altKey
     ? target?.closest<HTMLElement>('[data-preview-edit-id$=":root"]') ?? null
@@ -529,16 +572,37 @@ export function stampEditableElement(element: HTMLElement, blockId: string, path
   element.dataset.previewEditId = `${blockId}:${path}`;
 }
 
+// Checks if a DOM element is part of editor chrome/overlays (resize bars, drag handles, guides)
+// so it doesn't get indexed or stamped as editable template content.
+export function isChromeElement(el: Element | null | undefined): boolean {
+  if (!el || typeof (el as Element).getAttribute !== "function") return false;
+  return Boolean(
+    el.hasAttribute("data-preview-chrome") ||
+    el.closest?.("[data-preview-chrome]") ||
+    el.hasAttribute("data-blend-ignore") ||
+    el.closest?.("[data-blend-ignore]") ||
+    el.hasAttribute("data-block-drag-handle") ||
+    el.closest?.("[data-block-drag-handle]")
+  );
+}
+
 // Works out an element's position path (e.g. "0.2.1") by walking up the DOM
 // from the element to the block's root, recording each parent's child index.
+// NEW
 export function getElementPath(root: HTMLElement, element: HTMLElement): string {
+  if (isChromeElement(element)) return "";
   const parts: number[] = [];
   let current: HTMLElement | null = element;
 
   while (current && current !== root) {
     const parent: HTMLElement | null = current.parentElement;
     if (!parent) return "";
-    parts.unshift(Array.from(parent.children).indexOf(current));
+    const siblings = Array.from(parent.children).filter(
+      (el) => !isChromeElement(el),
+    );
+    const idx = siblings.indexOf(current as Element);
+    if (idx === -1) return "";
+    parts.unshift(idx);
     current = parent;
   }
 
@@ -561,6 +625,7 @@ export function applyPreviewStyle(
   element: HTMLElement,
   style: PreviewElementStyle | undefined,
   device: "desktop" | "responsive",
+  breakpoint: ResponsiveBreakpoint = "desktop",
 ): void {
   if (!style || Object.keys(style).length === 0) {
     return;
@@ -590,23 +655,32 @@ export function applyPreviewStyle(
   if (style.fontFamily && style.fontFamily !== "inherit") {
     setProp("font-family", style.fontFamily);
   }
-  if (style.fontSize !== undefined && style.fontSize !== null) {
-    setProp("font-size", `${style.fontSize}px`);
+
+  const effectiveFontSize = resolveResponsiveValue(style, "fontSize", breakpoint);
+  if (effectiveFontSize !== undefined && effectiveFontSize !== null) {
+    setProp("font-size", `${effectiveFontSize}px`);
   }
+
   if (style.lineHeight !== undefined && style.lineHeight !== null) {
     setProp("line-height", `${style.lineHeight}`);
   }
   if (style.letterSpacing !== undefined && style.letterSpacing !== null) {
     setProp("letter-spacing", `${style.letterSpacing}px`);
   }
-  if (style.textAlign) {
-    setProp("text-align", style.textAlign);
+
+  const effectiveTextAlign = resolveResponsiveValue(style, "textAlign", breakpoint);
+  if (effectiveTextAlign) {
+    setProp("text-align", effectiveTextAlign);
   }
+
   if (style.textTransform && style.textTransform !== "none") {
     setProp("text-transform", style.textTransform);
   }
   if (style.color) {
     setProp("color", style.color);
+  }
+  if (style.textShadow) {
+    setProp("text-shadow", style.textShadow);
   }
 
   // Gradient Text
@@ -665,9 +739,11 @@ export function applyPreviewStyle(
   }
 
   // Spacing & Dimensions
-  if (style.padding !== undefined && style.padding !== null) {
-    setProp("padding", `${style.padding}px`);
+  const effectivePadding = resolveResponsiveValue(style, "padding", breakpoint);
+  if (effectivePadding !== undefined && effectivePadding !== null) {
+    setProp("padding", `${effectivePadding}px`);
   }
+
   if (style.margin !== undefined && style.margin !== null) {
     setProp("margin", `${style.margin}px`);
   }
@@ -690,11 +766,14 @@ export function applyPreviewStyle(
   if (style.zIndex !== undefined && style.zIndex !== null) {
     setProp("z-index", `${style.zIndex}`);
   }
-  if (style.removed) {
+
+  const effectiveRemoved = resolveResponsiveValue(style, "removed", breakpoint);
+  if (effectiveRemoved) {
     setProp("display", "none");
   } else if (style.display) {
     setProp("display", style.display);
   }
+
   if (style.cursor) {
     setProp("cursor", style.cursor);
   }
@@ -722,6 +801,58 @@ export function applyPreviewStyle(
       setProp("z-index", "20");
     }
   }
+
+  // Hover Effect
+  if (style.hoverEffect && style.hoverEffect !== "none") {
+    element.setAttribute("data-hover-fx", style.hoverEffect);
+  } else {
+    element.removeAttribute("data-hover-fx");
+  }
+
+  // Entrance Animation + its duration (in seconds)
+  if (style.entrance && style.entrance !== "none") {
+    element.setAttribute("data-entrance-fx", style.entrance);
+    const duration = style.entranceDuration ?? 0.6;
+    setProp("animation-duration", `${duration}s`);
+  } else {
+    element.removeAttribute("data-entrance-fx");
+    element.style.removeProperty("animation-duration");
+  }
+}
+
+const PREVIEW_EFFECTS_STYLE_ID = "preview-effects-styles";
+
+// Injects one shared <style> tag (once per document) containing the actual
+// CSS rules for hover effects and entrance animations. applyPreviewStyle
+// only ever sets a data-attribute — this stylesheet is what makes it visible.
+export function ensurePreviewEffectsStylesheet(doc: Document | null | undefined): void {
+  if (!doc) return;
+  if (doc.getElementById(PREVIEW_EFFECTS_STYLE_ID)) return;
+
+  const styleEl = doc.createElement("style");
+  styleEl.id = PREVIEW_EFFECTS_STYLE_ID;
+  styleEl.textContent = `
+    [data-hover-fx="grow"] { transition: transform 0.2s ease; }
+    [data-hover-fx="grow"]:hover { transform: scale(1.04); }
+
+    [data-hover-fx="lift"] { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    [data-hover-fx="lift"]:hover { transform: translateY(-6px); box-shadow: 0 14px 28px -8px rgba(0,0,0,0.28); }
+
+    [data-hover-fx="glow"] { transition: box-shadow 0.2s ease; }
+    [data-hover-fx="glow"]:hover { box-shadow: 0 0 26px rgba(99,102,241,0.55); }
+
+    [data-hover-fx="darken"] { transition: filter 0.2s ease; }
+    [data-hover-fx="darken"]:hover { filter: brightness(0.85); }
+
+    @keyframes pe-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pe-slide-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pe-zoom-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+    [data-entrance-fx="fade"] { animation: pe-fade-in 0.5s ease both; }
+    [data-entrance-fx="slideUp"] { animation: pe-slide-up 0.5s ease both; }
+    [data-entrance-fx="zoom"] { animation: pe-zoom-in 0.4s ease both; }
+  `;
+  doc.head.appendChild(styleEl);
 }
 
 // Walks the whole preview tree, stamps every element with its editable id,
@@ -733,8 +864,11 @@ export function tagAndApplyPreviewStyles(
   selectedElementId: string | null | undefined,
   previewEdits: SiteData["previewEdits"] | undefined,
   device: "desktop" | "responsive",
+  breakpoint: ResponsiveBreakpoint = "desktop",
 ): void {
   if (!root) return;
+
+  ensurePreviewEffectsStylesheet(root.ownerDocument);
 
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
@@ -761,7 +895,7 @@ export function tagAndApplyPreviewStyles(
     element.classList.toggle("preview-edit-selected", isSelected);
 
     if (elements && editId && elements[editId]?.style) {
-      applyPreviewStyle(element, elements[editId].style, device);
+      applyPreviewStyle(element, elements[editId].style, device, breakpoint);
     }
   });
 }
@@ -848,10 +982,11 @@ function findHoverableElement(
   target: HTMLElement,
   blockRoot: HTMLElement | null,
 ): HTMLElement | null {
+  if (isChromeElement(target)) return null;
   const candidate = target.closest<HTMLElement>(
     '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
   );
-  if (!candidate) return null;
+  if (!candidate || isChromeElement(candidate)) return null;
   if (blockRoot && candidate.parentElement === blockRoot) return null;
   return candidate;
 }

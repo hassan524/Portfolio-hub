@@ -48,6 +48,7 @@ export function DraggableBlockWrapper({
       }}
     >
       <div
+        data-preview-chrome
         data-block-drag-handle
         draggable
         onDragStart={onDragStart}

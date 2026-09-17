@@ -178,7 +178,7 @@ export function Header() {
   };
 
   return (
-    <div className="sticky top-0 z-50 w-full" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+    <div className="sticky top-0 z-40 w-full" style={{ fontFamily: "'Open Sans', sans-serif" }}>
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -594,7 +594,7 @@ export function Header() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-y-auto bg-surface/98 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-40 flex min-h-dvh flex-col overflow-y-auto bg-surface/98 backdrop-blur-2xl md:hidden"
           >
             {/* Drawer Top Header */}
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/40 px-5">

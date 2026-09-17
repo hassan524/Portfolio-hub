@@ -4,11 +4,27 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
   Dispatch,
   RefObject,
   SetStateAction,
 } from "react";
-import { Maximize2, Minimize2, Monitor, Move, Save, Smartphone, X, PencilLine } from "lucide-react";
+import {
+  Maximize2,
+  Minimize2,
+  Monitor,
+  Move,
+  Save,
+  Smartphone,
+  Tablet,
+  MonitorSmartphone,
+  Plus,
+  Minus,
+  X,
+  PencilLine,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
@@ -18,9 +34,11 @@ import type {
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
 import type { SiteData, Block, Theme } from "@/types/builder.schema";
+import type { ResponsiveBreakpoint } from "@/types/previewEditTypes";
 import {
   calculateViewportScale,
   tagAndApplyPreviewStyles,
+  breakpointFromWidth,
   startFrameDrag,
   endFrameDrag,
   handleStartBlockResize as handleStartBlockResizeFn,
@@ -48,6 +66,20 @@ const DEFAULT_RESPONSIVE_HEIGHT = 844;
 const DEFAULT_DESKTOP_WIDTH = 1440;
 const VIEWPORT_PADDING = 40;
 
+// Starting frame sizes when the user jumps to a breakpoint pill while
+// Responsive Editing is on. These are just convenient starting points —
+// the user can still drag-resize or use +/- from there, and whichever
+// bucket the CURRENT width falls into (via breakpointFromWidth) is what
+// actually gets edited/shown.
+const BREAKPOINT_PRESETS: Record<ResponsiveBreakpoint, { width: number; height: number }> = {
+  desktop: { width: 1280, height: 800 },
+  tablet: { width: 834, height: 1194 },
+  mobile: { width: 390, height: 844 },
+};
+
+const MIN_FRAME_WIDTH = 280;
+const MAX_FRAME_WIDTH = 1400;
+
 type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
 
 export function TemplateLivePreview({
@@ -68,6 +100,9 @@ export function TemplateLivePreview({
   onSave,
   changeCount,
   contentRef,
+  responsiveEditMode,
+  onResponsiveEditModeChange,
+  onBreakpointChange,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -99,6 +134,11 @@ export function TemplateLivePreview({
   onSave?: (site: SiteData) => void;
   changeCount?: number;
   contentRef: RefObject<HTMLDivElement | null>;
+
+  // Responsive per-breakpoint editing
+  responsiveEditMode: boolean;
+  onResponsiveEditModeChange: (on: boolean) => void;
+  onBreakpointChange?: (breakpoint: ResponsiveBreakpoint) => void;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -144,6 +184,8 @@ export function TemplateLivePreview({
 
   const [editMode, setEditMode] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [size, setSize] = useState({
     width: DEFAULT_RESPONSIVE_WIDTH,
     height: DEFAULT_RESPONSIVE_HEIGHT,
@@ -182,6 +224,69 @@ export function TemplateLivePreview({
   }, [isDesktop]);
 
   const { width, height } = size;
+
+  /* ---------------------------------------------------------------------- */
+  /*                    RESPONSIVE PER-BREAKPOINT EDITING                    */
+  /* ---------------------------------------------------------------------- */
+
+  // Which breakpoint bucket is currently "active" for editing/display.
+  // Off -> always "desktop" (today's behavior, unchanged).
+  // On -> derived from the ACTUAL current frame width, so dragging the
+  // resize handles (or nudging with +/-) naturally crosses into
+  // Tablet/Mobile the same way a real responsive site would.
+  const effectiveBreakpoint: ResponsiveBreakpoint = useMemo(() => {
+    if (!responsiveEditMode) return "desktop";
+    const effectiveWidth = isDesktop ? DEFAULT_DESKTOP_WIDTH : width;
+    return breakpointFromWidth(effectiveWidth);
+  }, [responsiveEditMode, isDesktop, width]);
+
+  // Turning Responsive Editing on forces the resizable frame (since the
+  // fixed-zoom Desktop frame can't represent arbitrary breakpoint widths),
+  // starting at the Desktop preset so nothing visually jumps unexpectedly.
+  useEffect(() => {
+    if (responsiveEditMode && isDesktop) {
+      onDeviceChange("responsive");
+      setSize({ width: BREAKPOINT_PRESETS.desktop.width, height: BREAKPOINT_PRESETS.desktop.height });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responsiveEditMode]);
+
+  // Tell the parent (dialog) which breakpoint is active whenever it
+  // changes, so it can pass the right value into changeElementStyle.
+  useEffect(() => {
+    onBreakpointChange?.(effectiveBreakpoint);
+  }, [effectiveBreakpoint, onBreakpointChange]);
+
+  async function handleToggleResponsiveEdit() {
+    if (responsiveEditMode) {
+      onResponsiveEditModeChange(false);
+      return;
+    }
+    const ok = await confirm({
+      type: "allow",
+      title: "Turn on Responsive Editing?",
+      description:
+        "You'll be able to style this page differently for Desktop, Tablet, and Mobile. Resize the frame or pick a screen size below — edits only apply to that screen.",
+      confirmLabel: "Turn On",
+    });
+    if (ok) {
+      onResponsiveEditModeChange(true);
+    }
+  }
+
+  function handlePickBreakpoint(bp: ResponsiveBreakpoint) {
+    const preset = BREAKPOINT_PRESETS[bp];
+    setSize({ width: preset.width, height: preset.height });
+  }
+
+  function bumpWidth(delta: number) {
+    setSize((s) => ({
+      ...s,
+      width: Math.min(MAX_FRAME_WIDTH, Math.max(MIN_FRAME_WIDTH, s.width + delta)),
+    }));
+  }
+
+  /* ---------------------------------------------------------------------- */
 
   const recalcScale = useCallback(() => {
     if (isDesktop) {
@@ -275,6 +380,7 @@ export function TemplateLivePreview({
         selectedElementId,
         site.previewEdits,
         device,
+        effectiveBreakpoint,
       );
     }
 
@@ -282,9 +388,25 @@ export function TemplateLivePreview({
     if (iframeDoc?.body) {
       iframeDoc.body.style.setProperty("--preview-editor-accent", theme.accent);
       iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
-      tagAndApplyPreviewStyles(iframeDoc.body, blocks, selectedElementId, site.previewEdits, device);
+      tagAndApplyPreviewStyles(
+        iframeDoc.body,
+        blocks,
+        selectedElementId,
+        site.previewEdits,
+        device,
+        effectiveBreakpoint,
+      );
     }
-  }, [blocks, contentRef, selectedElementId, site.previewEdits, device, theme.accent]);
+  }, [
+    blocks,
+    contentRef,
+    selectedElementId,
+    site.previewEdits,
+    device,
+    theme.accent,
+    previewKey,
+    effectiveBreakpoint,
+  ]);
 
   useEffect(() => {
     if (!isDesktop) return;
@@ -323,7 +445,66 @@ export function TemplateLivePreview({
     };
   }, [isDesktop, editMode, blocks, site, onSelectElement]);
 
+  // Intercept global window.scrollTo calls made by preview components (e.g. footer scroll-to-top buttons)
+  // so they scroll the preview container instead of the outer host application window.
+  useEffect(() => {
+    const originalScrollTo = window.scrollTo;
+
+    const mockScrollTo = function (...args: any[]) {
+      if (isDesktop && desktopScrollRef.current) {
+        desktopScrollRef.current.scrollTo(...(args as [any]));
+      } else if (!isDesktop && responsiveFrameRef.current?.contentWindow) {
+        responsiveFrameRef.current.contentWindow.scrollTo(...(args as [any]));
+      } else {
+        originalScrollTo.apply(window, args as any);
+      }
+    };
+
+    window.scrollTo = mockScrollTo as typeof window.scrollTo;
+
+    return () => {
+      window.scrollTo = originalScrollTo;
+    };
+  }, [isDesktop]);
+
   function handlePreviewClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest("a");
+
+    if (anchor) {
+      e.preventDefault();
+      const href = anchor.getAttribute("href");
+      if (href?.startsWith("#")) {
+        const id = href.slice(1);
+
+        const scrollToTop = () => {
+          if (isDesktop) {
+            desktopScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            responsiveFrameRef.current?.contentWindow?.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        };
+
+        if (id) {
+          const targetEl = contentRef.current?.querySelector(`[id="${id}"]`);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else if (id === "top" || id === "page-top") {
+            scrollToTop();
+          }
+        } else if (href === "#") {
+          scrollToTop();
+        }
+      } else if (href && href.startsWith("http")) {
+        window.open(href, "_blank", "noopener,noreferrer");
+      }
+    } else if (target.closest("button")) {
+      const btn = target.closest("button") as HTMLButtonElement;
+      if (btn.type === "submit") {
+        e.preventDefault();
+      }
+    }
+
     if (!editMode) return;
     handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
   }
@@ -384,7 +565,6 @@ export function TemplateLivePreview({
           box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
           transform: scale(1.02) !important;
           z-index: 35 !important;
-          position: relative !important;
           transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
         }
         .preview-hover-lift:hover {
@@ -396,7 +576,12 @@ export function TemplateLivePreview({
 
       body.style.setProperty("--preview-editor-accent", theme.accent);
       doc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
-      tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device);
+      tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device, effectiveBreakpoint);
+      requestAnimationFrame(() => {
+        if (body.isConnected) {
+          tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device, effectiveBreakpoint);
+        }
+      });
 
       return bindResponsivePreviewInteractions(body, {
         editMode,
@@ -430,6 +615,7 @@ export function TemplateLivePreview({
       scale,
       onSelectElement,
       onChangeElementStyle,
+      effectiveBreakpoint,
     ],
   );
 
@@ -461,6 +647,15 @@ export function TemplateLivePreview({
     if (ok) onSave?.(site);
   }
 
+  function handleRefresh() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setPreviewKey((k) => k + 1);
+      setIsRefreshing(false);
+    }, 1500);
+  }
+
   const previewContent = (
     <div
       ref={contentRef}
@@ -471,145 +666,163 @@ export function TemplateLivePreview({
       onMouseMove={handlePreviewMouseMove}
       onMouseLeave={handlePreviewMouseLeave}
     >
-      {sorted.map((block) => {
-        const variant = (block.props as { variant?: string }).variant;
-        const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
-        if (!Cmp) return null;
+      <div key={previewKey} className="min-h-full w-full">
+        {isRefreshing ? (
+          <div className="flex h-[80vh] w-full flex-col items-center justify-center gap-4 bg-background">
+            <Loader2 className="h-8 w-8 animate-spin text-foreground/40" />
+            <div className="text-sm font-medium text-foreground/50 animate-pulse">Loading preview...</div>
+          </div>
+        ) : (
+          <>
+            {sorted.map((block) => {
+              const variant = (block.props as { variant?: string }).variant;
+              const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
+              if (!Cmp) return null;
 
-        const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
-        const isResizingThis = resizingBlock?.id === block.id;
-        const currentHeight = block.height ?? 200;
-        const displayName = block.label ?? block.name ?? block.props.kind;
-        const componentProps =
-          block.props.kind === "navbar" || block.props.kind === "footer"
-            ? { ...block.props, logo: site.logo }
-            : block.props;
-        const isNewBlock = Boolean(
-          block.isCustom ||
-          (block as Record<string, unknown>).isNew ||
-          (block.props as { isCustom?: boolean })?.isCustom ||
-          block.props?.kind === "spacer",
-        );
+              const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
+              const isResizingThis = resizingBlock?.id === block.id;
+              const currentHeight = block.height ?? 200;
+              const displayName = block.label ?? block.name ?? block.props.kind;
+              const componentProps =
+                block.props.kind === "navbar" || block.props.kind === "footer"
+                  ? { ...block.props, logo: site.logo }
+                  : block.props;
+              const isNewBlock = Boolean(
+                block.isCustom ||
+                (block as Record<string, unknown>).isNew ||
+                (block.props as { isCustom?: boolean })?.isCustom ||
+                block.props?.kind === "spacer",
+              );
 
-        return (
-          <DraggableBlockWrapper
-            key={block.id}
-            block={block}
-            blocks={blocks}
-            onReorderBlocks={onReorderBlocks}
-            ink={ink}
-            moveMode={moveMode}
-          >
-            <div
-              data-block-id={block.id}
-              data-block-kind={block.props.kind}
-              className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-                }`}
-              style={{
-                ...(isActive ? { outlineColor: theme.accent } : undefined),
-                minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
-                position: "relative",
-              }}
-            >
-              {isActive && (
-                <div
-                  data-blend-ignore
-                  className="absolute top-2 right-2 z-30 flex items-center gap-1.5 rounded-full bg-foreground text-background px-2.5 py-1 text-[11px] font-semibold shadow-lift pointer-events-auto select-none"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className="truncate max-w-[140px] capitalize">{displayName}</span>
-                  {isNewBlock && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const patch = blendBlockWithNeighbors(
-                          block.id,
-                          blocks,
-                          theme,
-                          site,
-                          contentRef.current,
-                        );
-                        onUpdateBlock(block.id, patch);
-                      }}
-                      className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
-                      title="Blend block style & colors dynamically with portfolio"
-                    >
-                      <PencilLine className="h-3 w-3 text-accent" />
-                      Blend
-                    </button>
-                  )}
-                  {isDesktop && block.height && (
-                    <span className="text-[10px] font-mono opacity-80">{block.height}px</span>
-                  )}
-                </div>
-              )}
-
-              {isNewBlock ? (
-                <div style={{ height: "100%" }} className="[&>*]:h-full">
-                  <Cmp
-                    id={block.id}
-                    props={componentProps}
-                    theme={theme}
-                    onChange={(patch: Record<string, unknown>) =>
-                      editMode ? onUpdateBlock(block.id, patch) : undefined
-                    }
-                  />
-                </div>
-              ) : (
-                <Cmp
-                  id={block.id}
-                  props={componentProps}
-                  theme={theme}
-                  onChange={(patch: Record<string, unknown>) =>
-                    editMode ? onUpdateBlock(block.id, patch) : undefined
-                  }
-                />
-              )}
-
-              {draggingElementId?.startsWith(`${block.id}:`) && (
-                <GuideOverlay guides={dragGuides} />
-              )}
-
-              {isDesktop && (
-                <div
-                  data-blend-ignore
-                  onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
-                  className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
-                  title="Drag to resize block height smoothly"
-                  onClick={(e) => e.stopPropagation()}
+              return (
+                <DraggableBlockWrapper
+                  key={block.id}
+                  block={block}
+                  blocks={blocks}
+                  onReorderBlocks={onReorderBlocks}
+                  ink={ink}
+                  moveMode={moveMode}
                 >
                   <div
-                    className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
-                      ? "bg-foreground shadow-md scale-110 opacity-100"
-                      : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                    data-block-id={block.id}
+                    data-block-kind={block.props.kind}
+                    className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
                       }`}
+                    style={{
+                      ...(isActive ? { outlineColor: theme.accent } : undefined),
+                      minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
+                      position: "relative",
+                    }}
                   >
-                    <div className="h-0.5 w-6 rounded-full bg-background/80" />
-                  </div>
-                  {isResizingThis && (
-                    <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
-                      Height: {block.height}px
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </DraggableBlockWrapper>
-        );
-      })}
+                    {isActive && (
+                      <div
+                        data-preview-chrome
+                        data-blend-ignore
+                        onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
+                        className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
+                        title="Drag to resize block height smoothly"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="truncate max-w-[140px] capitalize">{displayName}</span>
+                        {isNewBlock && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const patch = blendBlockWithNeighbors(
+                                block.id,
+                                blocks,
+                                theme,
+                                site,
+                                contentRef.current,
+                              );
+                              onUpdateBlock(block.id, patch);
+                            }}
+                            className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
+                            title="Blend block style & colors dynamically with portfolio"
+                          >
+                            <PencilLine className="h-3 w-3 text-accent" />
+                            Blend
+                          </button>
+                        )}
+                        {isDesktop && block.height && (
+                          <span className="text-[10px] font-mono opacity-80">{block.height}px</span>
+                        )}
+                      </div>
+                    )}
 
-      {!sorted.some((b) => b.props.kind === "footer") && (
-        <div
-          className="px-8 md:px-16 py-6 text-[11px] flex items-center justify-between"
-          style={{ borderTop: `1px solid ${ink}10`, color: `${ink}40` }}
-        >
-          <span>© 2026 {site.name}</span>
-          <span>
-            Built with <span style={{ color: theme.accent }}>Portflu</span>
-          </span>
-        </div>
-      )}
+                    {isNewBlock ? (
+                      <div style={{ height: "100%" }} className="[&>*]:h-full">
+                        <Cmp
+                          id={block.id}
+                          props={componentProps}
+                          theme={theme}
+                          onChange={(patch: Record<string, unknown>) =>
+                            editMode ? onUpdateBlock(block.id, patch) : undefined
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <Cmp
+                        id={block.id}
+                        props={componentProps}
+                        theme={theme}
+                        onChange={(patch: Record<string, unknown>) =>
+                          editMode ? onUpdateBlock(block.id, patch) : undefined
+                        }
+                      />
+                    )}
+
+                    {draggingElementId?.startsWith(`${block.id}:`) && (
+                      <div data-preview-chrome>
+                        <GuideOverlay guides={dragGuides} />
+                      </div>
+                    )}
+
+                    {isDesktop && (
+                      <div
+                        data-preview-chrome
+                        data-blend-ignore
+                        onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
+                        className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
+                        title="Drag to resize block height smoothly"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div
+                          className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+                            ? "bg-foreground shadow-md scale-110 opacity-100"
+                            : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+                            }`}
+                        >
+                          <div className="h-0.5 w-6 rounded-full bg-background/80" />
+                        </div>
+                        {isResizingThis && (
+                          <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
+                            Height: {block.height}px
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </DraggableBlockWrapper>
+              );
+            })}
+
+            {!sorted.some((b) => b.props.kind === "footer") && (
+              <div
+                data-preview-chrome
+                className="px-8 md:px-16 py-6 text-[11px] flex items-center justify-between"
+                style={{ borderTop: `1px solid ${ink}10`, color: `${ink}40` }}
+              >
+                <span>© 2026 {site.name}</span>
+                <span>
+                  Built with <span style={{ color: theme.accent }}>Portflu</span>
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 
@@ -617,36 +830,109 @@ export function TemplateLivePreview({
     <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface-elevated border border-border rounded-2xl overflow-hidden shadow-sm">
       <div className="flex h-12 shrink-0 items-center justify-end border-b border-border bg-background px-3">
         <div className="flex shrink-0 items-center gap-2">
-          {!isDesktop && (
-            <span className="select-none text-[10px] tabular-nums text-ink-soft/70">
-              {Math.round(width)}×{Math.round(height)}
-              {scale < 0.999 && ` · ${Math.round(scale * 100)}%`}
+          {responsiveEditMode && (
+            <span className="select-none rounded-full bg-accent/15 text-accent px-2 py-0.5 text-[10px] font-semibold capitalize">
+              Editing: {effectiveBreakpoint}
             </span>
           )}
 
-          <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
-            <button
-              onClick={() => onDeviceChange("desktop")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
-                }`}
-              title="Desktop Preview"
-            >
-              <Monitor className="h-4 w-4" />
-            </button>
+          {!isDesktop && (
+            <div className="flex items-center gap-1">
+              <span className="select-none text-[10px] tabular-nums text-ink-soft/70">
+                {Math.round(width)}×{Math.round(height)}
+                {scale < 0.999 && ` · ${Math.round(scale * 100)}%`}
+              </span>
+              {responsiveEditMode && (
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <button
+                    onClick={() => bumpWidth(-20)}
+                    className="grid h-5 w-5 cursor-pointer place-items-center rounded text-ink-soft hover:bg-secondary hover:text-ink"
+                    title="Decrease width"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => bumpWidth(20)}
+                    className="grid h-5 w-5 cursor-pointer place-items-center rounded text-ink-soft hover:bg-secondary hover:text-ink"
+                    title="Increase width"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-            <button
-              onClick={() => onDeviceChange("responsive")}
-              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
-                ? "bg-foreground text-background"
-                : "text-ink-soft hover:bg-secondary hover:text-ink"
-                }`}
-              title="Responsive Preview"
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
-          </div>
+          {responsiveEditMode ? (
+            <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
+              <button
+                onClick={() => handlePickBreakpoint("desktop")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "desktop"
+                    ? "bg-foreground text-background"
+                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Edit Desktop styles"
+              >
+                <Monitor className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => handlePickBreakpoint("tablet")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "tablet"
+                    ? "bg-foreground text-background"
+                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Edit Tablet styles"
+              >
+                <Tablet className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => handlePickBreakpoint("mobile")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "mobile"
+                    ? "bg-foreground text-background"
+                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Edit Mobile styles"
+              >
+                <Smartphone className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
+              <button
+                onClick={() => onDeviceChange("desktop")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${isDesktop
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Desktop Preview"
+              >
+                <Monitor className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => onDeviceChange("responsive")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${!isDesktop
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Responsive Preview"
+              >
+                <Smartphone className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={handleToggleResponsiveEdit}
+            className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${responsiveEditMode
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              }`}
+            title={responsiveEditMode ? "Turn off Responsive Editing" : "Edit styles per screen size"}
+            aria-label={responsiveEditMode ? "Turn off Responsive Editing" : "Edit styles per screen size"}
+          >
+            <MonitorSmartphone className="h-4 w-4" />
+          </button>
 
           <div className="ml-1" />
 
@@ -685,8 +971,8 @@ export function TemplateLivePreview({
               onClick={canSave ? handleSaveClick : undefined}
               disabled={!canSave}
               className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all ${canSave
-                  ? "cursor-pointer bg-foreground text-background hover:opacity-90"
-                  : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
+                ? "cursor-pointer bg-foreground text-background hover:opacity-90"
+                : "cursor-not-allowed bg-foreground/15 text-ink-soft/70"
                 }`}
               title={
                 canSave
@@ -701,6 +987,15 @@ export function TemplateLivePreview({
           )}
 
           <div className="h-5 w-px bg-border" />
+
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-ink-soft transition-colors hover:bg-secondary hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh preview to replay animations"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          </button>
 
           <button
             onClick={() => onToggleMaximize(isMaximized, setIsMaximized, dialogRef)}
@@ -848,7 +1143,6 @@ export function TemplateLivePreview({
           box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
           transform: scale(1.02) !important;
           z-index: 35 !important;
-          position: relative !important;
           transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
         }
         .preview-hover-lift:hover {

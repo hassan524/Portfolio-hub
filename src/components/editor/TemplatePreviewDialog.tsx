@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { TemplateSidebar } from "./ui/TemplateSidebar";
@@ -8,9 +9,8 @@ import { SaveDeployModal } from "@/components/common/SaveDeployModal";
 import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import { SaveMode } from "@/components/common/SaveDeployModal";
-import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
-import { buildViewerAppFiles } from "@/lib/buildReactAppTemplate";
-
+import type { PreviewElementEdit, PreviewElementStyle, ResponsiveBreakpoint } from "@/types/previewEditTypes";
+import { buildViewerAppFiles } from "@/lib/functions/deploy/buildViewerAppFiles";
 import portfolioApi from "@/api/portfolioApi";
 import {
   toggleMaximize,
@@ -61,6 +61,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [deployFiles, setDeployFiles] = useState<Record<string, string> | null>(null);
+
+  const [responsiveEditMode, setResponsiveEditMode] = useState(false);
+  const [editBreakpoint, setEditBreakpoint] = useState<ResponsiveBreakpoint>("desktop");
 
   // Numeric change counter — Save unlocks once the user has made enough
   // distinct edits (see REQUIRED_CHANGES threshold in TemplateLivePreview).
@@ -128,7 +131,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   };
 
   const handleChangeElementStyle = (elementId: string, patch: Partial<PreviewElementStyle>) => {
-    changeElementStyle(setSite, setSelectedElement, elementId, patch);
+    changeElementStyle(setSite, setSelectedElement, elementId, patch, responsiveEditMode, editBreakpoint);
     setChangeCount((c) => c + 1);
   };
 
@@ -192,7 +195,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <>
       <AnimatePresence>
         {open && (
@@ -226,6 +231,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
               <TemplateLivePreview
                 site={site}
                 device={device}
+                responsiveEditMode={responsiveEditMode}
+                onResponsiveEditModeChange={setResponsiveEditMode}
+                onBreakpointChange={setEditBreakpoint}
                 activeSection={activeSection}
                 selectedElementId={selectedElement?.id ?? null}
                 onSelectElement={setSelectedElement}
@@ -293,6 +301,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
         portfolioId={site?.id}
       />
 
-    </>
+    </>,
+    document.body
   );
 }

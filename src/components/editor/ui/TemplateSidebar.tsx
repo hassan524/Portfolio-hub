@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { GripVertical, Plus, PencilLine, ImageUp, X, Loader2 } from "lucide-react";
+import {
+  GripVertical,
+  Plus,
+  PencilLine,
+  ImageUp,
+  X,
+  Loader2,
+  LayoutGrid,
+  Type,
+  Image as ImageIcon,
+  Files,
+  Sparkles,
+} from "lucide-react";
 
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 
@@ -90,26 +102,38 @@ export function TemplateSidebar({
       </div>
 
       <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
-        <TabsList className="w-full h-8 shrink-0 grid grid-cols-3 border-b border-border bg-background/30 p-0 rounded-none">
-          <TabsTrigger
-            value="blocks"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Blocks
-          </TabsTrigger>
-          <TabsTrigger
-            value="text"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Text
-          </TabsTrigger>
-          <TabsTrigger
-            value="images"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Images
-          </TabsTrigger>
-        </TabsList>
+        <div className="px-2.5 pb-2 shrink-0">
+          <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-background/60 border border-border/60 p-1">
+            <TabsTrigger
+              value="blocks"
+              className="cursor-pointer flex items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+            >
+              <LayoutGrid className="h-3 w-3" />
+              Blocks
+            </TabsTrigger>
+            <TabsTrigger
+              value="text"
+              className="cursor-pointer flex items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+            >
+              <Type className="h-3 w-3" />
+              Text
+            </TabsTrigger>
+            <TabsTrigger
+              value="images"
+              className="cursor-pointer flex items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+            >
+              <ImageIcon className="h-3 w-3" />
+              Images
+            </TabsTrigger>
+            <TabsTrigger
+              value="pages"
+              className="relative cursor-pointer flex items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+            >
+              <Files className="h-3 w-3" />
+              Pages
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 simple-scrollbar">
           <TabsContent value="blocks" className="mt-0">
@@ -160,9 +184,39 @@ export function TemplateSidebar({
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="pages" className="mt-0 h-full">
+            <PagesComingSoon />
+          </TabsContent>
         </div>
       </Tabs>
     </aside>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Pages tab — coming soon empty state                              */
+/* ---------------------------------------------------------------- */
+
+function PagesComingSoon() {
+  return (
+    <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 text-center px-4">
+      <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/60">
+        <Files className="h-4.5 w-4.5 text-ink-soft" />
+        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background">
+          <Sparkles className="h-2.5 w-2.5" />
+        </span>
+      </div>
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-foreground">Multi-page sites</div>
+        <div className="text-[11px] leading-relaxed text-ink-soft">
+          Adding and managing extra pages for your site is coming soon.
+        </div>
+      </div>
+      <span className="rounded-full border border-border px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
+        Coming soon
+      </span>
+    </div>
   );
 }
 
@@ -319,7 +373,7 @@ function ThemeCircle({
         </button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-56 space-y-2 border-border bg-surface p-2.5 z-50">
+      <PopoverContent align="start" className="w-56 space-y-2 border-border bg-surface p-2.5 z-[60]">
         <div className="text-[9px] font-semibold uppercase tracking-wide text-ink-soft">
           {label}
         </div>
@@ -380,9 +434,9 @@ function hexToRgb(hex: string) {
   const full =
     clean.length === 3
       ? clean
-          .split("")
-          .map((c) => c + c)
-          .join("")
+        .split("")
+        .map((c) => c + c)
+        .join("")
       : clean;
   const int = parseInt(full || "000000", 16);
   return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
@@ -431,7 +485,7 @@ function hsvToRgb(h: number, s: number, v: number) {
   else if (h < 180) [r, g, b] = [0, c, x];
   else if (h < 240) [r, g, b] = [0, x, c];
   else if (h < 300) [r, g, b] = [x, 0, c];
-  else [r, g, b] = [c, 0, x];
+  else[r, g, b] = [c, 0, x];
   return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
 }
 
@@ -465,11 +519,10 @@ function LogoUploader({
   return (
     <div className="flex items-center gap-3">
       <label
-        className={`relative shrink-0 h-12 w-12 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${
-          logo
+        className={`relative shrink-0 h-12 w-12 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${logo
             ? "border-transparent bg-background"
             : "border-border hover:border-foreground/40 bg-background"
-        }`}
+          }`}
       >
         {isUploading ? (
           <Loader2 className="h-4 w-4 animate-spin text-ink-soft" />
@@ -569,13 +622,11 @@ function BlocksList({
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => moveBlock(block.id)}
             onDragEnd={() => setDraggedId(null)}
-            className={`relative flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs transition-colors cursor-grab active:cursor-grabbing ${
-              isDragging ? "opacity-40 border-dashed border-foreground" : ""
-            } ${
-              active
+            className={`relative flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs transition-colors cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-foreground" : ""
+              } ${active
                 ? "border-foreground bg-foreground text-background"
                 : "border-border bg-background hover:bg-secondary/50"
-            }`}
+              }`}
           >
             <div className="relative z-10 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing">
               <GripVertical className="h-3.5 w-3.5 opacity-60 pointer-events-none" />
@@ -597,9 +648,8 @@ function BlocksList({
                   onSectionChange(block.props.kind);
                 }}
                 onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
-                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-xs focus:ring-1 focus:ring-ring rounded px-1 ${
-                  active ? "text-background" : "text-foreground"
-                }`}
+                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-xs focus:ring-1 focus:ring-ring rounded px-1 ${active ? "text-background" : "text-foreground"
+                  }`}
                 title="Click to rename block"
               />
             </div>
@@ -614,11 +664,10 @@ function BlocksList({
                   const patch = blendBlockWithNeighbors(block.id, blocks, theme);
                   onUpdateBlock(block.id, patch);
                 }}
-                className={`relative z-10 p-1 rounded transition-colors shrink-0 ${
-                  active
+                className={`relative z-10 p-1 rounded transition-colors shrink-0 ${active
                     ? "hover:bg-background/20 text-background"
                     : "hover:bg-secondary text-ink-soft hover:text-foreground"
-                }`}
+                  }`}
                 title="Blend block style and background dynamically with portfolio"
               >
                 <PencilLine className="h-3.5 w-3.5" />
@@ -634,11 +683,10 @@ function BlocksList({
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => handleBlockHeightChange(block.id, e.target.value, onUpdateBlock)}
-                className={`w-11 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                  active
+                className={`w-11 bg-transparent text-right font-mono text-[10px] outline-none cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${active
                     ? "text-background/80 placeholder:text-background/40"
                     : "text-ink-soft/70 placeholder:text-ink-soft/40"
-                }`}
+                  }`}
                 title="Block height in pixels"
               />
               <span
@@ -812,7 +860,7 @@ function BlockImagesEntry({
         <RenderedImageOverrides
           overrides={getImageOverrides(componentProps as Record<string, unknown>)}
         >
-          <Cmp id={block.id} props={componentProps} theme={theme} onChange={() => {}} />
+          <Cmp id={block.id} props={componentProps} theme={theme} onChange={() => { }} />
         </RenderedImageOverrides>
       </div>
 
@@ -891,9 +939,8 @@ function BlockImageThumb({
 
   return (
     <label
-      className={`group relative block aspect-square overflow-hidden rounded-md border border-border bg-background ${
-        editable ? "cursor-pointer" : "cursor-default"
-      }`}
+      className={`group relative block aspect-square overflow-hidden rounded-md border border-border bg-background ${editable ? "cursor-pointer" : "cursor-default"
+        }`}
       title={editable ? "Click to replace image" : undefined}
     >
       <img src={url} alt="" className="h-full w-full object-cover" />

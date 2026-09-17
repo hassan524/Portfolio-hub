@@ -18,10 +18,13 @@ import {
   Wand2,
   Sparkles,
   Zap,
-  MousePointer,
-  ShieldCheck,
   ChevronUp,
   ChevronDown,
+  MousePointerClick,
+  PlayCircle,
+  Square,
+  Layers,
+  Ban,
 } from "lucide-react";
 import type { PreviewElementEdit, PreviewElementStyle } from "@/types/previewEditTypes";
 import type { Theme } from "@/types/builder.schema";
@@ -30,7 +33,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -54,18 +56,17 @@ type Props = {
   onClose: () => void;
 };
 
-const FONT_FAMILIES = [
-  { label: "Default Theme Font", value: "inherit" },
-  { label: "Inter (Sans-Serif)", value: "'Inter', sans-serif" },
-  { label: "Outfit (Modern)", value: "'Outfit', sans-serif" },
-  { label: "Roboto (Clean)", value: "'Roboto', sans-serif" },
-  { label: "Playfair Display (Serif)", value: "'Playfair Display', serif" },
-  { label: "Space Grotesk (Tech)", value: "'Space Grotesk', sans-serif" },
-  { label: "Fira Code (Monospace)", value: "'Fira Code', monospace" },
+const FONT_FAMILIES_STATIC = [
+  { label: "Inter", value: "'Inter', sans-serif" },
+  { label: "Outfit", value: "'Outfit', sans-serif" },
+  { label: "Roboto", value: "'Roboto', sans-serif" },
+  { label: "Playfair Display", value: "'Playfair Display', serif" },
+  { label: "Space Grotesk", value: "'Space Grotesk', sans-serif" },
+  { label: "Fira Code", value: "'Fira Code', monospace" },
 ];
 
 const GRADIENT_PRESETS = [
-  { name: "Solid / None", value: "" },
+  { name: "None", value: "" },
   { name: "Emerald Mint", value: "linear-gradient(135deg, #10b981 0%, #059669 100%)" },
   { name: "Cyber Neon", value: "linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)" },
   { name: "Sunset Glow", value: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)" },
@@ -74,14 +75,101 @@ const GRADIENT_PRESETS = [
   { name: "Cosmic Sunset", value: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)" },
 ];
 
-const SHADOW_PRESETS = [
+const DEPTH_PRESETS = [
   { name: "None", value: "none" },
-  { name: "Emerald Accent Glow", value: "0 0 25px rgba(16, 185, 129, 0.5)" },
-  { name: "Soft Elevation", value: "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)" },
-  { name: "Medium Lift", value: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)" },
-  { name: "Heavy Drop Shadow", value: "0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4)" },
+  { name: "Soft", value: "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)" },
+  { name: "Medium", value: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)" },
+  { name: "Strong", value: "0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4)" },
+  { name: "Emerald Glow", value: "0 0 25px rgba(16, 185, 129, 0.5)" },
   { name: "Rose Glow", value: "0 0 25px rgba(244, 63, 94, 0.5)" },
 ];
+
+const TEXT_SHADOW_PRESETS = [
+  { name: "None", value: "" },
+  { name: "Soft", value: "1px 1px 2px rgba(0,0,0,0.35)" },
+  { name: "Medium", value: "2px 2px 4px rgba(0,0,0,0.5)" },
+  { name: "Strong", value: "3px 3px 6px rgba(0,0,0,0.7)" },
+  { name: "Glow", value: "0 0 8px rgba(255,255,255,0.8)" },
+];
+
+const HOVER_EFFECT_OPTIONS: { value: NonNullable<PreviewElementStyle["hoverEffect"]>; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "grow", label: "Grow" },
+  { value: "lift", label: "Lift" },
+  { value: "glow", label: "Glow" },
+  { value: "darken", label: "Darken" },
+];
+
+const ENTRANCE_OPTIONS: { value: NonNullable<PreviewElementStyle["entrance"]>; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "fade", label: "Fade" },
+  { value: "slideUp", label: "Slide Up" },
+  { value: "zoom", label: "Zoom" },
+];
+
+type CardPreset = {
+  key: string;
+  name: string;
+  icon: typeof Square;
+  apply: Partial<PreviewElementStyle>;
+};
+
+const CARD_STYLE_PRESETS: CardPreset[] = [
+  {
+    key: "none",
+    name: "None",
+    icon: Ban,
+    apply: {
+      glassmorphism: false,
+      backgroundColor: undefined,
+      borderWidth: undefined,
+      borderColor: undefined,
+      boxShadow: "none",
+    },
+  },
+  {
+    key: "flat",
+    name: "Flat",
+    icon: Square,
+    apply: { glassmorphism: false, backgroundColor: "#18181b", borderWidth: 0, boxShadow: "none" },
+  },
+  {
+    key: "soft",
+    name: "Soft",
+    icon: Layers,
+    apply: {
+      glassmorphism: false,
+      backgroundColor: "#18181b",
+      borderWidth: 0,
+      boxShadow: "0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2)",
+    },
+  },
+  { key: "glass", name: "Glass", icon: Wand2, apply: { glassmorphism: true } },
+  {
+    key: "outline",
+    name: "Outline",
+    icon: Square,
+    apply: {
+      glassmorphism: false,
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: "#ffffff40",
+      boxShadow: "none",
+    },
+  },
+];
+
+function activeCardStyleKey(style: PreviewElementStyle): string {
+  for (const preset of CARD_STYLE_PRESETS) {
+    if (preset.key === "none") continue;
+    const matches = Object.entries(preset.apply).every(([k, v]) => {
+      const current = (style as Record<string, unknown>)[k];
+      return current === v || (v === undefined && (current === undefined || current === null));
+    });
+    if (matches) return preset.key;
+  }
+  return "none";
+}
 
 const SWATCHES = [
   "#f43f5e", "#f97316", "#eab308", "#22c55e",
@@ -90,7 +178,9 @@ const SWATCHES = [
 ];
 
 const fieldClass =
-  "h-7 px-2.5 cursor-pointer border-border bg-background text-[11px] font-medium text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring focus-visible:ring-1";
+  "h-7 px-2 cursor-pointer border-border bg-background text-[11px] font-medium text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring focus-visible:ring-1";
+
+const labelClass = "text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80 leading-tight";
 
 /* ---------------------------------- color math ---------------------------------- */
 
@@ -136,7 +226,7 @@ function hsvToRgb(h: number, s: number, v: number) {
   else if (h < 180) [r, g, b] = [0, c, x];
   else if (h < 240) [r, g, b] = [0, x, c];
   else if (h < 300) [r, g, b] = [x, 0, c];
-  else [r, g, b] = [c, 0, x];
+  else[r, g, b] = [c, 0, x];
   return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
 }
 
@@ -155,9 +245,6 @@ function parseGradient(css: string) {
 }
 
 /* ---------------------------------- color picker ---------------------------------- */
-/* Theme-color swatch row removed — theme colors now live in the dedicated
-   "Website Theme" section in the Fill tab, so ColorPicker no longer needs
-   a themeColors prop. */
 
 function ColorPicker({
   label,
@@ -249,14 +336,13 @@ function ColorPicker({
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">{label}</Label>
-        <span className="font-mono text-[10px] text-muted-foreground/50">{value.toUpperCase()}</span>
+        <Label className={labelClass}>{label}</Label>
+        <span className="font-mono text-[9px] text-muted-foreground/50">{value.toUpperCase()}</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        {/* Custom Color Trigger Button with Popover */}
+      <div className="flex flex-wrap items-center gap-1">
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -274,11 +360,11 @@ function ColorPicker({
             </button>
           </PopoverTrigger>
 
-          <PopoverContent align="start" className="w-56 space-y-2 border-border bg-surface p-2.5 z-50">
+          <PopoverContent align="start" className="w-52 space-y-2 border-border bg-surface p-2.5 z-[60]">
             <div
               ref={svRef}
               onPointerDown={dragSv}
-              className="relative h-28 w-full cursor-crosshair select-none rounded-md"
+              className="relative h-24 w-full cursor-crosshair select-none rounded-md"
               style={{
                 backgroundColor: `hsl(${hue}, 100%, 50%)`,
                 backgroundImage:
@@ -318,7 +404,6 @@ function ColorPicker({
           </PopoverContent>
         </Popover>
 
-        {/* Inline Swatches */}
         {SWATCHES.map((swatch) => {
           const isSelected = swatch.toLowerCase() === value.toLowerCase();
           return (
@@ -326,11 +411,10 @@ function ColorPicker({
               key={swatch}
               type="button"
               onClick={() => applyHex(swatch)}
-              className={`h-5 w-5 rounded-full cursor-pointer transition-all hover:scale-110 flex items-center justify-center ${
-                isSelected
-                  ? "ring-1.5 ring-foreground ring-offset-1.5 ring-offset-background"
-                  : "border border-border/80"
-              }`}
+              className={`h-4.5 w-4.5 rounded-full cursor-pointer transition-all hover:scale-110 ${isSelected
+                ? "ring-1.5 ring-foreground ring-offset-1 ring-offset-background"
+                : "border border-border/80"
+                }`}
               style={{ backgroundColor: swatch }}
               title={swatch}
             />
@@ -354,8 +438,8 @@ function NumberField({
 
   return (
     <div className="space-y-1">
-      <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">{label}</Label>
-      <div className="flex h-7 items-center rounded-md border border-border bg-background pl-2.5 pr-1 focus-within:border-foreground/30 focus-within:ring-1 focus-within:ring-ring">
+      <Label className={labelClass}>{label}</Label>
+      <div className="flex h-7 items-center rounded-md border border-border bg-background pl-2 pr-1 focus-within:border-foreground/30 focus-within:ring-1 focus-within:ring-ring">
         <input
           type="number"
           value={value}
@@ -367,18 +451,10 @@ function NumberField({
         />
         {unit && <span className="mr-1 text-[10px] text-muted-foreground/50">{unit}</span>}
         <div className="flex flex-col">
-          <button
-            type="button"
-            onClick={() => bump(step)}
-            className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 transition-colors hover:text-foreground"
-          >
+          <button type="button" onClick={() => bump(step)} className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 hover:text-foreground">
             <ChevronUp className="h-2.5 w-2.5" />
           </button>
-          <button
-            type="button"
-            onClick={() => bump(-step)}
-            className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 transition-colors hover:text-foreground"
-          >
+          <button type="button" onClick={() => bump(-step)} className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 hover:text-foreground">
             <ChevronDown className="h-2.5 w-2.5" />
           </button>
         </div>
@@ -396,8 +472,8 @@ function SliderField({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">{label}</Label>
-        <span className="font-mono text-[10px] text-muted-foreground/50">{value}{unit}</span>
+        <Label className={labelClass}>{label}</Label>
+        <span className="font-mono text-[9px] text-muted-foreground/50">{value}{unit}</span>
       </div>
       <Slider
         value={[value]}
@@ -422,14 +498,48 @@ function TextField({
 }) {
   return (
     <div className="space-y-1">
-      <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">{label}</Label>
+      <Label className={labelClass}>{label}</Label>
       <Input
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-7 px-2.5 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1"
+        className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1"
       />
+    </div>
+  );
+}
+
+function PresetRow<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; text: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className={labelClass}>{label}</Label>
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => v && onChange(v as T)}
+        className="inline-flex w-full gap-0.5 rounded-md border border-border p-0.5 bg-background h-7"
+      >
+        {options.map((opt) => (
+          <ToggleGroupItem
+            key={opt.value}
+            value={opt.value}
+            className="h-full flex-1 rounded-sm cursor-pointer text-[10px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"
+          >
+            {opt.text}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
     </div>
   );
 }
@@ -442,6 +552,22 @@ function fadeIn(delay = 0) {
   };
 }
 
+const SPACING_MAP = { tight: 8, cozy: 16, roomy: 32 } as const;
+type SpacingKey = keyof typeof SPACING_MAP;
+function spacingKeyFromValue(padding: number | null | undefined): SpacingKey {
+  if (padding === SPACING_MAP.tight) return "tight";
+  if (padding === SPACING_MAP.roomy) return "roomy";
+  return "cozy";
+}
+
+const CORNER_MAP = { sharp: 0, rounded: 12, pill: 999 } as const;
+type CornerKey = keyof typeof CORNER_MAP;
+function cornerKeyFromValue(radius: number | null | undefined): CornerKey {
+  if (!radius) return "sharp";
+  if (radius >= 100) return "pill";
+  return "rounded";
+}
+
 /* ---------------------------------- main panel ---------------------------------- */
 
 export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemove, onReset, onClose }: Props) {
@@ -452,15 +578,10 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
   const gradient = parseGradient(style.backgroundGradient || "");
 
   const dynamicFontFamilies = [
-    { label: "Default Theme Font", value: "inherit" },
-    ...(theme?.fontHeading ? [{ label: `Theme Heading (${theme.fontHeading})`, value: theme.fontHeading }] : []),
-    ...(theme?.fontBody ? [{ label: `Theme Body (${theme.fontBody})`, value: theme.fontBody }] : []),
-    { label: "Inter (Sans-Serif)", value: "'Inter', sans-serif" },
-    { label: "Outfit (Modern)", value: "'Outfit', sans-serif" },
-    { label: "Roboto (Clean)", value: "'Roboto', sans-serif" },
-    { label: "Playfair Display (Serif)", value: "'Playfair Display', serif" },
-    { label: "Space Grotesk (Tech)", value: "'Space Grotesk', sans-serif" },
-    { label: "Fira Code (Monospace)", value: "'Fira Code', monospace" },
+    { label: "Theme Default", value: "inherit" },
+    ...(theme?.fontHeading ? [{ label: `Heading (${theme.fontHeading})`, value: theme.fontHeading }] : []),
+    ...(theme?.fontBody ? [{ label: `Body (${theme.fontBody})`, value: theme.fontBody }] : []),
+    ...FONT_FAMILIES_STATIC,
   ];
 
   const formatValues = [
@@ -470,87 +591,51 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
     style.strikethrough ? "strike" : "",
   ].filter(Boolean);
 
+  const activeCard = activeCardStyleKey(style);
+
   return (
-    <aside className="flex h-full w-[310px] shrink-0 select-none flex-col overflow-hidden border border-border rounded-2xl bg-surface text-foreground shadow-sm">
+    <aside className="flex h-full w-[300px] shrink-0 select-none flex-col overflow-hidden border border-border rounded-2xl bg-surface text-foreground shadow-sm">
       {/* Header */}
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-border px-3.5">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-background border border-border">
-            <Sliders className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-background border border-border">
+            <Sliders className="h-3 w-3 text-muted-foreground" />
           </div>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-[11px] font-semibold text-foreground">Style Editor</span>
-            <span className="truncate text-[9px] text-muted-foreground/70">Selected element</span>
+            <span className="truncate text-[11px] font-semibold text-foreground">Design</span>
           </div>
         </div>
         <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onReset}
-            title="Reset style"
-            className="h-7 w-7 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
+          <Button variant="ghost" size="icon" onClick={onReset} title="Reset style" className="h-6 w-6 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground">
+            <RotateCcw className="h-3 w-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            title="Close editor"
-            className="h-7 w-7 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground"
-          >
-            <PanelLeft className="h-3.5 w-3.5" />
+          <Button variant="ghost" size="icon" onClick={onClose} title="Close" className="h-6 w-6 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground">
+            <PanelLeft className="h-3 w-3" />
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
-        <TabsList className="w-full h-8 shrink-0 grid grid-cols-5 border-b border-border bg-background/30 p-0 rounded-none">
-          <TabsTrigger
-            value="text"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Text
-          </TabsTrigger>
-          <TabsTrigger
-            value="fill"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Fill
-          </TabsTrigger>
-          <TabsTrigger
-            value="border"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Border
-          </TabsTrigger>
-          <TabsTrigger
-            value="fx"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Effects
-          </TabsTrigger>
-          <TabsTrigger
-            value="layout"
-            className="cursor-pointer rounded-none border-b border-transparent text-[10.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all py-1.5"
-          >
-            Layout
-          </TabsTrigger>
+        <TabsList className="w-full h-7 shrink-0 grid grid-cols-5 border-b border-border bg-background/30 p-0 rounded-none">
+          <TabsTrigger value="text" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Text</TabsTrigger>
+          <TabsTrigger value="fill" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Fill</TabsTrigger>
+          <TabsTrigger value="border" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Border</TabsTrigger>
+          <TabsTrigger value="fx" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">FX</TabsTrigger>
+          <TabsTrigger value="layout" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Layout</TabsTrigger>
         </TabsList>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3.5 py-4 simple-scrollbar">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 simple-scrollbar">
           {/* Text */}
           <TabsContent value="text" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
-              <div className="grid grid-cols-[1fr_80px] gap-2">
+            <motion.div {...fadeIn()} className="space-y-3">
+              <div className="grid grid-cols-[1fr_70px] gap-1.5">
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Font Family</Label>
+                  <Label className={labelClass}>Font</Label>
                   <Select value={style.fontFamily ?? "inherit"} onValueChange={(fontFamily) => onChange({ fontFamily })}>
                     <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {dynamicFontFamilies.map((font) => (
-                        <SelectItem key={font.value} value={font.value} className="cursor-pointer">{font.label}</SelectItem>
+                        <SelectItem key={font.value} value={font.value} className="cursor-pointer text-[11px]">{font.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -561,9 +646,9 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
               <SliderField label="Line Height" value={style.lineHeight ?? 1.5} min={0.8} max={3} step={0.1} onChange={(lineHeight) => onChange({ lineHeight })} />
               <SliderField label="Letter Spacing" value={style.letterSpacing ?? 0} min={-5} max={20} step={0.5} unit="px" onChange={(letterSpacing) => onChange({ letterSpacing })} />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Formatting</Label>
+                  <Label className={labelClass}>Style</Label>
                   <ToggleGroup
                     type="multiple"
                     value={formatValues}
@@ -583,7 +668,7 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Alignment</Label>
+                  <Label className={labelClass}>Align</Label>
                   <ToggleGroup
                     type="single"
                     value={style.textAlign ?? "left"}
@@ -598,89 +683,71 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
                 </div>
               </div>
 
-              <ColorPicker label="Text Color" value={style.color ?? "#ffffff"} onChange={(color) => onChange({ color })} />
+              <ColorPicker label="Color" value={style.color ?? "#ffffff"} onChange={(color) => onChange({ color })} />
+
+              <div className="space-y-1">
+                <Label className={labelClass}>Shadow</Label>
+                <Select value={style.textShadow || "none"} onValueChange={(v) => onChange({ textShadow: v === "none" ? "" : v })}>
+                  <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TEXT_SHADOW_PRESETS.map((preset) => (
+                      <SelectItem key={preset.name} value={preset.value || "none"} className="cursor-pointer text-[11px]">{preset.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </motion.div>
           </TabsContent>
 
           {/* Fill */}
           <TabsContent value="fill" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
-
-              {/* Website Theme — moved here from the sidebar's old Theme tab */}
+            <motion.div {...fadeIn()} className="space-y-3">
               {theme && onThemeChange && (
                 <>
-                  <div className="space-y-3 rounded-md border border-border bg-background/50 p-2.5">
-                    <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
-                      Website Theme
-                    </Label>
+                  <div className="space-y-2 rounded-md border border-border bg-background/50 p-2">
+                    <div className="flex items-center gap-1">
+                      <Sparkles className="h-2.5 w-2.5 text-muted-foreground" />
+                      <Label className={labelClass}>Theme</Label>
+                    </div>
 
-                    <ColorPicker
-                      label="Background"
-                      value={theme.bg ?? "#ffffff"}
-                      onChange={(bg) => onThemeChange({ bg })}
-                    />
-                    <ColorPicker
-                      label="Text"
-                      value={theme.ink ?? "#000000"}
-                      onChange={(ink) => onThemeChange({ ink })}
-                    />
-                    <ColorPicker
-                      label="Accent"
-                      value={theme.accent ?? "#000000"}
-                      onChange={(accent) => onThemeChange({ accent })}
-                    />
+                    <ColorPicker label="Background" value={theme.bg ?? "#ffffff"} onChange={(bg) => onThemeChange({ bg })} />
+                    <ColorPicker label="Text" value={theme.ink ?? "#000000"} onChange={(ink) => onThemeChange({ ink })} />
+                    <ColorPicker label="Accent" value={theme.accent ?? "#000000"} onChange={(accent) => onThemeChange({ accent })} />
                     {theme.accent2 !== undefined && (
-                      <ColorPicker
-                        label="Accent 2"
-                        value={theme.accent2 ?? "#000000"}
-                        onChange={(accent2) => onThemeChange({ accent2 })}
-                      />
+                      <ColorPicker label="Accent 2" value={theme.accent2 ?? "#000000"} onChange={(accent2) => onThemeChange({ accent2 })} />
                     )}
                     {theme.surface !== undefined && (
-                      <ColorPicker
-                        label="Surface"
-                        value={theme.surface ?? "#ffffff"}
-                        onChange={(surface) => onThemeChange({ surface })}
-                      />
+                      <ColorPicker label="Surface" value={theme.surface ?? "#ffffff"} onChange={(surface) => onThemeChange({ surface })} />
                     )}
 
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                       <div className="space-y-1">
-                        <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
-                          Spacing
-                        </Label>
-                        <Select
-                          value={String(theme.spacing ?? "cozy")}
-                          onValueChange={(spacing) => onThemeChange({ spacing } as Partial<Theme>)}
-                        >
+                        <Label className={labelClass}>Spacing</Label>
+                        <Select value={String(theme.spacing ?? "cozy")} onValueChange={(spacing) => onThemeChange({ spacing } as Partial<Theme>)}>
                           <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="compact" className="cursor-pointer">Compact</SelectItem>
-                            <SelectItem value="cozy" className="cursor-pointer">Cozy</SelectItem>
-                            <SelectItem value="airy" className="cursor-pointer">Airy</SelectItem>
+                            <SelectItem value="compact" className="cursor-pointer text-[11px]">Compact</SelectItem>
+                            <SelectItem value="cozy" className="cursor-pointer text-[11px]">Cozy</SelectItem>
+                            <SelectItem value="airy" className="cursor-pointer text-[11px]">Airy</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
-                          Heading Font
-                        </Label>
+                        <Label className={labelClass}>Heading</Label>
                         <Input
                           value={String(theme.fontHeading ?? "")}
                           onChange={(e) => onThemeChange({ fontHeading: e.target.value })}
-                          className="h-7 px-2.5 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
+                          className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
-                        Body Font
-                      </Label>
+                      <Label className={labelClass}>Body Font</Label>
                       <Input
                         value={String(theme.fontBody ?? "")}
                         onChange={(e) => onThemeChange({ fontBody: e.target.value })}
-                        className="h-7 px-2.5 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
+                        className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
                       />
                     </div>
                   </div>
@@ -689,149 +756,189 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
                 </>
               )}
 
-              <ColorPicker label="Background Color" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
+              <ColorPicker label="Background" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
 
               <div className="space-y-1">
-                <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Background Gradient</Label>
+                <Label className={labelClass}>Gradient</Label>
                 <Select value={style.backgroundGradient || "none"} onValueChange={(v) => onChange({ backgroundGradient: v === "none" ? "" : v })}>
                   <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {GRADIENT_PRESETS.map((grad) => (
-                      <SelectItem key={grad.name} value={grad.value || "none"} className="cursor-pointer">{grad.name}</SelectItem>
+                      <SelectItem key={grad.name} value={grad.value || "none"} className="cursor-pointer text-[11px]">{grad.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               {style.backgroundGradient ? (
-                <div className="space-y-3 rounded-md border border-border bg-background/50 p-2.5">
-                  <SliderField
-                    label="Angle"
-                    value={gradient.angle}
-                    min={0}
-                    max={360}
-                    unit="°"
-                    onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <ColorPicker
-                      label="Color A"
-                      value={gradient.colorA}
-                      onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })}
-                    />
-                    <ColorPicker
-                      label="Color B"
-                      value={gradient.colorB}
-                      onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })}
-                    />
+                <div className="space-y-2 rounded-md border border-border bg-background/50 p-2">
+                  <SliderField label="Angle" value={gradient.angle} min={0} max={360} unit="°" onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })} />
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <ColorPicker label="A" value={gradient.colorA} onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })} />
+                    <ColorPicker label="B" value={gradient.colorB} onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })} />
                   </div>
                 </div>
               ) : null}
 
-              <SliderField
-                label="Opacity"
-                value={Math.round((style.opacity ?? 1) * 100)}
-                min={0}
-                max={100}
-                unit="%"
-                onChange={(v) => onChange({ opacity: v / 100 })}
-              />
+              <SliderField label="Opacity" value={Math.round((style.opacity ?? 1) * 100)} min={0} max={100} unit="%" onChange={(v) => onChange({ opacity: v / 100 })} />
             </motion.div>
           </TabsContent>
 
           {/* Border */}
           <TabsContent value="border" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <NumberField label="Corner Radius" value={style.borderRadius ?? 0} min={0} max={120} onChange={(borderRadius) => onChange({ borderRadius })} />
-                <NumberField label="Border Width" value={style.borderWidth ?? 0} min={0} max={20} onChange={(borderWidth) => onChange({ borderWidth })} />
+            <motion.div {...fadeIn()} className="space-y-3">
+              <PresetRow<CornerKey>
+                label="Corners"
+                value={cornerKeyFromValue(style.borderRadius)}
+                options={[
+                  { value: "sharp", text: "Sharp" },
+                  { value: "rounded", text: "Rounded" },
+                  { value: "pill", text: "Pill" },
+                ]}
+                onChange={(key) => onChange({ borderRadius: CORNER_MAP[key] })}
+              />
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <NumberField label="Radius" value={style.borderRadius ?? 0} min={0} max={120} onChange={(borderRadius) => onChange({ borderRadius })} />
+                <NumberField label="Thickness" value={style.borderWidth ?? 0} min={0} max={20} onChange={(borderWidth) => onChange({ borderWidth })} />
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Border Style</Label>
+                <Label className={labelClass}>Style</Label>
                 <Select value={style.borderStyle ?? "solid"} onValueChange={(borderStyle) => onChange({ borderStyle: borderStyle as PreviewElementStyle["borderStyle"] })}>
                   <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="solid" className="cursor-pointer">Solid</SelectItem>
-                    <SelectItem value="dashed" className="cursor-pointer">Dashed</SelectItem>
-                    <SelectItem value="dotted" className="cursor-pointer">Dotted</SelectItem>
-                    <SelectItem value="none" className="cursor-pointer">None</SelectItem>
+                    <SelectItem value="solid" className="cursor-pointer text-[11px]">Solid</SelectItem>
+                    <SelectItem value="dashed" className="cursor-pointer text-[11px]">Dashed</SelectItem>
+                    <SelectItem value="dotted" className="cursor-pointer text-[11px]">Dotted</SelectItem>
+                    <SelectItem value="none" className="cursor-pointer text-[11px]">None</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <ColorPicker label="Border Color" value={style.borderColor ?? "#ffffff"} onChange={(borderColor) => onChange({ borderColor })} />
+              <ColorPicker label="Color" value={style.borderColor ?? "#ffffff"} onChange={(borderColor) => onChange({ borderColor })} />
             </motion.div>
           </TabsContent>
 
           {/* Effects */}
           <TabsContent value="fx" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
+            <motion.div {...fadeIn()} className="space-y-3">
+              {/* Card Style */}
               <div className="space-y-1">
-                <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Box Shadow</Label>
-                <Select value={style.boxShadow ?? "none"} onValueChange={(boxShadow) => onChange({ boxShadow })}>
-                  <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SHADOW_PRESETS.map((shadow) => (
-                      <SelectItem key={shadow.name} value={shadow.value} className="cursor-pointer">{shadow.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className={labelClass}>Card Style</Label>
+                <div className="grid grid-cols-3 gap-1">
+                  {CARD_STYLE_PRESETS.map((preset) => {
+                    const Icon = preset.icon;
+                    const isActive = activeCard === preset.key;
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        onClick={() => onChange(preset.apply)}
+                        className={`flex flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1 text-[9px] font-medium transition-colors cursor-pointer ${isActive
+                          ? "border-foreground bg-accent text-accent-foreground"
+                          : "border-border bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                          }`}
+                      >
+                        <Icon className="h-3 w-3" />
+                        {preset.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-
-              <SliderField label="Backdrop Blur" value={style.backdropBlur ?? 0} min={0} max={30} onChange={(backdropBlur) => onChange({ backdropBlur })} />
 
               <Separator className="bg-border" />
 
-              <div className="space-y-2">
-                <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Presets</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Toggle
-                    pressed={Boolean(style.glassmorphism)}
-                    onPressedChange={(p) => onChange({ glassmorphism: p })}
-                    className="h-7 cursor-pointer justify-start gap-1.5 border border-border bg-background text-[11px] text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground px-2"
-                  >
-                    <Wand2 className="h-3 w-3" /> Glass Card
-                  </Toggle>
-                  <Toggle
-                    pressed={Boolean(style.gradientText)}
-                    onPressedChange={(p) => onChange({ gradientText: p })}
-                    className="h-7 cursor-pointer justify-start gap-1.5 border border-border bg-background text-[11px] text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground px-2"
-                  >
-                    <Sparkles className="h-3 w-3" /> Gradient Text
-                  </Toggle>
-                  <Toggle
-                    pressed={Boolean(style.glowAccent)}
-                    onPressedChange={(p) => onChange({ glowAccent: p })}
-                    className="h-7 cursor-pointer justify-start gap-1.5 border border-border bg-background text-[11px] text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground px-2"
-                  >
-                    <Zap className="h-3 w-3" /> Neon Glow
-                  </Toggle>
-                  <Toggle
-                    pressed={Boolean(style.hoverLift)}
-                    onPressedChange={(p) => onChange({ hoverLift: p })}
-                    className="h-7 cursor-pointer justify-start gap-1.5 border border-border bg-background text-[11px] text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground px-2"
-                  >
-                    <MousePointer className="h-3 w-3" /> Hover Lift
-                  </Toggle>
+              {/* Hover Effect */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <MousePointerClick className="h-2.5 w-2.5 text-muted-foreground" />
+                  <Label className={labelClass}>On Hover</Label>
                 </div>
+                <ToggleGroup
+                  type="single"
+                  value={style.hoverEffect ?? "none"}
+                  onValueChange={(v) => v && onChange({ hoverEffect: v as PreviewElementStyle["hoverEffect"] })}
+                  className="grid grid-cols-3 gap-1"
+                >
+                  {HOVER_EFFECT_OPTIONS.map((opt) => (
+                    <ToggleGroupItem
+                      key={opt.value}
+                      value={opt.value}
+                      className={`h-6 rounded-md border cursor-pointer text-[9px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border"
+                        }`}
+                    >
+                      {opt.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
+
+              {/* Entrance Animation */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <PlayCircle className="h-2.5 w-2.5 text-muted-foreground" />
+                  <Label className={labelClass}>On Page Load</Label>
+                </div>
+                <ToggleGroup
+                  type="single"
+                  value={style.entrance ?? "none"}
+                  onValueChange={(v) => v && onChange({ entrance: v as PreviewElementStyle["entrance"] })}
+                  className="grid grid-cols-2 gap-1"
+                >
+                  {ENTRANCE_OPTIONS.map((opt) => (
+                    <ToggleGroupItem
+                      key={opt.value}
+                      value={opt.value}
+                      className={`h-6 rounded-md border cursor-pointer text-[9px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border"
+                        }`}
+                    >
+                      {opt.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+
+                {style.entrance && style.entrance !== "none" && (
+                  <SliderField
+                    label="Speed"
+                    value={style.entranceDuration ?? 0.6}
+                    min={0.1}
+                    max={2}
+                    step={0.1}
+                    unit="s"
+                    onChange={(entranceDuration) => onChange({ entranceDuration })}
+                  />
+                )}
+              </div>
+
             </motion.div>
           </TabsContent>
 
           {/* Layout */}
           <TabsContent value="layout" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <motion.div {...fadeIn()} className="space-y-3">
+              <PresetRow<SpacingKey>
+                label="Spacing"
+                value={spacingKeyFromValue(style.padding)}
+                options={[
+                  { value: "tight", text: "Tight" },
+                  { value: "cozy", text: "Cozy" },
+                  { value: "roomy", text: "Roomy" },
+                ]}
+                onChange={(key) => onChange({ padding: SPACING_MAP[key] })}
+              />
+
+              <div className="grid grid-cols-2 gap-1.5">
                 <NumberField label="Padding" value={style.padding ?? 0} min={0} max={120} onChange={(padding) => onChange({ padding })} />
                 <NumberField label="Margin" value={style.margin ?? 0} min={-60} max={120} onChange={(margin) => onChange({ margin })} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-1.5">
                 <TextField
                   label="Width"
                   value={style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "")}
-                  placeholder={edit.computedWidth ? `auto (${edit.computedWidth})` : "auto / 100%"}
+                  placeholder={edit.computedWidth ? `auto (${edit.computedWidth})` : "auto"}
                   onChange={(width) => onChange({ width })}
                   onKeyDown={(e) => {
                     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -853,7 +960,7 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
                 <TextField
                   label="Height"
                   value={style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "")}
-                  placeholder={edit.computedHeight ? `auto (${edit.computedHeight})` : "auto / 300px"}
+                  placeholder={edit.computedHeight ? `auto (${edit.computedHeight})` : "auto"}
                   onChange={(height) => onChange({ height })}
                   onKeyDown={(e) => {
                     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -874,66 +981,32 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <NumberField label="Z-Index" value={style.zIndex ?? 0} min={-10} max={1000} step={5} onChange={(zIndex) => onChange({ zIndex })} />
+              <div className="grid grid-cols-2 gap-1.5">
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Display</Label>
-                  <Select value={style.display || "default"} onValueChange={(v) => onChange({ display: v === "default" ? "" : v })}>
-                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default" className="cursor-pointer">Default</SelectItem>
-                      <SelectItem value="block" className="cursor-pointer">Block</SelectItem>
-                      <SelectItem value="inline-block" className="cursor-pointer">Inline Block</SelectItem>
-                      <SelectItem value="flex" className="cursor-pointer">Flex</SelectItem>
-                      <SelectItem value="grid" className="cursor-pointer">Grid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Cursor</Label>
+                  <Label className={labelClass}>Cursor</Label>
                   <Select value={style.cursor || "default"} onValueChange={(v) => onChange({ cursor: v === "default" ? "" : v })}>
                     <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="default" className="cursor-pointer">Default</SelectItem>
-                      <SelectItem value="pointer" className="cursor-pointer">Pointer</SelectItem>
-                      <SelectItem value="text" className="cursor-pointer">Text</SelectItem>
-                      <SelectItem value="grab" className="cursor-pointer">Grab</SelectItem>
-                      <SelectItem value="not-allowed" className="cursor-pointer">Not Allowed</SelectItem>
+                      <SelectItem value="default" className="cursor-pointer text-[11px]">Default</SelectItem>
+                      <SelectItem value="pointer" className="cursor-pointer text-[11px]">Pointer</SelectItem>
+                      <SelectItem value="text" className="cursor-pointer text-[11px]">Text</SelectItem>
+                      <SelectItem value="grab" className="cursor-pointer text-[11px]">Grab</SelectItem>
+                      <SelectItem value="not-allowed" className="cursor-pointer text-[11px]">Not Allowed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">Overflow</Label>
+                  <Label className={labelClass}>Overflow</Label>
                   <Select value={style.overflow || "visible"} onValueChange={(v) => onChange({ overflow: v as PreviewElementStyle["overflow"] })}>
                     <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="visible" className="cursor-pointer">Visible</SelectItem>
-                      <SelectItem value="hidden" className="cursor-pointer">Hidden</SelectItem>
-                      <SelectItem value="auto" className="cursor-pointer">Auto</SelectItem>
-                      <SelectItem value="scroll" className="cursor-pointer">Scroll</SelectItem>
+                      <SelectItem value="visible" className="cursor-pointer text-[11px]">Visible</SelectItem>
+                      <SelectItem value="hidden" className="cursor-pointer text-[11px]">Hidden</SelectItem>
+                      <SelectItem value="auto" className="cursor-pointer text-[11px]">Auto</SelectItem>
+                      <SelectItem value="scroll" className="cursor-pointer text-[11px]">Scroll</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <Separator className="bg-border" />
-
-              <div className="flex items-center justify-between rounded-md border border-border bg-background p-2.5">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-medium text-foreground">Priority Override</span>
-                    <span className="text-[9px] text-muted-foreground/60">Apply as !important</span>
-                  </div>
-                </div>
-                <Switch
-                  checked={Boolean(style.isImportant)}
-                  onCheckedChange={(isImportant) => onChange({ isImportant })}
-                  className="scale-90 cursor-pointer"
-                />
               </div>
             </motion.div>
           </TabsContent>
@@ -941,21 +1014,21 @@ export function ElementStylePanel({ edit, theme, onThemeChange, onChange, onRemo
       </Tabs>
 
       {/* Footer */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border p-3">
+      <div className="flex shrink-0 items-center justify-between gap-1.5 border-t border-border p-2.5">
         <Button
           variant="outline"
           onClick={() => onChange({ removed: !isHidden })}
-          className="h-7.5 flex-1 cursor-pointer gap-1.5 border-border bg-background text-[11px] text-foreground hover:bg-accent hover:text-accent-foreground"
+          className="h-7 flex-1 cursor-pointer gap-1 border-border bg-background text-[10.5px] text-foreground hover:bg-accent hover:text-accent-foreground"
         >
-          {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           {isHidden ? "Show" : "Hide"}
         </Button>
         <Button
           variant="outline"
           onClick={onRemove}
-          className="h-7.5 flex-1 cursor-pointer gap-1.5 border-rose-500/20 bg-rose-500/10 text-[11px] text-rose-400 hover:bg-rose-500/20 hover:text-rose-300"
+          className="h-7 flex-1 cursor-pointer gap-1 border-rose-500/20 bg-rose-500/10 text-[10.5px] text-rose-400 hover:bg-rose-500/20 hover:text-rose-300"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="h-3 w-3" />
           Remove
         </Button>
       </div>
