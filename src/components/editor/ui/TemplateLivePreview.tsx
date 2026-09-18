@@ -159,6 +159,10 @@ export function TemplateLivePreview({
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null);
   const isDesktop = device === "desktop";
 
+  console.log(
+    "site", site
+  )
+
   /* ---------------------------------------------------------------------- */
   /*                    LOCAL CONFIRM MODAL (context-free)                   */
   /* ---------------------------------------------------------------------- */

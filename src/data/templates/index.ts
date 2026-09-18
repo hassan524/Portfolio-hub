@@ -9,7 +9,7 @@ const modules = import.meta.glob("./*.json", { eager: true }) as Record<
 
 export const templates: SiteData[] = Object.values(modules)
   .map((m) => m.default)
-  .sort((a, b) => a.name.localeCompare(b.name));
+  .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 
 export function getTemplateById(id: string): SiteData | undefined {
   return templates.find((t) => t.id === id);
