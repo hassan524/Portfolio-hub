@@ -3,11 +3,14 @@ import { motion } from "framer-motion";
 import { Star, Quote, CheckCircle2 } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-type Props = BlockComponentProps<any>;
-const noop = () => {};
 
-export function AIProduct1Testimonials({ theme }: Props) {
-  const { ink, bg, accent } = theme;
+export function AIProduct1Testimonials({ props = {}, theme }: BlockComponentProps<any>) {
+  const bg = theme?.bg || "#0B0F19";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
+  const accent = theme?.accent || "#38BDF8";
 
   const testimonials = [
     {
@@ -31,18 +34,18 @@ export function AIProduct1Testimonials({ theme }: Props) {
   ];
 
   return (
-    <section className="relative px-6 md:px-16 py-32 overflow-hidden" style={{ background: bg }}>
+    <section className="relative px-6 md:px-16 py-32 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
       <div className="absolute top-1/2 right-10 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none opacity-10" style={{ background: accent }} />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-2xl mx-auto mb-20"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest mb-4 backdrop-blur-md" style={{ background: `${accent}10`, color: accent, border: `1px solid ${accent}30` }}>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest mb-4 backdrop-blur-md" style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
             <Editable className="inline">Wall of Love</Editable>
           </div>
           <Editable
@@ -62,7 +65,7 @@ export function AIProduct1Testimonials({ theme }: Props) {
               transition={{ duration: 0.5, delay: i * 0.12 }}
               whileHover={{ y: -6, boxShadow: `0 30px 60px ${accent}15` }}
               className="p-8 rounded-3xl flex flex-col justify-between gap-8 backdrop-blur-2xl relative overflow-hidden group transition-all duration-500"
-              style={{ background: `${ink}03`, border: `1px solid ${ink}10` }}
+              style={{ backgroundColor: surface, border: `1px solid ${surface}` }}
             >
               <div className="absolute top-6 right-6 opacity-10 group-hover:opacity-25 transition-opacity">
                 <Quote className="h-10 w-10" style={{ color: accent }} />
@@ -77,17 +80,17 @@ export function AIProduct1Testimonials({ theme }: Props) {
                 <Editable
                   as="p"
                   className="text-base leading-relaxed italic relative z-10 font-normal"
-                  style={{ color: `${ink}80` }}
+                  style={{ color: ink, opacity: 0.75 }}
                 >{item.quote}</Editable>
               </div>
 
-              <div className="pt-6 border-t flex items-center gap-4" style={{ borderColor: `${ink}10` }}>
+              <div className="pt-6 border-t flex items-center gap-4" style={{ borderColor: surface }}>
                 <div className="h-12 w-12 rounded-2xl grid place-items-center font-bold text-sm shrink-0 shadow-inner" style={{ background: `${accent}20`, color: accent, border: `1px solid ${accent}40` }}>
                   <Editable className="inline">{item.name.split(" ").map(n => n[0]).join("")}</Editable>
                 </div>
                 <div>
                   <Editable className="font-bold text-sm block" style={{ color: ink }}>{item.name}</Editable>
-                  <Editable className="text-xs font-medium block mt-0.5" style={{ color: `${ink}55` }}>{item.role}</Editable>
+                  <Editable className="text-xs font-medium block mt-0.5" style={{ color: ink, opacity: 0.75 }}>{item.role}</Editable>
                   <div className="flex items-center gap-1 mt-1 text-[10px] font-mono" style={{ color: accent }}>
                     <CheckCircle2 className="h-3 w-3" />
                     <Editable className="inline">{item.verified}</Editable>

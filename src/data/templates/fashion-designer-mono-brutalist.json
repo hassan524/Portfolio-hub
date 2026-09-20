@@ -3,8 +3,11 @@
   "category": "Streetwear Brand",
   "theme": {
     "bg": "#ffffff",
+    "bg-second": "#ffffff",
     "ink": "#000000",
+    "ink-second": "#000000",
     "accent": "#000000",
+    "surface": "#e0e0e0",
     "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "sharp",

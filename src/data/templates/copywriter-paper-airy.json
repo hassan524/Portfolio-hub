@@ -3,8 +3,11 @@
   "category": "Business / Company",
   "theme": {
     "bg": "#faf9f6",
+    "bg-second": "#ffffff",
     "ink": "#1a1a1a",
+    "ink-second": "#000000",
     "accent": "#e85d3d",
+    "surface": "#dcdbd8",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "soft",

@@ -3,8 +3,11 @@
   "category": "Business / Company",
   "theme": {
     "bg": "#0b1a0f",
+    "bg-second": "#ffffff",
     "ink": "#c8ffcf",
+    "ink-second": "#000000",
     "accent": "#39ff6a",
+    "surface": "#28352c",
     "fontHeading": "Space Grotesk",
     "fontBody": "Space Grotesk",
     "corners": "sharp",

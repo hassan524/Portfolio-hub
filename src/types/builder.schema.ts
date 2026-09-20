@@ -25,6 +25,7 @@ export type Theme = {
   fontBody: string;
   corners: CornerStyle;
   spacing: SpacingStyle;
+  [key: string]: any;
 };
 
 /* =========================
@@ -207,7 +208,7 @@ export type BlockProps =
 
 export type Block = {
   id: string;
-  type: BlockKind;
+  type: string;
   order: number;
   props: BlockProps;
   height?: number;
@@ -223,11 +224,9 @@ export type Block = {
 
 export type SiteData = {
   id: string;
-  name: string;
+  name?: string;
   category: string;
-  tagline: string;
   logo: string | null;
-  isPro: boolean;
   theme: Theme;
   blocks: Block[];
   previewEdits?: PreviewEditState;

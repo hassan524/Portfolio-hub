@@ -3,9 +3,15 @@ import { Editable } from "@/components/editor/ui/Editable";
 import { Star, Quote } from "lucide-react";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-export function AIProduct3Testimonials({ theme }: BlockComponentProps<any>) {
-  const darkInk = theme?.ink || "#1A0D14";
-  const accent = theme?.accent || "#E11D48";
+type Props = BlockComponentProps<any>;
+
+export function AIProduct3Testimonials({ props = {}, theme }: Props) {
+  const bg = theme?.bg || "#140C12";
+  const bgSecond = theme?.["bg-second"] || "#FFF5F8";
+  const ink = theme?.ink || "#FFFFFF";
+  const inkSecond = theme?.["ink-second"] || "#1E0C17";
+  const surface = theme?.surface || "#231420";
+  const accent = theme?.accent || "#FF3B76";
 
   const testimonials = [
     {
@@ -29,13 +35,20 @@ export function AIProduct3Testimonials({ theme }: BlockComponentProps<any>) {
   ];
 
   return (
-    <section className="py-24 px-4 sm:px-6 text-white relative overflow-hidden" style={{ background: darkInk }}>
+    <section className="py-24 px-4 sm:px-6 relative overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
       <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-xl mx-auto mb-14">
-          <span className="text-[10px] font-extrabold uppercase tracking-widest block mb-2" style={{ color: accent }}>
+        <div className="text-center max-w-xl mx-auto mb-16">
+          <span 
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-3 border shadow-sm" 
+            style={{ 
+              backgroundColor: `${surface}90`, 
+              borderColor: `${accent}30`, 
+              color: accent 
+            }}
+          >
             CLIENT TESTIMONIALS
           </span>
-          <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight" style={{ color: ink }}>
             Trusted by leading AI architects worldwide
           </h3>
         </div>
@@ -44,35 +57,38 @@ export function AIProduct3Testimonials({ theme }: BlockComponentProps<any>) {
           {testimonials.map((t, idx) => (
             <div
               key={idx}
-              className="p-8 rounded-3xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-white/[0.02] backdrop-blur-md transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group"
+              className="p-8 rounded-3xl border flex flex-col justify-between relative overflow-hidden backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group cursor-pointer"
+              style={{ 
+                backgroundColor: surface, 
+                borderColor: `${accent}25`,
+                boxShadow: "0 15px 35px rgba(0,0,0,0.3)"
+              }}
             >
-              <div className="absolute top-6 right-6 opacity-10 text-white transition-transform duration-300 group-hover:scale-110">
+              <div className="absolute top-6 right-6 opacity-20 transition-transform duration-300 group-hover:scale-110" style={{ color: accent }}>
                 <Quote className="h-10 w-10" />
               </div>
 
               <div>
-                <div className="flex items-center gap-1 mb-4">
+                <div className="flex items-center gap-1 mb-5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <Editable
-                  as="p"
-                  value={t.quote}
-                  onChange={() => {}}
-                  className="text-xs sm:text-sm text-white/80 leading-relaxed font-normal mb-8 relative z-10"
-                />
+                <Editable as="p" className="text-sm sm:text-base leading-relaxed mb-8 italic" style={{ color: ink }}>
+                  "{t.quote}"
+                </Editable>
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+              <div className="flex items-center gap-3.5 pt-5 border-t" style={{ borderColor: `${accent}20` }}>
                 <img
                   src={t.avatar}
                   alt={t.author}
-                  className="w-10 h-10 rounded-full object-cover border border-white/20 transition-transform duration-300 group-hover:scale-105"
+                  className="w-11 h-11 rounded-full object-cover border shadow-sm"
+                  style={{ borderColor: `${accent}35` }}
                 />
                 <div>
-                  <Editable as="div" className="text-xs font-bold text-white">{t.author}</Editable>
-                  <Editable as="div" className="text-[10px] text-white/50">{t.role}</Editable>
+                  <h4 className="text-xs font-bold" style={{ color: ink }}>{t.author}</h4>
+                  <p className="text-[11px] font-medium" style={{ color: accent }}>{t.role}</p>
                 </div>
               </div>
             </div>

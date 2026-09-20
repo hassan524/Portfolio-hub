@@ -4,10 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Terminal, ArrowUpRight, Zap, Code, Shield } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-type Props = BlockComponentProps<any>;
 
-export function AIProduct1Projects({ theme }: Props) {
-  const { ink, bg, accent } = theme;
+export function AIProduct1Projects({ props = {}, theme }: BlockComponentProps<any>) {
+  const bg = theme?.bg || "#0B0F19";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
+  const accent = theme?.accent || "#38BDF8";
   const [activeTab, setActiveTab] = useState(0);
 
   const workflows = [
@@ -35,11 +39,11 @@ export function AIProduct1Projects({ theme }: Props) {
   ];
 
   return (
-    <section className="relative px-6 md:px-16 py-32 overflow-hidden" style={{ background: `${ink}02`, borderTop: `1px solid ${ink}08`, borderBottom: `1px solid ${ink}08` }}>
+    <section className="relative px-6 md:px-16 py-32 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink, borderTop: `1px solid ${surface}`, borderBottom: `1px solid ${surface}` }}>
       <div className="max-w-6xl mx-auto relative z-10">
-        
+
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest mb-4 backdrop-blur-md" style={{ background: `${accent}10`, color: accent, border: `1px solid ${accent}30` }}>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest mb-4 backdrop-blur-md" style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
             <Sparkles className="h-3.5 w-3.5" />
             <Editable className="inline">Production Workflows</Editable>
           </div>
@@ -57,18 +61,18 @@ export function AIProduct1Projects({ theme }: Props) {
               onClick={() => setActiveTab(idx)}
               className="px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 relative cursor-pointer flex items-center gap-2.5 shadow-sm"
               style={{
-                background: activeTab === idx ? `${accent}` : `${ink}04`,
-                color: activeTab === idx ? bg : `${ink}70`,
-                border: `1px solid ${activeTab === idx ? accent : `${ink}10`}`,
+                backgroundColor: activeTab === idx ? accent : surface,
+                color: activeTab === idx ? ink : `${ink}B3`,
+                border: `1px solid ${activeTab === idx ? accent : surface}`,
               }}
             >
-              <span className="h-2 w-2 rounded-full" style={{ background: activeTab === idx ? bg : accent }} />
+              <span className="h-2 w-2 rounded-full" style={{ background: activeTab === idx ? ink : accent }} />
               <Editable className="inline">{wf.title}</Editable>
             </button>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 items-center p-8 md:p-12 rounded-3xl backdrop-blur-2xl relative overflow-hidden" style={{ background: `${ink}03`, border: `1px solid ${ink}10` }}>
+        <div className="grid lg:grid-cols-12 gap-8 items-center p-8 md:p-12 rounded-3xl backdrop-blur-2xl relative overflow-hidden" style={{ backgroundColor: surface, border: `1px solid ${surface}` }}>
           <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-[120px] opacity-15 pointer-events-none" style={{ background: accent }} />
 
           <div className="lg:col-span-5 space-y-6">
@@ -80,11 +84,11 @@ export function AIProduct1Projects({ theme }: Props) {
             <Editable as="h3" className="text-3xl font-black tracking-tight leading-tight" style={{ color: ink }}>
               {workflows[activeTab].title}
             </Editable>
-            <Editable as="p" className="text-base leading-relaxed" style={{ color: `${ink}70` }}>
+            <Editable as="p" className="text-base leading-relaxed" style={{ color: ink, opacity: 0.75 }}>
               {workflows[activeTab].desc}
             </Editable>
 
-            <div className="space-y-3 pt-4 border-t" style={{ borderColor: `${ink}10` }}>
+            <div className="space-y-3 pt-4 border-t" style={{ borderColor: surface }}>
               {workflows[activeTab].stats.map((stat, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm font-semibold" style={{ color: ink }}>
                   <div className="h-5 w-5 rounded-full grid place-items-center" style={{ background: `${accent}20`, color: accent }}>
@@ -97,17 +101,17 @@ export function AIProduct1Projects({ theme }: Props) {
           </div>
 
           <div className="lg:col-span-7">
-            <div className="rounded-2xl overflow-hidden shadow-2xl border backdrop-blur-md" style={{ background: `${bg}`, borderColor: `${ink}15` }}>
-              <div className="px-5 py-3.5 flex items-center justify-between border-b" style={{ background: `${ink}04`, borderColor: `${ink}10` }}>
+            <div className="rounded-2xl overflow-hidden shadow-2xl border backdrop-blur-md" style={{ backgroundColor: bg, borderColor: surface }}>
+              <div className="px-5 py-3.5 flex items-center justify-between border-b" style={{ backgroundColor: surface, borderColor: surface }}>
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-red-500/80" />
                   <div className="h-3 w-3 rounded-full bg-yellow-500/80" />
                   <div className="h-3 w-3 rounded-full bg-green-500/80" />
-                  <Editable as="span" className="text-xs font-mono ml-3" style={{ color: `${ink}40` }}>workflow.ts</Editable>
+                  <Editable as="span" className="text-xs font-mono ml-3" style={{ color: ink, opacity: 0.75 }}>workflow.ts</Editable>
                 </div>
-                <Editable as="span" className="text-xs font-mono px-2 py-0.5 rounded" style={{ background: `${accent}15`, color: accent }}>TypeScript</Editable>
+                <Editable as="span" className="text-xs font-mono px-2 py-0.5 rounded" style={{ background: `${accent}20`, color: accent }}>TypeScript</Editable>
               </div>
-              <div className="p-6 font-mono text-xs md:text-sm overflow-x-auto leading-relaxed" style={{ color: `${ink}80` }}>
+              <div className="p-6 font-mono text-xs md:text-sm overflow-x-auto leading-relaxed" style={{ color: ink, opacity: 0.75 }}>
                 <pre><Editable className="inline">{workflows[activeTab].code}</Editable></pre>
               </div>
             </div>

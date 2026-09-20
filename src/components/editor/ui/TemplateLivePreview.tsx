@@ -28,6 +28,8 @@ import {
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
+import { TextOverrideProvider } from "./Editable";
+import { ThemeCircleRow } from "./ThemeColorPicker";
 import type {
   PreviewEditableSite,
   PreviewElementEdit,
@@ -103,6 +105,7 @@ export function TemplateLivePreview({
   responsiveEditMode,
   onResponsiveEditModeChange,
   onBreakpointChange,
+  onThemeChange,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -134,6 +137,7 @@ export function TemplateLivePreview({
   onSave?: (site: SiteData) => void;
   changeCount?: number;
   contentRef: RefObject<HTMLDivElement | null>;
+  onThemeChange?: (patch: Partial<Theme>) => void;
 
   // Responsive per-breakpoint editing
   responsiveEditMode: boolean;
@@ -709,12 +713,21 @@ export function TemplateLivePreview({
                   <div
                     data-block-id={block.id}
                     data-block-kind={block.props.kind}
+                    data-ai-product-theme={site.category === "AI Product" ? "true" : undefined}
                     className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
                       }`}
                     style={{
                       ...(isActive ? { outlineColor: theme.accent } : undefined),
                       minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
                       position: "relative",
+                      ...(site.category === "AI Product"
+                        ? ({
+                            "--ai-theme-bg": theme.bg,
+                            "--ai-theme-ink": theme.ink,
+                            "--ai-theme-accent": theme.accent,
+                            "--ai-theme-surface": theme.surface ?? theme.bg,
+                          } as React.CSSProperties)
+                        : {}),
                     }}
                   >
                     {isActive && (
@@ -756,6 +769,33 @@ export function TemplateLivePreview({
 
                     {isNewBlock ? (
                       <div style={{ height: "100%" }} className="[&>*]:h-full">
+                        <TextOverrideProvider
+                          overrides={
+                            ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
+                              string,
+                              string
+                            >
+                          }
+                        >
+                          <Cmp
+                            id={block.id}
+                            props={componentProps}
+                            theme={theme}
+                            onChange={(patch: Record<string, unknown>) =>
+                              editMode ? onUpdateBlock(block.id, patch) : undefined
+                            }
+                          />
+                        </TextOverrideProvider>
+                      </div>
+                    ) : (
+                      <TextOverrideProvider
+                        overrides={
+                          ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
+                            string,
+                            string
+                          >
+                        }
+                      >
                         <Cmp
                           id={block.id}
                           props={componentProps}
@@ -764,16 +804,7 @@ export function TemplateLivePreview({
                             editMode ? onUpdateBlock(block.id, patch) : undefined
                           }
                         />
-                      </div>
-                    ) : (
-                      <Cmp
-                        id={block.id}
-                        props={componentProps}
-                        theme={theme}
-                        onChange={(patch: Record<string, unknown>) =>
-                          editMode ? onUpdateBlock(block.id, patch) : undefined
-                        }
-                      />
+                      </TextOverrideProvider>
                     )}
 
                     {draggingElementId?.startsWith(`${block.id}:`) && (
@@ -817,7 +848,7 @@ export function TemplateLivePreview({
                 className="px-8 md:px-16 py-6 text-[11px] flex items-center justify-between"
                 style={{ borderTop: `1px solid ${ink}10`, color: `${ink}40` }}
               >
-                <span>© 2026 {site.name}</span>
+                <span>© 2026 {site.category || "Portfolio"}</span>
                 <span>
                   Built with <span style={{ color: theme.accent }}>Portflu</span>
                 </span>
@@ -830,8 +861,19 @@ export function TemplateLivePreview({
   );
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface-elevated border border-border rounded-2xl overflow-hidden shadow-sm">
-      <div className="flex h-12 shrink-0 items-center justify-end border-b border-border bg-background px-3">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden shadow-sm">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-4 gap-4">
+        {/* Left side: Theme color circles without text, vertically centered with left breathing room */}
+        <div className="flex items-center gap-2.5 shrink-0 pl-2">
+          <ThemeCircleRow
+            theme={theme}
+            site={site}
+            onThemeChange={onThemeChange}
+            showLabels={false}
+          />
+        </div>
+
+        {/* Right side: Device, edit, and window controls */}
         <div className="flex shrink-0 items-center gap-2">
           {responsiveEditMode && (
             <span className="select-none rounded-full bg-accent/15 text-accent px-2 py-0.5 text-[10px] font-semibold capitalize">

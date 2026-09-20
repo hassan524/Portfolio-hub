@@ -3,8 +3,11 @@
   "category": "Creative Portfolio",
   "theme": {
     "bg": "#f4f6fa",
+    "bg-second": "#ffffff",
     "ink": "#0f1f3d",
+    "ink-second": "#000000",
     "accent": "#2563eb",
+    "surface": "#d7d8dc",
     "fontHeading": "Inter",
     "fontBody": "Inter",
     "corners": "soft",

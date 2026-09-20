@@ -3,8 +3,11 @@
   "category": "Bakery",
   "theme": {
     "bg": "#fff5f7",
+    "bg-second": "#ffffff",
     "ink": "#2e2a2c",
+    "ink-second": "#000000",
     "accent": "#ff8fa3",
+    "surface": "#e0d8d9",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "pill",

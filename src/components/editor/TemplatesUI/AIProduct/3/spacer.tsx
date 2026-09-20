@@ -21,10 +21,10 @@ export function SpacerBlock({ props, theme }: any) {
       }}
     >
       <div className="text-center select-none py-4 opacity-70 hover:opacity-100 transition-opacity">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft/70">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
           Spacer Block
         </p>
-        <p className="text-[11px] text-ink-soft/50 mt-1">
+        <p className="text-[11px] text-gray-400 mt-1">
           {isBlended ? "Blended seamlessly with neighboring blocks" : "Click to edit block properties"}
         </p>
       </div>

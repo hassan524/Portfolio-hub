@@ -3,9 +3,14 @@ import { Editable } from "@/components/editor/ui/Editable";
 import { ArrowUpRight } from "lucide-react";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-export function AIProduct4Projects({ theme }: BlockComponentProps<any>) {
+type Props = BlockComponentProps<any>;
+
+export function AIProduct4Projects({ props = {}, theme }: Props) {
   const bg = theme?.bg || "#060813";
-  const ink = theme?.ink || "#F1F5F9";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#8B5CF6";
 
   const projects = [
@@ -73,7 +78,8 @@ export function AIProduct4Projects({ theme }: BlockComponentProps<any>) {
             as="p"
             value="A curated collection of scalable AI implementations designed for real-world reliability, enterprise compliance, and low-latency throughput."
             onChange={() => {}}
-            className="text-base opacity-75 leading-relaxed"
+            className="text-base leading-relaxed"
+            style={{ color: ink, opacity: 0.75 }}
           />
         </div>
 
@@ -83,43 +89,42 @@ export function AIProduct4Projects({ theme }: BlockComponentProps<any>) {
               key={idx}
               className="rounded-3xl border overflow-hidden flex flex-col group hover:-translate-y-2 hover:shadow-2xl transition-all duration-500"
               style={{ 
-                backgroundColor: `${accent}0A`, 
-                borderColor: `${accent}25`,
-                boxShadow: `0 10px 30px ${bg}AA`
+                backgroundColor: surface, 
+                borderColor: surface,
               }}
             >
               <div className="relative h-56 overflow-hidden">
                 <img
                   src={p.image}
                   alt={p.title}
-                  className="w-full h-full object-cover opacity-65 group-hover:opacity-95 transition-all duration-700 group-hover:scale-110"
+                  className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#060813] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <span 
                   className="absolute top-4 left-4 font-mono text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg"
-                  style={{ backgroundColor: `${bg}EE`, borderColor: `${accent}40`, color: accent }}
+                  style={{ backgroundColor: `${bg}F0`, borderColor: surface, color: accent }}
                 >
                   {p.tag}
                 </span>
               </div>
 
               <div className="p-8 flex flex-col flex-grow">
-                <Editable as="h3" value={p.title} onChange={() => {}} className="text-xl font-bold mb-3" />
-                <Editable as="p" value={p.desc} onChange={() => {}} className="text-xs opacity-65 leading-relaxed mb-6 flex-grow" />
+                <Editable as="h3" value={p.title} onChange={() => {}} className="text-xl font-bold mb-3" style={{ color: ink }} />
+                <Editable as="p" value={p.desc} onChange={() => {}} className="text-xs leading-relaxed mb-6 flex-grow" style={{ color: ink, opacity: 0.75 }} />
 
                 <div className="flex flex-wrap gap-2 mb-8">
                   {p.stack.map((s, i) => (
                     <span 
                       key={i} 
                       className="text-[10px] font-mono px-2.5 py-1 rounded-lg border"
-                      style={{ backgroundColor: `${accent}12`, borderColor: `${accent}25`, color: ink }}
+                      style={{ backgroundColor: `${bg}90`, borderColor: surface, color: ink }}
                     >
                       {s}
                     </span>
                   ))}
                 </div>
 
-                <div className="pt-5 border-t flex items-center justify-between text-xs font-mono font-bold" style={{ borderColor: `${accent}20`, color: accent }}>
+                <div className="pt-5 border-t flex items-center justify-between text-xs font-mono font-bold" style={{ borderColor: surface, color: accent }}>
                   <span>SYSTEM_SPEC_DOCS</span>
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </div>

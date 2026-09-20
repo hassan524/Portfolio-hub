@@ -3,8 +3,11 @@
   "category": "Developer Portfolio",
   "theme": {
     "bg": "#081826",
+    "bg-second": "#ffffff",
     "ink": "#e5f4ff",
+    "ink-second": "#000000",
     "accent": "#38bdf8",
+    "surface": "#263440",
     "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "soft",

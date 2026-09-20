@@ -138,10 +138,10 @@ export function updateTheme(
   );
 }
 
-// Updates top-level site info like name, category, or tagline.
+// Updates top-level template metadata that belongs in siteData.
 export function updateSiteMeta(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
-  patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
+  patch: Partial<Pick<SiteData, "category" | "logo">>,
 ): void {
   setSite((prev) => (prev ? { ...prev, ...patch } : prev));
 }
@@ -265,8 +265,9 @@ export function syncTemplateState(
   setSelectedElement: Dispatch<SetStateAction<PreviewElementEdit | null>>,
 ): void {
   if (template) {
-    setSite(structuredClone(template));
-    const nonNavBlock = template.blocks?.find((b) => b.props.kind !== "navbar");
+    const nextSite = structuredClone(template);
+    setSite(nextSite);
+    const nonNavBlock = nextSite.blocks?.find((b) => b.props.kind !== "navbar");
     setActiveSection(nonNavBlock?.props.kind ?? "hero");
     setDevice("desktop");
     setIsMaximized(false);

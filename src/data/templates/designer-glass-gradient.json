@@ -3,8 +3,11 @@
   "category": "Designer Portfolio",
   "theme": {
     "bg": "#101018",
+    "bg-second": "#ffffff",
     "ink": "#eef0ff",
+    "ink-second": "#000000",
     "accent": "#7c9dff",
+    "surface": "#2d2d34",
     "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "rounded",

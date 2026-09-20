@@ -22,6 +22,14 @@ export function buildAppTsx(
   site: SiteData,
   blockSource: Record<string, string>,
 ): BuildResult {
+  const aiThemeStyles = `
+    [data-ai-product-theme] [class*="text-white"], [data-ai-product-theme] [class*="text-gray-900"], [data-ai-product-theme] [class*="text-gray-800"], [data-ai-product-theme] [class*="text-gray-700"], [data-ai-product-theme] [class*="text-gray-600"], [data-ai-product-theme] [class*="text-gray-500"], [data-ai-product-theme] [class*="text-gray-400"], [data-ai-product-theme] [class*="text-black"] { color: var(--ai-theme-ink) !important; }
+    [data-ai-product-theme] [class*="text-rose"], [data-ai-product-theme] [class*="text-pink"], [data-ai-product-theme] [class*="text-amber"], [data-ai-product-theme] [class*="text-emerald"] { color: var(--ai-theme-accent) !important; }
+    [data-ai-product-theme] [class*="bg-white"], [data-ai-product-theme] [class*="bg-gray"], [data-ai-product-theme] [class*="bg-slate"] { background-color: var(--ai-theme-surface) !important; }
+    [data-ai-product-theme] [class*="bg-black"] { background-color: var(--ai-theme-bg) !important; }
+    [data-ai-product-theme] [class*="bg-rose"], [data-ai-product-theme] [class*="bg-pink"], [data-ai-product-theme] [class*="bg-amber"], [data-ai-product-theme] [class*="bg-emerald"] { background-color: var(--ai-theme-accent) !important; }
+    [data-ai-product-theme] [class*="border-white"], [data-ai-product-theme] [class*="border-gray"], [data-ai-product-theme] [class*="border-slate"], [data-ai-product-theme] [class*="border-black"] { border-color: color-mix(in srgb, var(--ai-theme-ink) 15%, transparent) !important; }
+  `.trim();
   const sorted = [...site.blocks].sort((a, b) => a.order - b.order);
   const importLines: string[] = [];
   const renderLines: string[] = [];
@@ -56,14 +64,14 @@ export function buildAppTsx(
         ? `{ ...siteData.blocks[${i}].props, logo: siteData.logo }`
         : `siteData.blocks[${i}].props`;
 
-    const componentTag = `<${alias} key="${block.id}" id="${block.id}" props={${propsExpr}} theme={siteData.theme} onChange={() => {}} />`;
+    const componentTag = `<TextOverrideProvider overrides={(siteData.blocks[${i}].props as any)._textOverrides}><${alias} key="${block.id}" id="${block.id}" props={${propsExpr}} theme={siteData.theme} onChange={() => {}} /></TextOverrideProvider>`;
 
     const innerJsx = isNewBlock(block)
       ? `<div style={{ height: "100%" }} className="[&>*]:h-full">${componentTag}</div>`
       : componentTag;
 
     renderLines.push(
-      `<div data-block-id="${block.id}" style={{ position: "relative"${block.height ? `, minHeight: "${block.height}px"` : ""} }}>
+      `<div data-block-id="${block.id}" data-ai-product-theme={siteData.category === "AI Product" ? "true" : undefined} style={{ position: "relative"${block.height ? `, minHeight: "${block.height}px"` : ""}, ...(siteData.category === "AI Product" ? { "--ai-theme-bg": siteData.theme.bg, "--ai-theme-ink": siteData.theme.ink, "--ai-theme-accent": siteData.theme.accent, "--ai-theme-surface": siteData.theme.surface || siteData.theme.bg } : {}) }}>
         ${innerJsx}
       </div>`,
     );
@@ -73,7 +81,11 @@ export function buildAppTsx(
 import { useEffect, useLayoutEffect, useRef } from "react";
 import siteData from "./site.json";
 import { applyAllPreviewEdits } from "./applyPreviewStyles";
+import { TextOverrideProvider } from "./components/editor/ui/Editable";
 ${importLines.join("\n")}
+
+const AI_THEME_STYLES = ${JSON.stringify(aiThemeStyles)};
+
 
 export default function App() {
   const mainRef = useRef<HTMLElement>(null);
@@ -112,9 +124,12 @@ export default function App() {
   }, []);
 
   return (
-    <main ref={mainRef} style={{ minHeight: "100vh", background: siteData.theme.bg, color: siteData.theme.ink }}>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: AI_THEME_STYLES }} />
+      <main ref={mainRef} style={{ minHeight: "100vh", background: siteData.theme.bg, color: siteData.theme.ink }}>
       ${renderLines.join("\n      ")}
-    </main>
+      </main>
+    </>
   );
 }
 `.trim();

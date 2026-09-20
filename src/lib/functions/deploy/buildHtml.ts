@@ -9,8 +9,8 @@ export function buildHtml(rawHtml: string, site: SiteData): string {
     let html = rawHtml;
 
     html = /<title>.*?<\/title>/.test(html)
-        ? html.replace(/<title>.*?<\/title>/, `<title>${site.name || "Portfolio"}</title>`)
-        : html.replace("</head>", `  <title>${site.name || "Portfolio"}</title>\n  </head>`);
+        ? html.replace(/<title>.*?<\/title>/, `<title>${site.category || "Portfolio"}</title>`)
+        : html.replace("</head>", `  <title>${site.category || "Portfolio"}</title>\n  </head>`);
 
     if (site.logo) {
         html = /<link rel="icon"[^>]*>/.test(html)

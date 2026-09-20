@@ -3,8 +3,11 @@
   "category": "Interior Design Studio",
   "theme": {
     "bg": "#0a0a0a",
+    "bg-second": "#ffffff",
     "ink": "#ffffff",
+    "ink-second": "#000000",
     "accent": "#6ee7b7",
+    "surface": "#272727",
     "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "sharp",

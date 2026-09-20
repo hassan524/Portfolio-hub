@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { TemplateSidebar } from "./ui/TemplateSidebar";
 import { TemplateLivePreview } from "./ui/TemplateLivePreview";
 import { ElementStylePanel } from "./ui/ElementStylePanel";
-import { SaveDeployModal } from "@/components/common/SaveDeployModal";
+import { SaveDeployModal, slugifyName } from "@/components/common/SaveDeployModal";
 import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import { SaveMode } from "@/components/common/SaveDeployModal";
@@ -59,6 +59,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
   const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
+  const [websiteName, setWebsiteName] = useState("");
+  const [liveUrl, setLiveUrl] = useState("");
+  const [description, setDescription] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
   const [deployFiles, setDeployFiles] = useState<Record<string, string> | null>(null);
 
@@ -119,7 +122,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   };
 
   const handleUpdateSiteMeta = (
-    patch: Partial<Pick<SiteData, "name" | "category" | "tagline" | "logo">>,
+    patch: Partial<Pick<SiteData, "category" | "logo">>,
   ) => {
     updateSiteMeta(setSite, patch);
     setChangeCount((c) => c + 1);
@@ -151,6 +154,18 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   // ----------------------------------------- SAVING FUNCTIONS ----------------------------------------- 
 
+  const handleWebsiteNameChange = (nextName: string) => {
+    setWebsiteName(nextName);
+  };
+
+  const handleLiveUrlChange = (nextLiveUrl: string) => {
+    setLiveUrl(nextLiveUrl);
+  };
+
+  const handleDescriptionChange = (nextDesc: string) => {
+    setDescription(nextDesc);
+  };
+
   const handleSaveClick = () => {
     const isPaid = profile?.is_paid === true;
 
@@ -160,25 +175,38 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       return;
     }
 
+    const defaultName = site.category || "Portfolio";
+    setWebsiteName(defaultName);
+    setLiveUrl(slugifyName(defaultName));
+    setDescription("");
     setSaveModalOpen(true);
   };
 
-
-  const handleConfirmSave = async (mode: SaveMode, name: string, description: string) => {
+  const handleConfirmSave = async (
+    mode: SaveMode,
+    confirmedWebsiteName?: string,
+    confirmedLiveUrl?: string,
+    confirmedDescription?: string,
+  ) => {
     setIsSaving(true);
+
+    const finalWebsiteName = (confirmedWebsiteName || websiteName || site.category || "Portfolio").trim();
+    const finalLiveUrl = (confirmedLiveUrl || liveUrl).trim();
+    const finalDescription = (confirmedDescription || description).trim();
+
+    setWebsiteName(finalWebsiteName);
+    setLiveUrl(finalLiveUrl);
+
     try {
-      const response = await portfolioApi.createPortfolio(name, description, site, template.id, mode);
+      const response = await portfolioApi.createPortfolio(finalWebsiteName, finalDescription, site, template.id, mode);
       const portfolio = response.data.portfolio;
       setPortfolio(portfolio);
       setSaveModalOpen(false);
 
       if (portfolio.isdraft) {
-
         toast.success("Saved as draft!");
         navigate(`/dashboard/${portfolio.id}`);
-
       } else {
-
         const files = await buildViewerAppFiles(site);
         setDeployFiles(files);
 
@@ -186,10 +214,8 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
         setDeployModalOpen(true);
       }
     } catch (error) {
-
       console.error("Create portfolio error:", error);
       toast.error("Failed to save portfolio. Please try again.");
-
     } finally {
       setIsSaving(false);
     }
@@ -220,8 +246,8 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
               onClick={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
               className={`relative border border-border bg-background shadow-lift overflow-hidden flex ${isMaximized
-                ? "h-screen w-screen rounded-none p-2 gap-2"
-                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl p-3 gap-3"
+                ? "h-screen w-screen rounded-none gap-2"
+                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl gap-3"
                 }`}
             >
               {/* Sidebar Controls - auto-collapses when element edit panel is open */}
@@ -249,6 +275,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 onSave={handleSaveClick}
                 changeCount={changeCount}
                 contentRef={contentRef}
+                onThemeChange={handleUpdateTheme}
               />
 
               {!selectedElement && (
@@ -286,8 +313,12 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       <SaveDeployModal
         open={saveModalOpen}
         onOpenChange={setSaveModalOpen}
-        siteName={site.name}
-        onNameChange={(name: string) => handleUpdateSiteMeta({ name })}
+        websiteName={websiteName}
+        onWebsiteNameChange={handleWebsiteNameChange}
+        liveUrl={liveUrl}
+        onLiveUrlChange={handleLiveUrlChange}
+        description={description}
+        onDescriptionChange={handleDescriptionChange}
         onConfirmSave={handleConfirmSave}
         deployedPlatform={deployedPlatform}
         setDeployedPlatform={setdeployedPlatform}
@@ -298,9 +329,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
         portfolio={portfolio}
         open={DeployModalOpen}
         onOpenChange={setDeployModalOpen}
-        name={site.name}
+        name={liveUrl || websiteName || site.category || "Portfolio"}
         files={deployFiles}
-        portfolioId={site?.id}
+        portfolioId={portfolio?.id || site?.id}
       />
 
     </>,

@@ -3,8 +3,11 @@
   "category": "Cafe / Coffee Shop",
   "theme": {
     "bg": "#f2f5f0",
+    "bg-second": "#ffffff",
     "ink": "#1c2a1e",
+    "ink-second": "#000000",
     "accent": "#3d7a4f",
+    "surface": "#d5d8d3",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "soft",

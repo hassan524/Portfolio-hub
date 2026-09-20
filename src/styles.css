@@ -5,6 +5,48 @@
 @source "../src";
 @import "tw-animate-css";
 
+[data-ai-product-theme] [class*="text-white"],
+[data-ai-product-theme] [class*="text-gray-900"],
+[data-ai-product-theme] [class*="text-gray-800"],
+[data-ai-product-theme] [class*="text-gray-700"],
+[data-ai-product-theme] [class*="text-gray-600"],
+[data-ai-product-theme] [class*="text-gray-500"],
+[data-ai-product-theme] [class*="text-gray-400"],
+[data-ai-product-theme] [class*="text-black"] {
+  color: var(--ai-theme-ink) !important;
+}
+
+[data-ai-product-theme] [class*="text-rose"],
+[data-ai-product-theme] [class*="text-pink"],
+[data-ai-product-theme] [class*="text-amber"],
+[data-ai-product-theme] [class*="text-emerald"] {
+  color: var(--ai-theme-accent) !important;
+}
+
+[data-ai-product-theme] [class*="bg-white"],
+[data-ai-product-theme] [class*="bg-gray"],
+[data-ai-product-theme] [class*="bg-slate"] {
+  background-color: var(--ai-theme-surface) !important;
+}
+
+[data-ai-product-theme] [class*="bg-black"] {
+  background-color: var(--ai-theme-bg) !important;
+}
+
+[data-ai-product-theme] [class*="bg-rose"],
+[data-ai-product-theme] [class*="bg-pink"],
+[data-ai-product-theme] [class*="bg-amber"],
+[data-ai-product-theme] [class*="bg-emerald"] {
+  background-color: var(--ai-theme-accent) !important;
+}
+
+[data-ai-product-theme] [class*="border-white"],
+[data-ai-product-theme] [class*="border-gray"],
+[data-ai-product-theme] [class*="border-slate"],
+[data-ai-product-theme] [class*="border-black"] {
+  border-color: color-mix(in srgb, var(--ai-theme-ink) 15%, transparent) !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -328,4 +370,4 @@
     transparent 100%
   );
   animation: skeleton-shimmer 1.8s infinite ease-in-out;
-}
+}

@@ -4,11 +4,14 @@ import { Mail, Shield, Zap, Sparkles, Terminal } from "lucide-react";
 import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
-type Props = BlockComponentProps<any>;
-const noop = () => {};
 
-export function AIProduct1Contact({ theme }: Props) {
-  const { ink, bg, accent } = theme;
+export function AIProduct1Contact({ props = {}, theme }: BlockComponentProps<any>) {
+  const bg = theme?.bg || "#0B0F19";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
+  const accent = theme?.accent || "#38BDF8";
 
   const perks = [
     "Dedicated GPU cluster partition",
@@ -17,14 +20,14 @@ export function AIProduct1Contact({ theme }: Props) {
   ];
 
   return (
-    <section className="relative px-6 md:px-16 py-32 overflow-hidden" style={{ background: `${ink}02`, borderTop: `1px solid ${ink}08` }}>
+    <section className="relative px-6 md:px-16 py-32 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink, borderTop: `1px solid ${surface}` }}>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full blur-[150px] pointer-events-none opacity-10" style={{ background: accent }} />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid lg:grid-cols-12 gap-16 items-center">
-          
+
           <div className="lg:col-span-5 space-y-8">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest backdrop-blur-md" style={{ background: `${accent}10`, color: accent, border: `1px solid ${accent}30` }}>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-widest backdrop-blur-md" style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
               <Terminal className="h-3.5 w-3.5" />
               <Editable className="inline">Secure Onboarding</Editable>
             </div>
@@ -38,7 +41,7 @@ export function AIProduct1Contact({ theme }: Props) {
             <Editable
               as="p"
               className="text-base leading-relaxed"
-              style={{ color: `${ink}65` }}
+              style={{ color: ink, opacity: 0.75 }}
             >Deploy your dedicated inference nodes with enterprise SLA guarantees. Our solutions engineers will configure your custom vector pipeline within 2 hours.</Editable>
 
             <div className="space-y-4 pt-4">
@@ -65,7 +68,7 @@ export function AIProduct1Contact({ theme }: Props) {
                     href="#"
                     whileHover={{ y: -3, borderColor: accent, color: accent }}
                     className="h-11 w-11 rounded-2xl grid place-items-center transition-all border"
-                    style={{ background: bg, borderColor: `${ink}15`, color: `${ink}70` }}
+                    style={{ backgroundColor: surface, borderColor: surface, color: ink }}
                   >
                     <Icon className="h-4 w-4" />
                   </motion.a>
@@ -80,38 +83,38 @@ export function AIProduct1Contact({ theme }: Props) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="lg:col-span-7 p-8 md:p-10 rounded-3xl backdrop-blur-2xl shadow-2xl relative space-y-6"
-            style={{ background: bg, border: `1px solid ${ink}12`, boxShadow: `0 40px 80px ${ink}10` }}
+            style={{ backgroundColor: surface, border: `1px solid ${surface}` }}
           >
-            <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: `${ink}10` }}>
+            <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: surface }}>
               <Editable as="span" className="text-sm font-bold tracking-tight" style={{ color: ink }}>Enterprise Access Form</Editable>
               <Editable as="span" className="text-xs font-mono px-2.5 py-1 rounded-full uppercase" style={{ background: `${accent}15`, color: accent }}>Secure 256-bit</Editable>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: `${ink}60` }}>Full Name</Editable>
-                <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ background: `${ink}04`, border: `1px solid ${ink}12`, color: `${ink}40` }}>
+                <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: ink, opacity: 0.75 }}>Full Name</Editable>
+                <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: bg, border: `1px solid ${surface}`, color: ink }}>
                   <Editable className="inline">Jane Doe</Editable>
                 </div>
               </div>
               <div>
-                <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: `${ink}60` }}>Work Email</Editable>
-                <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ background: `${ink}04`, border: `1px solid ${ink}12`, color: `${ink}40` }}>
+                <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: ink, opacity: 0.75 }}>Work Email</Editable>
+                <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: bg, border: `1px solid ${surface}`, color: ink }}>
                   <Editable className="inline">jane@company.com</Editable>
                 </div>
               </div>
             </div>
 
             <div>
-              <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: `${ink}60` }}>Company & Scale</Editable>
-              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ background: `${ink}04`, border: `1px solid ${ink}12`, color: `${ink}40` }}>
+              <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: ink, opacity: 0.75 }}>Company & Scale</Editable>
+              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: bg, border: `1px solid ${surface}`, color: ink }}>
                 <Editable className="inline">Acme Corp (50M+ monthly tokens)</Editable>
               </div>
             </div>
 
             <div>
-              <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: `${ink}60` }}>Technical Requirements</Editable>
-              <div className="w-full px-4 py-3 rounded-2xl text-sm min-h-[90px]" style={{ background: `${ink}04`, border: `1px solid ${ink}12`, color: `${ink}40` }}>
+              <Editable className="block text-xs font-mono uppercase tracking-wider mb-2" style={{ color: ink, opacity: 0.75 }}>Technical Requirements</Editable>
+              <div className="w-full px-4 py-3 rounded-2xl text-sm min-h-[90px]" style={{ backgroundColor: bg, border: `1px solid ${surface}`, color: ink }}>
                 <Editable className="inline">We need custom fine-tuning on Llama-3 with sub-20ms RAG latency...</Editable>
               </div>
             </div>
@@ -120,7 +123,7 @@ export function AIProduct1Contact({ theme }: Props) {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="w-full py-4 rounded-2xl font-bold text-sm tracking-wide shadow-lg cursor-pointer transition-all flex items-center justify-center gap-2"
-              style={{ background: accent, color: bg }}
+              style={{ backgroundColor: accent, color: ink }}
             >
               <Sparkles className="h-4 w-4" />
               <Editable className="inline">Deploy Dedicated Cluster</Editable>

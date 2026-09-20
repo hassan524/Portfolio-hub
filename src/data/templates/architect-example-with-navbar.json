@@ -3,8 +3,11 @@
   "category": "Architecture Studio",
   "theme": {
     "bg": "#faf8f4",
+    "bg-second": "#ffffff",
     "ink": "#1a1a1a",
+    "ink-second": "#000000",
     "accent": "#a3673a",
+    "surface": "#dcdad7",
     "fontHeading": "inherit",
     "fontBody": "inherit",
     "corners": "soft",

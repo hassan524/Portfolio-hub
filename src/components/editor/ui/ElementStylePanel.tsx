@@ -612,7 +612,7 @@ export function ElementStylePanel({
   const activeCard = activeCardStyleKey(style);
 
   return (
-    <aside className="flex h-full w-[300px] shrink-0 select-none flex-col overflow-hidden border border-border rounded-2xl bg-surface text-foreground shadow-sm">
+    <aside className="flex h-full w-[300px] shrink-0 select-none flex-col overflow-hidden border border-border rounded-2xl text-foreground shadow-sm">
       {/* Header */}
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3">
         <div className="flex min-w-0 items-center gap-2">

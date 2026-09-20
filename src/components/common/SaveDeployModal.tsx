@@ -12,10 +12,13 @@ export type SaveMode = "draft" | "deploy";
 export interface SaveDeployModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirmSave: (mode: SaveMode, name: string, description: string) => void;
-  onProceedToDeploy?: (name: string, description: string) => void;
-  siteName?: string;
-  onNameChange?: (name: string) => void;
+  onConfirmSave: (mode: SaveMode, websiteName: string, liveUrl: string, description: string) => void;
+  websiteName?: string;
+  onWebsiteNameChange: (websiteName: string) => void;
+  liveUrl?: string;
+  onLiveUrlChange: (liveUrl: string) => void;
+  description: string;
+  onDescriptionChange: (description: string) => void;
   deployedPlatform?: DeployPlatform;
   setDeployedPlatform?: (platform: DeployPlatform) => void;
   saving?: boolean;
@@ -53,7 +56,7 @@ function charCount(text: string) {
 
 // Turns whatever the user types into a URL-safe slug, since this name
 // becomes part of the live deploy link (e.g. your-name.vercel.app).
-function slugifyName(value: string) {
+export function slugifyName(value: string) {
   return value
     .trim()
     .toLowerCase()
@@ -86,20 +89,21 @@ export function SaveDeployModal({
   open,
   onOpenChange,
   onConfirmSave,
-  onProceedToDeploy,
-  onNameChange,
-  siteName = "my-portfolio",
+  websiteName = "",
+  onWebsiteNameChange,
+  liveUrl = "",
+  onLiveUrlChange,
+  description = "",
+  onDescriptionChange,
   saving = false,
 }: SaveDeployModalProps) {
   const [step, setStepRaw] = useState<Step>("choice");
   const [direction, setDirection] = useState(1);
   const [saveMode, setSaveMode] = useState<SaveMode>("deploy");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
   // "idle" | "checking" | "available" | "taken" | "error"
   const [availability, setAvailability] = useState("idle");
-  const [liveUrl, setLiveUrl] = useState("");
+  const [checkedUrl, setCheckedUrl] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // holds the pending debounce timer — typed as "timer or undefined" so
@@ -109,11 +113,14 @@ export function SaveDeployModal({
   const seqRef = useRef(0);
 
   const chars = charCount(description);
-  const canContinueFromInfo = name.trim().length > 0 && chars >= MIN_CHARS && availability !== "taken";
-  // Only meaningful once the user has actually typed something — no preview
-  // before that, so nothing appears "pre-decided" on their behalf.
-  const hasTypedName = name.trim().length > 0;
-  const slug = slugifyName(name);
+  const hasTypedName = websiteName.trim().length > 0;
+  const hasTypedLiveUrl = liveUrl.trim().length > 0;
+  const slug = slugifyName(liveUrl);
+
+  const canContinueFromInfo =
+    hasTypedName &&
+    chars >= MIN_CHARS &&
+    (saveMode === "draft" || (hasTypedLiveUrl && availability !== "taken"));
 
   // Moves between steps and tracks direction so the slide animation knows
   // whether to enter from the left (forward) or right (back).
@@ -129,21 +136,14 @@ export function SaveDeployModal({
       setDirection(1);
       setStepRaw("choice");
       setSaveMode("deploy");
-      setName(siteName && siteName !== "my-portfolio" ? siteName : "");
-      setDescription("");
       setAvailability("idle");
-      setLiveUrl("");
+      setCheckedUrl("");
       setSuggestions([]);
     }
   }, [open]);
 
-  const handleNameChange = (nextName: string) => {
-    setName(nextName);
-    onNameChange?.(nextName);
-  };
-
-  // Live availability check — debounced.
-  // 1. user types -> slug changes -> this effect re-runs
+  // Live availability check — debounced on liveUrl.
+  // 1. user types liveUrl -> slug changes -> this effect re-runs
   // 2. cancel whatever timer was waiting, start a fresh 500ms one
   // 3. if they keep typing, step 2 keeps cancelling/restarting it
   // 4. once they pause for 500ms, it fires and calls the backend,
@@ -151,7 +151,7 @@ export function SaveDeployModal({
   useEffect(() => {
     clearTimeout(debounceRef.current);
 
-    if (saveMode !== "deploy" || !hasTypedName) {
+    if (saveMode !== "deploy" || !hasTypedLiveUrl) {
       setAvailability("idle");
       return;
     }
@@ -165,7 +165,7 @@ export function SaveDeployModal({
         .then((res) => {
           if (seqRef.current !== mySeq) return; // a newer check already started, ignore this stale one
           setAvailability(res.data.available ? "available" : "taken");
-          setLiveUrl(res.data.url);
+          setCheckedUrl(res.data.url);
           setSuggestions(res.data.suggestions || []);
         })
         .catch(() => {
@@ -174,7 +174,7 @@ export function SaveDeployModal({
     }, CHECK_DEBOUNCE_MS);
 
     return () => clearTimeout(debounceRef.current);
-  }, [slug, saveMode, hasTypedName]);
+  }, [slug, saveMode, hasTypedLiveUrl]);
 
   // Closes the dialog — blocked while a save is actually in progress.
   const close = useCallback(() => {
@@ -184,7 +184,7 @@ export function SaveDeployModal({
 
   // Fires the parent's save handler with whatever the user filled in.
   const handleContinueFromInfo = () => {
-    onConfirmSave(saveMode, name.trim(), description.trim());
+    onConfirmSave(saveMode, websiteName.trim(), liveUrl.trim(), description.trim());
   };
 
   return (
@@ -279,21 +279,36 @@ export function SaveDeployModal({
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="p-5"
               >
-                {/* Portfolio name */}
+                {/* Website name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="portfolio-name" className="text-[11px] font-medium text-neutral-400">
+                  <label htmlFor="website-name" className="text-[11px] font-medium text-neutral-400">
                     Portfolio name
                   </label>
                   <input
-                    id="portfolio-name"
-                    value={name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    placeholder={siteName}
+                    id="website-name"
+                    value={websiteName}
+                    onChange={(e) => onWebsiteNameChange(e.target.value)}
+                    placeholder="Add your portfolio name"
+                    disabled={saving}
+                    className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Live URL */}
+                <div className="mt-3.5 space-y-1.5">
+                  <label htmlFor="live-url" className="text-[11px] font-medium text-neutral-400">
+                    Live URL
+                  </label>
+                  <input
+                    id="live-url"
+                    value={liveUrl}
+                    onChange={(e) => onLiveUrlChange(e.target.value)}
+                    placeholder="e.g. my-awesome-portfolio"
                     disabled={saving}
                     className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
                   />
 
-                  {saveMode === "deploy" && hasTypedName && (
+                  {saveMode === "deploy" && hasTypedLiveUrl && (
                     <div className="flex items-start gap-1.5 text-[10px] leading-relaxed">
                       {availability === "checking" && (
                         <>
@@ -307,7 +322,7 @@ export function SaveDeployModal({
                         <>
                           <Check className="h-3 w-3 mt-0.5 shrink-0 text-emerald-400" />
                           <span className="text-neutral-500">
-                            <span className="font-mono text-primary">{liveUrl}</span> is available
+                            <span className="font-mono text-primary">{checkedUrl}</span> is available
                           </span>
                         </>
                       )}
@@ -316,7 +331,7 @@ export function SaveDeployModal({
                           <div className="flex items-start gap-1.5">
                             <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 text-red-400" />
                             <span className="text-neutral-500">
-                              <span className="font-mono text-red-300">{liveUrl}</span> is already taken
+                              <span className="font-mono text-red-300">{checkedUrl}</span> is already taken
                             </span>
                           </div>
                           {suggestions.length > 0 && (
@@ -325,7 +340,7 @@ export function SaveDeployModal({
                                 <button
                                   key={s}
                                   type="button"
-                                  onClick={() => handleNameChange(s)}
+                                  onClick={() => onLiveUrlChange(s)}
                                   className="rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] font-mono text-neutral-300 hover:border-neutral-500 hover:text-white"
                                 >
                                   {s}
@@ -360,7 +375,7 @@ export function SaveDeployModal({
                   <textarea
                     id="portfolio-description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => onDescriptionChange(e.target.value)}
                     rows={4}
                     placeholder="What's this portfolio for, who's it for, what should people notice first?"
                     disabled={saving}

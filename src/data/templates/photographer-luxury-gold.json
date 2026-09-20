@@ -3,8 +3,11 @@
   "category": "Photography Portfolio",
   "theme": {
     "bg": "#111111",
+    "bg-second": "#ffffff",
     "ink": "#f2e9d8",
+    "ink-second": "#000000",
     "accent": "#c9a35b",
+    "surface": "#2e2e2e",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "sharp",

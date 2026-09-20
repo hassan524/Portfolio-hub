@@ -3,9 +3,10 @@ import { SaveMode } from "@/components/common/SaveDeployModal";
 
 export const portfolioApi = {
 
-  createPortfolio: (name: string, description: string, siteData: object, templateId: string, saveMode: SaveMode) => {
+  createPortfolio: (finalWebsiteName: string, description: string, siteData: object, templateId: string, saveMode: SaveMode) => {
     return api.post("/portfolio/create", {
-      name,
+      finalWebsiteName,
+      name: finalWebsiteName,
       saveMode,
       description,
       siteData,

@@ -3,8 +3,11 @@
   "category": "AI Product",
   "theme": {
     "bg": "#060813",
+    "bg-second": "#ffffff",
     "ink": "#F1F5F9",
+    "ink-second": "#000000",
     "accent": "#8B5CF6",
+    "surface": "#24262f",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "pill",

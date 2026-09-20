@@ -3,8 +3,11 @@
   "category": "Digital Agency",
   "theme": {
     "bg": "#ffffff",
+    "bg-second": "#ffffff",
     "ink": "#18181b",
+    "ink-second": "#000000",
     "accent": "#7c3aed",
+    "surface": "#e0e0e0",
     "fontHeading": "Inter",
     "fontBody": "Inter",
     "corners": "rounded",

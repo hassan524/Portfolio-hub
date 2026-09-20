@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Heart, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
+import { Star, Heart, Sparkles } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
 const rise = {
@@ -33,8 +33,14 @@ const HERO_SLIDES = [
 
 const LOGOS = ["Keeneland", "Seminole Gaming", "Kintura", "LeafSpring", "Trilogy", "Apex Corp", "Vanguard", "Nexus AI"];
 
-export function AIProduct1Hero() {
+export function AIProduct1Hero({ props = {}, theme, onChange }: any) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const bg = theme?.bg || "#0B0F19";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
+  const accent = theme?.accent || "#38BDF8";
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -44,28 +50,40 @@ export function AIProduct1Hero() {
   }, []);
 
   return (
-    <section className="px-6 md:px-16 pt-12 pb-16 bg-white text-gray-900 overflow-hidden">
+    <section
+      className="px-6 md:px-16 pt-12 pb-16 overflow-hidden transition-colors"
+      style={{ backgroundColor: bg, color: ink }}
+    >
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          
+
           <motion.div initial="initial" animate="animate" className="max-w-xl">
             <motion.div {...rise} className="flex items-center gap-1.5 mb-6">
-              <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                <Star className="h-3.5 w-3.5 fill-black text-black" />
+              <div
+                className="h-6 w-6 rounded-full flex items-center justify-center shadow-sm"
+                style={{ backgroundColor: surface, color: accent }}
+              >
+                <Star className="h-3.5 w-3.5 fill-current" />
               </div>
-              <Editable as="span" className="text-sm font-semibold text-gray-700">4.7 on TrustPilot • Trusted by 500+ Brands</Editable>
+              <Editable as="span" className="text-sm font-semibold" style={{ color: ink, opacity: 0.75 }}>
+                4.7 on TrustPilot • Trusted by 500+ Brands
+              </Editable>
             </motion.div>
 
             <motion.div {...rise} transition={{ ...rise.transition, delay: 0.05 }}>
-              <Editable as="h1" className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95] text-gray-900">
+              <Editable
+                as="h1"
+                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95]"
+                style={{ color: ink }}
+              >
                 AI-Powered <br />
-                AdWords That <br />
-                Find Lead
+                <span style={{ color: accent }}>AdWords</span> That <br />
+                Find Leads
               </Editable>
             </motion.div>
 
             <motion.div {...rise} transition={{ ...rise.transition, delay: 0.12 }}>
-              <Editable as="p" className="mt-6 text-base md:text-lg leading-relaxed text-gray-600 max-w-md">
+              <Editable as="p" className="mt-6 text-base md:text-lg leading-relaxed max-w-md" style={{ color: ink, opacity: 0.75 }}>
                 The first prospecting tool that pulls live data in real-time as you search — giving you accurate, reliable contact info to scale your brand fast.
               </Editable>
             </motion.div>
@@ -74,14 +92,16 @@ export function AIProduct1Hero() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-4 rounded-full font-semibold text-sm bg-black text-white shadow-lg shadow-black/10 cursor-pointer"
+                className="px-6 py-4 rounded-full font-semibold text-sm shadow-lg cursor-pointer transition-transform"
+                style={{ backgroundColor: accent, color: ink }}
               >
                 <Editable className="inline">Get Started Now</Editable>
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-4 rounded-full font-semibold text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200/60"
+                className="px-6 py-4 rounded-full font-semibold text-sm transition-colors cursor-pointer border"
+                style={{ backgroundColor: surface, color: ink, borderColor: surface }}
               >
                 <Editable className="inline">Watch 2-Min Demo</Editable>
               </motion.button>
@@ -92,7 +112,8 @@ export function AIProduct1Hero() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative rounded-[32px] overflow-hidden aspect-[4/5] md:aspect-[5/6] bg-sky-300 shadow-2xl"
+            className="relative rounded-[32px] overflow-hidden aspect-[4/5] md:aspect-[5/6] shadow-2xl border"
+            style={{ backgroundColor: surface, borderColor: surface }}
           >
             <AnimatePresence mode="wait">
               <motion.img
@@ -106,40 +127,56 @@ export function AIProduct1Hero() {
                 className="absolute inset-0 w-full h-full object-cover object-center"
               />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/30 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-transparent pointer-events-none" />
 
             <motion.div
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="absolute top-5 right-5 w-56 rounded-2xl p-4 bg-white/90 backdrop-blur-md shadow-xl border border-white/40 z-10"
+              className="absolute top-5 right-5 w-56 rounded-2xl p-4 backdrop-blur-md shadow-xl border z-10"
+              style={{
+                backgroundColor: surface,
+                borderColor: surface,
+                color: ink,
+              }}
             >
               <div className="flex items-center justify-between mb-3">
-                <Editable as="span" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Live Metric</Editable>
+                <Editable as="span" className="text-[11px] font-bold uppercase tracking-wider" style={{ color: ink, opacity: 0.75 }}>
+                  Live Metric
+                </Editable>
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl p-3 bg-pink-100/80 border border-pink-200/50">
+                <div
+                  className="rounded-xl p-3 border"
+                  style={{ backgroundColor: `${accent}15`, borderColor: `${accent}30` }}
+                >
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={currentSlide}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -5 }}
-                      className="text-lg font-black text-gray-900 block"
+                      className="text-lg font-black block"
+                      style={{ color: ink }}
                     >
                       <Editable className="inline">{HERO_SLIDES[currentSlide].statValue}</Editable>
                     </motion.span>
                   </AnimatePresence>
-                  <Editable as="span" className="text-[10px] font-medium mt-0.5 block text-gray-600">{HERO_SLIDES[currentSlide].statLabel}</Editable>
+                  <Editable as="span" className="text-[10px] font-medium mt-0.5 block" style={{ color: ink, opacity: 0.75 }}>
+                    {HERO_SLIDES[currentSlide].statLabel}
+                  </Editable>
                 </div>
-                <div className="rounded-xl p-3 bg-emerald-100/80 border border-emerald-200/50 flex flex-col justify-between">
+                <div
+                  className="rounded-xl p-3 border flex flex-col justify-between"
+                  style={{ backgroundColor: surface, borderColor: surface }}
+                >
                   <div>
-                    <Editable as="span" className="text-sm font-bold text-gray-900 block">23.4%</Editable>
-                    <Editable as="span" className="text-[9px] font-medium text-gray-600 block">Added to cart</Editable>
+                    <Editable as="span" className="text-sm font-bold block" style={{ color: ink }}>23.4%</Editable>
+                    <Editable as="span" className="text-[9px] font-medium block" style={{ color: ink, opacity: 0.75 }}>Added to cart</Editable>
                   </div>
-                  <div className="mt-1 pt-1 border-t border-emerald-200/60">
-                    <Editable as="span" className="text-[9px] font-bold text-emerald-700 block">76.6% Active</Editable>
+                  <div className="mt-1 pt-1 border-t" style={{ borderColor: surface }}>
+                    <Editable as="span" className="text-[9px] font-bold block" style={{ color: accent }}>76.6% Active</Editable>
                   </div>
                 </div>
               </div>
@@ -149,17 +186,27 @@ export function AIProduct1Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
-              className="absolute bottom-24 left-5 max-w-[220px] flex items-start gap-2.5 rounded-2xl px-4 py-3 bg-white/90 backdrop-blur-md shadow-xl border border-white/40 z-10"
+              className="absolute bottom-24 left-5 max-w-[220px] flex items-start gap-2.5 rounded-2xl px-4 py-3 backdrop-blur-md shadow-xl border z-10"
+              style={{
+                backgroundColor: surface,
+                borderColor: surface,
+                color: ink,
+              }}
             >
-              <div className="h-6 w-6 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="h-6 w-6 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5">
                 <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
               </div>
-              <Editable as="span" className="text-xs font-semibold text-gray-800 leading-snug">Love it! Going to try it out</Editable>
+              <Editable as="span" className="text-xs font-semibold leading-snug" style={{ color: ink }}>
+                Love it! Going to try it out
+              </Editable>
             </motion.div>
 
-            <div className="absolute bottom-0 left-0 right-0 px-6 py-4 flex items-center justify-between bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10">
+            <div className="absolute bottom-0 left-0 right-0 px-6 py-4 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10">
               <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
+                <div
+                  className="h-6 w-6 rounded-full backdrop-blur-sm flex items-center justify-center text-white"
+                  style={{ backgroundColor: `${accent}40` }}
+                >
                   <Sparkles className="h-3.5 w-3.5" />
                 </div>
                 <AnimatePresence mode="wait">
@@ -180,9 +227,8 @@ export function AIProduct1Hero() {
                   <button
                     key={i}
                     onClick={() => setCurrentSlide(i)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      currentSlide === i ? "w-5 bg-white" : "w-1.5 bg-white/50"
-                    }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === i ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                      }`}
                   />
                 ))}
               </div>
@@ -190,11 +236,8 @@ export function AIProduct1Hero() {
           </motion.div>
         </div>
 
-        <div className="mt-20 pt-10 border-t border-gray-100 overflow-hidden relative">
-          <div className="absolute left-0 top-10 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-10 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-
-          <Editable as="p" className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">
+        <div className="mt-20 pt-10 border-t overflow-hidden relative" style={{ borderColor: surface }}>
+          <Editable as="p" className="text-center text-xs font-bold uppercase tracking-widest mb-8" style={{ color: ink, opacity: 0.75 }}>
             Powering high-growth brands worldwide
           </Editable>
 
@@ -210,7 +253,8 @@ export function AIProduct1Hero() {
             {[...LOGOS, ...LOGOS].map((logo, i) => (
               <div
                 key={i}
-                className="text-gray-400 hover:text-gray-900 transition-colors cursor-pointer text-lg font-bold tracking-tight uppercase inline-block"
+                className="transition-colors cursor-pointer text-lg font-bold tracking-tight uppercase inline-block hover:opacity-100"
+                style={{ color: ink, opacity: 0.75 }}
               >
                 <Editable className="inline">{logo}</Editable>
               </div>
