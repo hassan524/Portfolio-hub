@@ -40,7 +40,7 @@ type Props = {
   onSectionChange: (id: string) => void;
   onThemeChange: (patch: Partial<Theme>) => void;
   onSiteMetaChange: (
-    patch: Partial<Pick<SiteData, "category" | "logo">>,
+    patch: Partial<Pick<SiteData, "category" | "logo" | "name">>,
   ) => void;
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
   onReorderBlocks: (blocks: Block[]) => void;
@@ -57,6 +57,20 @@ export function TemplateSidebar({
   onUpdateBlock,
   onReorderBlocks,
 }: Props) {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [siteName, setSiteName] = useState(site.name || site.category || "Portfolio");
+
+  useEffect(() => {
+    setSiteName(site.name || site.category || "Portfolio");
+  }, [site.name, site.category]);
+
+  const commitNameChange = () => {
+    setIsEditingName(false);
+    const trimmed = siteName.trim() || site.category || "Portfolio";
+    setSiteName(trimmed);
+    onSiteMetaChange({ name: trimmed });
+  };
+
   const sortedBlocks = useMemo(
     () => [...site.blocks].sort((a, b) => a.order - b.order),
     [site.blocks],
@@ -67,49 +81,79 @@ export function TemplateSidebar({
   }
 
   return (
-    <aside className="w-[320px] shrink-0 border-r border-border border-l text-sm flex flex-col h-full shadow-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <aside className="w-[320px] shrink-0 border-r border-l border-primary/25 bg-black text-sm flex flex-col h-full shadow-[0_0_50px_rgba(0,0,0,0.9)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Header: Project Identity */}
-      <div className="flex flex-col gap-4 border-b border-border/50 p-4 shrink-0">
+      <div className="flex flex-col gap-4 border-b border-primary/20 p-4 shrink-0 bg-black/80 shadow-xs">
         <div className="flex items-center gap-3">
           <LogoUploader
             logo={site.logo ?? null}
             onChange={(url) => onSiteMetaChange({ logo: url })}
           />
           <div className="flex min-w-0 flex-1 flex-col justify-center">
-            <span className="truncate font-display text-base font-semibold text-foreground">
-              {site.category || "Portfolio"}
-            </span>
+            {isEditingName ? (
+              <input
+                type="text"
+                autoFocus
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+                onBlur={commitNameChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitNameChange();
+                  if (e.key === "Escape") {
+                    setIsEditingName(false);
+                    setSiteName(site.name || site.category || "Portfolio");
+                  }
+                }}
+                className="w-full rounded-lg border border-primary bg-zinc-950 px-2.5 py-1 text-sm font-semibold text-white outline-none ring-2 ring-primary/40 transition-all"
+              />
+            ) : (
+              <div
+                onClick={() => setIsEditingName(true)}
+                title="Click to rename website"
+                className="group flex items-center justify-between gap-1.5 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900/80 transition-colors"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate font-display text-sm font-semibold text-white group-hover:text-primary transition-colors">
+                    {site.name || site.category || "Portfolio"}
+                  </span>
+                  <span className="truncate text-[10px] text-zinc-400 capitalize">
+                    {site.category || "Portfolio"} · Click to edit
+                  </span>
+                </div>
+                <PencilLine className="h-3 w-3 shrink-0 text-zinc-500 opacity-0 group-hover:opacity-100 group-hover:text-primary transition-opacity" />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
-        <div className="px-4 py-3 shrink-0 border-b border-border/50 bg-background/30">
-          <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-secondary/50 border border-border/40 p-1">
+        <div className="px-3 py-2.5 shrink-0 border-b border-primary/20 bg-black/60">
+          <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-zinc-950 border border-white/10 p-1">
             <TabsTrigger
               value="blocks"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
             >
               <LayoutGrid className="h-3 w-3" />
               Blocks
             </TabsTrigger>
             <TabsTrigger
               value="text"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
             >
               <Type className="h-3 w-3" />
               Text
             </TabsTrigger>
             <TabsTrigger
               value="images"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
             >
               <ImageIcon className="h-3 w-3" />
               Images
             </TabsTrigger>
             <TabsTrigger
               value="pages"
-              className="relative cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all"
+              className="relative cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
             >
               <Files className="h-3 w-3" />
               Pages
@@ -117,7 +161,7 @@ export function TemplateSidebar({
           </TabsList>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-background/20">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-transparent">
           <TabsContent value="blocks" className="mt-0 h-full">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -125,7 +169,7 @@ export function TemplateSidebar({
                 <button
                   type="button"
                   onClick={handleAddBlock}
-                  className="flex items-center gap-1 rounded-md bg-secondary/50 border border-border/60 px-2.5 py-1 text-[10px] font-semibold text-foreground transition-colors hover:bg-secondary hover:border-border cursor-pointer shadow-sm"
+                  className="flex items-center gap-1 rounded-lg bg-zinc-900 border border-primary/30 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-primary/20 hover:border-primary cursor-pointer shadow-xs"
                 >
                   <Plus className="h-3 w-3" />
                   Add
@@ -242,7 +286,7 @@ function LogoUploader({
         {isUploading ? (
           <Loader2 className="h-4 w-4 animate-spin text-ink-soft" />
         ) : logo ? (
-          <img src={logo} alt="Site logo" className="h-full w-full object-cover" />
+          <img src={logo} alt="Site logo" className="h-full w-full object-contain p-1" />
         ) : (
           <ImageUp className="h-4 w-4 text-ink-soft" />
         )}
@@ -323,19 +367,19 @@ function BlocksList({
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => moveBlock(block.id)}
             onDragEnd={() => setDraggedId(null)}
-            className={`group relative flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-foreground scale-[0.98]" : ""
+            className={`group relative flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-primary scale-[0.98]" : ""
               } ${active
-                ? "border-foreground bg-foreground text-background shadow-md"
-                : "border-transparent bg-background/50 hover:border-border hover:bg-secondary/60"
+                ? "border-primary bg-primary/10 text-white shadow-md ring-1 ring-primary/40"
+                : "border-white/10 bg-zinc-900/40 hover:border-primary/40 hover:bg-zinc-900/70 text-zinc-300 shadow-xs"
               }`}
           >
             <div className="flex items-center justify-center shrink-0">
-              <GripVertical className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-60 text-background" : "opacity-0 group-hover:opacity-40 text-foreground"}`} />
+              <GripVertical className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-90 text-primary" : "opacity-0 group-hover:opacity-40 text-muted-foreground"}`} />
             </div>
 
             <div className="flex-1 min-w-0 flex items-center gap-1.5">
               <span
-                className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "opacity-70" : "opacity-40"}`}
+                className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "text-primary font-bold" : "text-muted-foreground"}`}
               >
                 {index + 1}.
               </span>
@@ -349,7 +393,7 @@ function BlocksList({
                   onSectionChange(block.props.kind);
                 }}
                 onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
-                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] focus:ring-2 rounded px-1 py-0.5 transition-all ${active ? "text-background focus:ring-background/40" : "text-foreground focus:ring-ring/40 hover:bg-secondary"
+                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] focus:ring-1 rounded px-1 py-0.5 transition-all ${active ? "text-foreground font-semibold focus:ring-primary/40" : "text-foreground focus:ring-primary/40 hover:bg-secondary/80"
                   }`}
                 title="Rename section"
               />
@@ -366,8 +410,8 @@ function BlocksList({
                   onUpdateBlock(block.id, patch);
                 }}
                 className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
-                  ? "hover:bg-background/20 text-background"
-                  : "hover:bg-secondary text-ink-soft hover:text-foreground"
+                  ? "hover:bg-primary/20 text-primary"
+                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
                   }`}
                 title="Blend style dynamically"
               >
@@ -384,14 +428,14 @@ function BlocksList({
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => handleBlockHeightChange(block.id, e.target.value, onUpdateBlock)}
-                className={`w-9 bg-transparent text-right font-mono text-[10px] outline-none cursor-text rounded px-1 py-0.5 focus:ring-2 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${active
-                  ? "text-background/90 placeholder:text-background/40 focus:ring-background/40 hover:bg-background/10"
-                  : "text-ink-soft/90 placeholder:text-ink-soft/40 focus:ring-ring/40 hover:bg-secondary"
+                className={`w-9 bg-transparent text-right font-mono text-[10px] outline-none cursor-text rounded px-1 py-0.5 focus:ring-1 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${active
+                  ? "text-foreground placeholder:text-muted-foreground/40 focus:ring-primary/40 hover:bg-primary/10"
+                  : "text-muted-foreground placeholder:text-muted-foreground/40 focus:ring-primary/40 hover:bg-secondary/80"
                   }`}
                 title="Height in pixels"
               />
               <span
-                className={`text-[9px] font-medium ${active ? "text-background/60" : "text-ink-soft/50"}`}
+                className={`text-[9px] font-medium ${active ? "text-primary" : "text-muted-foreground/60"}`}
               >
                 px
               </span>
@@ -984,4 +1028,4 @@ function isPlainObject(val: unknown): val is Record<string, unknown> {
 }
 
 const compactInputClass =
-  "w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs outline-none transition-all focus:border-foreground/40 focus:ring-2 focus:ring-ring/20 shadow-sm hover:border-foreground/30";
+  "w-full rounded-lg border border-white/15 bg-zinc-950 text-white placeholder:text-zinc-500 px-2.5 py-1.5 text-xs outline-none transition-all hover:border-white/30 focus:border-primary focus:ring-1 focus:ring-primary/40 shadow-xs";

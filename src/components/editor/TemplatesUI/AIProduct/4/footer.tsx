@@ -32,7 +32,11 @@ export function AIProduct4Footer({ props = {}, theme }: BlockComponentProps<any>
           <div className="lg:col-span-2 pr-6">
             <div className="flex items-center gap-3 mb-6">
               {props?.logo ? (
-                <img src={props.logo} alt="Logo" className="h-9 w-9 rounded-xl object-cover shadow-lg" />
+                <img
+                  src={props.logo}
+                  alt="Logo"
+                  className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
+                />
               ) : <div 
                 className="h-9 w-9 rounded-xl flex items-center justify-center shadow-lg"
                 style={{ backgroundColor: accent, color: ink, boxShadow: `0 0 20px ${accent}60` }}

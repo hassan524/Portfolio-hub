@@ -29,7 +29,11 @@ export function AIProduct4Navbar({ props = {}, theme, onChange }: Props) {
         {/* Brand */}
         <div className="flex items-center gap-4 group cursor-pointer">
           {props?.logo ? (
-            <img src={props.logo} alt="Logo" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-lg" />
+            <img
+              src={props.logo}
+              alt="Logo"
+              className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
+            />
           ) : (
             <div 
               className="relative h-10 w-10 shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg"

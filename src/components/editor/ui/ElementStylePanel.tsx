@@ -180,9 +180,9 @@ const SWATCHES = [
 ];
 
 const fieldClass =
-  "h-8 px-2.5 cursor-pointer rounded-lg border border-border/80 bg-background text-[11px] font-medium text-foreground hover:border-foreground/30 focus-visible:ring-1 focus-visible:ring-ring transition-all";
+  "h-8 px-2.5 cursor-pointer rounded-lg border border-white/15 bg-zinc-950 text-[11px] font-medium text-white hover:border-white/30 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary shadow-xs transition-all";
 
-const labelClass = "text-[10px] font-semibold text-muted-foreground leading-tight";
+const labelClass = "text-[10px] font-semibold text-zinc-400 leading-tight";
 
 /* ---------------------------------- color math ---------------------------------- */
 
@@ -362,11 +362,11 @@ function ColorPicker({
             </button>
           </PopoverTrigger>
 
-          <PopoverContent align="start" className="w-52 space-y-2 border-border bg-surface p-2.5 z-[60]">
+          <PopoverContent align="start" className="w-52 space-y-2 border border-border bg-popover p-2.5 z-[60] shadow-2xl rounded-xl">
             <div
               ref={svRef}
               onPointerDown={dragSv}
-              className="relative h-24 w-full cursor-crosshair select-none rounded-md"
+              className="relative h-24 w-full cursor-crosshair select-none rounded-md border border-border"
               style={{
                 backgroundColor: `hsl(${hue}, 100%, 50%)`,
                 backgroundImage:
@@ -382,7 +382,7 @@ function ColorPicker({
             <div
               ref={hueRef}
               onPointerDown={dragHue}
-              className="relative h-2.5 w-full cursor-pointer select-none rounded-full"
+              className="relative h-2.5 w-full cursor-pointer select-none rounded-full border border-border"
               style={{ background: "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)" }}
             >
               <div
@@ -392,7 +392,7 @@ function ColorPicker({
             </div>
 
             <div className="flex items-center gap-1.5">
-              <div className="h-6 w-6 shrink-0 rounded border border-border" style={{ backgroundColor: hexInput }} />
+              <div className="h-6 w-6 shrink-0 rounded border border-input" style={{ backgroundColor: hexInput }} />
               <Input
                 value={hexInput}
                 onChange={(e) => {
@@ -400,7 +400,7 @@ function ColorPicker({
                   setHexInput(next);
                   if (isHexColor(next)) applyHex(to6DigitHex(next));
                 }}
-                className="h-6 px-1.5 border-border bg-background font-mono text-[10px] uppercase text-foreground focus-visible:ring-ring focus-visible:ring-1"
+                className="h-6 px-1.5 border-input bg-secondary font-mono text-[10px] uppercase text-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30"
               />
             </div>
           </PopoverContent>
@@ -441,7 +441,7 @@ function NumberField({
   return (
     <div className="space-y-1">
       <Label className={labelClass}>{label}</Label>
-      <div className="flex h-8 items-center rounded-lg border border-border/80 bg-background pl-2.5 pr-1 focus-within:border-foreground/30 focus-within:ring-1 focus-within:ring-ring transition-all">
+      <div className="flex h-8 items-center rounded-lg border border-white/15 bg-zinc-950 pl-2.5 pr-1 hover:border-white/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/40 shadow-xs transition-all">
         <input
           type="number"
           value={value}
@@ -449,14 +449,14 @@ function NumberField({
             const n = Number(e.target.value);
             if (!Number.isNaN(n)) onChange(clamp(n));
           }}
-          className="h-full w-full min-w-0 bg-transparent text-[11px] font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="h-full w-full min-w-0 bg-transparent text-[11px] font-medium text-white placeholder:text-zinc-600 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
-        {unit && <span className="mr-1 text-[10px] font-medium text-muted-foreground/60">{unit}</span>}
+        {unit && <span className="mr-1 text-[10px] font-medium text-zinc-400">{unit}</span>}
         <div className="flex flex-col">
-          <button type="button" onClick={() => bump(step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-muted-foreground/60 hover:text-foreground">
+          <button type="button" onClick={() => bump(step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-zinc-400 hover:text-white transition-colors">
             <ChevronUp className="h-2.5 w-2.5" />
           </button>
-          <button type="button" onClick={() => bump(-step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-muted-foreground/60 hover:text-foreground">
+          <button type="button" onClick={() => bump(-step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-zinc-400 hover:text-white transition-colors">
             <ChevronDown className="h-2.5 w-2.5" />
           </button>
         </div>
@@ -475,7 +475,7 @@ function SliderField({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <Label className={labelClass}>{label}</Label>
-        <span className="font-mono text-[10px] text-muted-foreground/60 font-medium">{value}{unit}</span>
+        <span className="font-mono text-[10px] text-zinc-400 font-medium">{value}{unit}</span>
       </div>
       <Slider
         value={[value]}
@@ -483,7 +483,7 @@ function SliderField({
         max={max}
         step={step}
         onValueChange={([v]) => onChange(v)}
-        className="cursor-pointer [&_[data-slot=slider-thumb]]:cursor-pointer"
+        className="cursor-pointer [&_[data-slot=slider-track]]:bg-zinc-800 [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:cursor-pointer [&_[data-slot=slider-thumb]]:shadow-md"
       />
     </div>
   );
@@ -501,12 +501,13 @@ function TextField({
   return (
     <div className="space-y-1">
       <Label className={labelClass}>{label}</Label>
-      <Input
+      <input
+        type="text"
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-8 px-2.5 rounded-lg border-border/80 bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 transition-all"
+        className="h-8 w-full px-2.5 rounded-lg border border-white/15 bg-zinc-950 text-[11px] font-medium text-white placeholder:text-zinc-600 hover:border-white/30 focus:border-primary focus:ring-1 focus:ring-primary/40 outline-none shadow-xs transition-all"
       />
     </div>
   );
@@ -530,13 +531,13 @@ function PresetRow<T extends string>({
         type="single"
         value={value}
         onValueChange={(v) => v && onChange(v as T)}
-        className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
+        className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
       >
         {options.map((opt) => (
           <ToggleGroupItem
             key={opt.value}
             value={opt.value}
-            className="h-full flex-1 rounded-md cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all"
+            className="h-full flex-1 rounded-md cursor-pointer text-[10px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all"
           >
             {opt.text}
           </ToggleGroupItem>
@@ -611,18 +612,18 @@ export function ElementStylePanel({
   const activeCard = activeCardStyleKey(style);
 
   return (
-    <aside className="w-[320px] shrink-0 border-r border-border border-l text-sm flex flex-col h-full shadow-sm rounded-none bg-background select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <aside className="w-[320px] shrink-0 border-r border-l border-primary/25 text-sm flex flex-col h-full shadow-[0_0_50px_rgba(0,0,0,0.9)] rounded-none bg-black select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Header matching TemplateSidebar */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/50 px-4 bg-background/50">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-primary/20 px-4 bg-black/80 shadow-xs">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary/80 border border-border/60 shadow-xs">
-            <Sliders className="h-4 w-4 text-foreground" />
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-zinc-950 border border-primary/30 shadow-xs text-primary">
+            <Sliders className="h-4 w-4" />
           </div>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-xs font-semibold text-foreground">
+            <span className="truncate text-xs font-semibold text-white">
               Element Style
             </span>
-            <span className="truncate text-[10px] text-muted-foreground capitalize">
+            <span className="truncate text-[10px] text-zinc-400 capitalize">
               {edit.blockKind ? `${edit.blockKind} section` : "Selected Element"}
               {responsiveEditMode && editBreakpoint ? ` · ${editBreakpoint}` : ""}
             </span>
@@ -635,7 +636,7 @@ export function ElementStylePanel({
             size="icon"
             onClick={onReset}
             title="Reset Element Styles"
-            className="h-7 w-7 rounded-lg cursor-pointer text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-7 w-7 rounded-lg cursor-pointer text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </Button>
@@ -644,7 +645,7 @@ export function ElementStylePanel({
             size="icon"
             onClick={onClose}
             title="Back to Sidebar"
-            className="h-7 w-7 rounded-lg cursor-pointer text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-7 w-7 rounded-lg cursor-pointer text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
           >
             <PanelLeft className="h-3.5 w-3.5" />
           </Button>
@@ -652,22 +653,22 @@ export function ElementStylePanel({
       </div>
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
-        <div className="px-3 py-2 shrink-0 border-b border-border/50 bg-background/30">
-          <TabsList className="w-full h-8 grid grid-cols-5 gap-0.5 rounded-lg bg-secondary/50 border border-border/40 p-0.5">
-            <TabsTrigger value="text" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
-            <TabsTrigger value="fill" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
-            <TabsTrigger value="border" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
-            <TabsTrigger value="fx" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
-            <TabsTrigger value="layout" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
+        <div className="px-3 py-2.5 shrink-0 border-b border-primary/20 bg-black/60">
+          <TabsList className="w-full h-9 grid grid-cols-5 gap-1 rounded-xl bg-zinc-950 border border-white/10 p-1">
+            <TabsTrigger value="text" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
+            <TabsTrigger value="fill" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
+            <TabsTrigger value="border" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
+            <TabsTrigger value="fx" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
+            <TabsTrigger value="layout" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
           </TabsList>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-transparent">
           {/* Tab 1: Typography */}
           <TabsContent value="text" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-2.5">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Typography</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Typography</div>
                 <div className="grid grid-cols-[1fr_80px] gap-2">
                   <div className="space-y-1">
                     <Label className={labelClass}>Font Family</Label>
@@ -689,10 +690,10 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Style & Alignment</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Style & Alignment</div>
                 <div className="space-y-1">
                   <Label className={labelClass}>Formatting</Label>
                   <ToggleGroup
@@ -704,12 +705,12 @@ export function ElementStylePanel({
                       underline: v.includes("underline"),
                       strikethrough: v.includes("strike"),
                     })}
-                    className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
+                    className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
                   >
-                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
                 </div>
 
@@ -719,17 +720,17 @@ export function ElementStylePanel({
                     type="single"
                     value={style.textAlign ?? "left"}
                     onValueChange={(v) => v && onChange({ textAlign: v as PreviewElementStyle["textAlign"] })}
-                    className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
+                    className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
                   >
-                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Color & Shadow</div>
@@ -754,14 +755,14 @@ export function ElementStylePanel({
           <TabsContent value="fill" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Background Color</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Background Color</div>
                 <ColorPicker label="Color" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Gradient Overlay</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Gradient Overlay</div>
                 <div className="space-y-1">
                   <Label className={labelClass}>Preset</Label>
                   <Select value={style.backgroundGradient || "none"} onValueChange={(v) => onChange({ backgroundGradient: v === "none" ? "" : v })}>
@@ -775,7 +776,7 @@ export function ElementStylePanel({
                 </div>
 
                 {style.backgroundGradient ? (
-                  <div className="space-y-3 rounded-lg border border-border/80 bg-secondary/20 p-3">
+                  <div className="space-y-3 rounded-xl border border-white/15 bg-zinc-950 p-3 shadow-xs">
                     <SliderField label="Angle" value={gradient.angle} min={0} max={360} unit="°" onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })} />
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <ColorPicker label="Stop A" value={gradient.colorA} onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })} />
@@ -785,10 +786,10 @@ export function ElementStylePanel({
                 ) : null}
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Transparency</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Transparency</div>
                 <SliderField label="Opacity" value={Math.round((style.opacity ?? 1) * 100)} min={0} max={100} unit="%" onChange={(v) => onChange({ opacity: v / 100 })} />
               </div>
             </motion.div>
@@ -798,7 +799,7 @@ export function ElementStylePanel({
           <TabsContent value="border" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Corners</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Corners</div>
                 <PresetRow<CornerKey>
                   label="Preset"
                   value={cornerKeyFromValue(style.borderRadius)}
@@ -812,10 +813,10 @@ export function ElementStylePanel({
                 <NumberField label="Corner Radius" value={style.borderRadius ?? 0} min={0} max={120} unit="px" onChange={(borderRadius) => onChange({ borderRadius })} />
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Border Line</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Border Line</div>
                 <div className="grid grid-cols-2 gap-2">
                   <NumberField label="Thickness" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
                   <div className="space-y-1">
@@ -841,7 +842,7 @@ export function ElementStylePanel({
           <TabsContent value="fx" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Card Presets</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Card Presets</div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {CARD_STYLE_PRESETS.map((preset) => {
                     const Icon = preset.icon;
@@ -852,8 +853,8 @@ export function ElementStylePanel({
                         type="button"
                         onClick={() => onChange(preset.apply)}
                         className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${isActive
-                          ? "border-foreground bg-foreground text-background shadow-xs font-semibold"
-                          : "border-border/70 bg-secondary/30 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          ? "border-primary bg-primary/20 text-white font-semibold ring-1 ring-primary/40 shadow-xs"
+                          : "border-white/10 bg-zinc-900/40 text-zinc-300 hover:border-primary/30 hover:bg-zinc-900 hover:text-white"
                           }`}
                       >
                         <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -864,22 +865,22 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Hover Effect</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Hover Effect</div>
                 <ToggleGroup
                   type="single"
                   value={style.hoverEffect ?? "none"}
                   onValueChange={(v) => v && onChange({ hoverEffect: v as PreviewElementStyle["hoverEffect"] })}
-                  className="grid grid-cols-3 gap-1"
+                  className="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-xl border border-white/10"
                 >
                   {HOVER_EFFECT_OPTIONS.map((opt) => (
                     <ToggleGroupItem
                       key={opt.value}
                       value={opt.value}
-                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs transition-all ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border/80"
-                        }`}
+                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium transition-all ${opt.value === "none" ? "border-dashed border-white/15 text-zinc-500 hover:text-zinc-300" : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:text-white hover:bg-zinc-900/80"
+                        } data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs`}
                     >
                       {opt.label}
                     </ToggleGroupItem>
@@ -887,22 +888,22 @@ export function ElementStylePanel({
                 </ToggleGroup>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Entrance Animation</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Entrance Animation</div>
                 <ToggleGroup
                   type="single"
                   value={style.entrance ?? "none"}
                   onValueChange={(v) => v && onChange({ entrance: v as PreviewElementStyle["entrance"] })}
-                  className="grid grid-cols-2 gap-1"
+                  className="grid grid-cols-2 gap-1 bg-zinc-950 p-1 rounded-xl border border-white/10"
                 >
                   {ENTRANCE_OPTIONS.map((opt) => (
                     <ToggleGroupItem
                       key={opt.value}
                       value={opt.value}
-                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs transition-all ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border/80"
-                        }`}
+                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium transition-all ${opt.value === "none" ? "border-dashed border-white/15 text-zinc-500 hover:text-zinc-300" : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:text-white hover:bg-zinc-900/80"
+                        } data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs`}
                     >
                       {opt.label}
                     </ToggleGroupItem>
@@ -928,7 +929,7 @@ export function ElementStylePanel({
           <TabsContent value="layout" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Spacing</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Spacing</div>
                 <PresetRow<SpacingKey>
                   label="Preset"
                   value={spacingKeyFromValue(style.padding)}
@@ -946,10 +947,10 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Dimensions</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Dimensions</div>
                 <div className="grid grid-cols-2 gap-2">
                   <TextField
                     label="Width"
@@ -998,10 +999,10 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
+              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Behavior</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Behavior</div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className={labelClass}>Cursor</Label>
@@ -1036,12 +1037,12 @@ export function ElementStylePanel({
       </Tabs>
 
       {/* Footer Actions */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border/50 bg-background/50 p-3">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-primary/20 bg-black/80 p-3 shadow-lg">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onChange({ removed: !isHidden })}
-          className="h-8 flex-1 cursor-pointer gap-1.5 border-border/80 bg-secondary/40 text-xs font-medium text-foreground hover:bg-secondary hover:text-foreground rounded-lg transition-colors"
+          className="h-8 flex-1 cursor-pointer gap-1.5 border-white/15 bg-zinc-900/60 text-xs font-semibold text-white hover:border-primary/40 hover:bg-zinc-900 hover:text-white rounded-lg transition-colors"
         >
           {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
           {isHidden ? "Show Element" : "Hide Element"}
@@ -1050,7 +1051,7 @@ export function ElementStylePanel({
           variant="outline"
           size="sm"
           onClick={onRemove}
-          className="h-8 flex-1 cursor-pointer gap-1.5 border-rose-500/30 bg-rose-500/10 text-xs font-medium text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg transition-colors"
+          className="h-8 flex-1 cursor-pointer gap-1.5 border-rose-500/40 bg-rose-500/10 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg transition-colors"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Remove

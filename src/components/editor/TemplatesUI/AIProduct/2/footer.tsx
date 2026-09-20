@@ -23,7 +23,13 @@ export function AIProduct2Footer({ props = {}, theme, onChange }: Props) {
 
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              {props?.logo && <img src={props.logo} alt="Logo" className="h-10 w-10 rounded-xl object-cover" />}
+              {props?.logo && (
+                <img
+                  src={props.logo}
+                  alt="Logo"
+                  className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
+                />
+              )}
               <Editable
                 as="div"
                 value={props?.heading || "Portfolio"}

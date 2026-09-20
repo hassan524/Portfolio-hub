@@ -94,6 +94,11 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       setIsMaximized,
       setSelectedElement,
     );
+    if (template) {
+      const initialName = template.name || template.category || "Portfolio";
+      setWebsiteName(initialName);
+      setLiveUrl(slugifyName(initialName));
+    }
     setChangeCount(0);
     setDeployFiles(null);
   }, [template]);
@@ -122,9 +127,13 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   };
 
   const handleUpdateSiteMeta = (
-    patch: Partial<Pick<SiteData, "category" | "logo">>,
+    patch: Partial<Pick<SiteData, "category" | "logo" | "name">>,
   ) => {
     updateSiteMeta(setSite, patch);
+    if (patch.name !== undefined) {
+      setWebsiteName(patch.name);
+      setLiveUrl(slugifyName(patch.name));
+    }
     setChangeCount((c) => c + 1);
   };
 
@@ -175,7 +184,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
       return;
     }
 
-    const defaultName = site.category || "Portfolio";
+    const defaultName = site.name || websiteName || site.category || "Portfolio";
     setWebsiteName(defaultName);
     setLiveUrl(slugifyName(defaultName));
     setDescription("");

@@ -45,7 +45,13 @@ export function AIProduct1Footer({ props = {}, theme }: BlockComponentProps<any>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-12 my-16">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              {props.logo && <img src={props.logo} alt="Logo" className="h-10 w-10 rounded-xl object-cover" />}
+              {props.logo && (
+                <img
+                  src={props.logo}
+                  alt="Logo"
+                  className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
+                />
+              )}
               <Editable as="div" className="text-2xl font-black tracking-tight" style={{ color: ink }}>{props.heading || "BrandX.ai"}</Editable>
             </div>
             <Editable as="p" className="text-sm leading-relaxed max-w-sm mb-6" style={{ color: ink, opacity: 0.75 }}>{props.message ?? "The autonomous intelligence platform for modern engineering teams."}</Editable>

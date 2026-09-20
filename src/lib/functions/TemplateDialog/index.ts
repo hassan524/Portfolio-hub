@@ -141,7 +141,7 @@ export function updateTheme(
 // Updates top-level template metadata that belongs in siteData.
 export function updateSiteMeta(
   setSite: Dispatch<SetStateAction<SiteData | null>>,
-  patch: Partial<Pick<SiteData, "category" | "logo">>,
+  patch: Partial<Pick<SiteData, "category" | "logo" | "name">>,
 ): void {
   setSite((prev) => (prev ? { ...prev, ...patch } : prev));
 }

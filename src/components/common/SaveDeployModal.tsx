@@ -281,16 +281,16 @@ export function SaveDeployModal({
               >
                 {/* Website name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="website-name" className="text-[11px] font-medium text-neutral-400">
-                    Portfolio name
+                  <label htmlFor="website-name" className="text-[11px] font-medium text-neutral-300">
+                    Website Name
                   </label>
                   <input
                     id="website-name"
                     value={websiteName}
                     onChange={(e) => onWebsiteNameChange(e.target.value)}
-                    placeholder="Add your portfolio name"
+                    placeholder="Add your website name"
                     disabled={saving}
-                    className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none transition-colors focus:border-neutral-600 disabled:opacity-50"
+                    className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-xs text-white placeholder:text-neutral-500 outline-none transition-colors focus:border-neutral-500 disabled:opacity-50"
                   />
                 </div>
 

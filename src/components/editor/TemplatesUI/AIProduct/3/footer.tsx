@@ -23,7 +23,11 @@ export function AIProduct3Footer({ props = {}, theme }: BlockComponentProps<any>
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs" style={{ color: ink, opacity: 0.75 }}>
         <div className="flex items-center gap-3 group cursor-pointer">
           {props?.logo ? (
-            <img src={props.logo} alt="Logo" className="h-8 w-8 rounded-xl object-cover shadow-sm" />
+            <img
+              src={props.logo}
+              alt="Logo"
+              className="h-8 sm:h-9 w-auto max-w-[180px] shrink-0 object-contain"
+            />
           ) : (
             <div 
               className="h-8 w-8 rounded-xl flex items-center justify-center font-bold text-xs transition-transform duration-300 group-hover:scale-110 shadow-sm" 

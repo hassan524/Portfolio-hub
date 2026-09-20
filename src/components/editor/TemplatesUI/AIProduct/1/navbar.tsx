@@ -29,7 +29,7 @@ export function AIProduct1Navbar({ props = {}, theme, onChange }: BlockComponent
           <img
             src={props.logo}
             alt="Logo"
-            className="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm"
+            className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
           />
         ) : (
           <div

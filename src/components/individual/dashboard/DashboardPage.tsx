@@ -257,7 +257,7 @@ function DashboardFrame({
                     <img
                       src={logo}
                       alt=""
-                      className="size-10 shrink-0 rounded-lg border border-white/10 object-cover sm:size-11"
+                      className="size-10 shrink-0 rounded-lg border border-white/10 bg-white/5 object-contain p-1 sm:size-11"
                     />
                   ) : (
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-[11px] font-bold text-white ring-1 ring-white/10 sm:size-11">

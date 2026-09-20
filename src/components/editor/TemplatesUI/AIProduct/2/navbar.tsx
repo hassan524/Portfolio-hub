@@ -29,7 +29,13 @@ export function AIProduct2Navbar({ props = { links: [] }, theme, onChange }: Pro
         style={{ backgroundColor: `${bg}E6`, border: `1px solid ${surface}`, color: ink }}
       >
         <div className="flex items-center gap-4">
-          {props?.logo && <img src={props.logo} alt="Logo" className="h-8 w-8 shrink-0 rounded-xl object-cover" />}
+          {props?.logo && (
+            <img
+              src={props.logo}
+              alt="Logo"
+              className="h-8 sm:h-9 w-auto max-w-[180px] shrink-0 object-contain"
+            />
+          )}
           <Editable
             value={props?.logoText || "Portfolio"}
             onChange={(v) => onChange?.({ logoText: v })}
