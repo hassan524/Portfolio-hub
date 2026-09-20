@@ -180,9 +180,9 @@ const SWATCHES = [
 ];
 
 const fieldClass =
-  "h-7 px-2 cursor-pointer border-border bg-background text-[11px] font-medium text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring focus-visible:ring-1";
+  "h-8 px-2.5 cursor-pointer rounded-lg border border-border/80 bg-background text-[11px] font-medium text-foreground hover:border-foreground/30 focus-visible:ring-1 focus-visible:ring-ring transition-all";
 
-const labelClass = "text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80 leading-tight";
+const labelClass = "text-[10px] font-semibold text-muted-foreground leading-tight";
 
 /* ---------------------------------- color math ---------------------------------- */
 
@@ -441,7 +441,7 @@ function NumberField({
   return (
     <div className="space-y-1">
       <Label className={labelClass}>{label}</Label>
-      <div className="flex h-7 items-center rounded-md border border-border bg-background pl-2 pr-1 focus-within:border-foreground/30 focus-within:ring-1 focus-within:ring-ring">
+      <div className="flex h-8 items-center rounded-lg border border-border/80 bg-background pl-2.5 pr-1 focus-within:border-foreground/30 focus-within:ring-1 focus-within:ring-ring transition-all">
         <input
           type="number"
           value={value}
@@ -451,12 +451,12 @@ function NumberField({
           }}
           className="h-full w-full min-w-0 bg-transparent text-[11px] font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
-        {unit && <span className="mr-1 text-[10px] text-muted-foreground/50">{unit}</span>}
+        {unit && <span className="mr-1 text-[10px] font-medium text-muted-foreground/60">{unit}</span>}
         <div className="flex flex-col">
-          <button type="button" onClick={() => bump(step)} className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 hover:text-foreground">
+          <button type="button" onClick={() => bump(step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-muted-foreground/60 hover:text-foreground">
             <ChevronUp className="h-2.5 w-2.5" />
           </button>
-          <button type="button" onClick={() => bump(-step)} className="grid h-3 w-3.5 cursor-pointer place-items-center text-muted-foreground/50 hover:text-foreground">
+          <button type="button" onClick={() => bump(-step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-muted-foreground/60 hover:text-foreground">
             <ChevronDown className="h-2.5 w-2.5" />
           </button>
         </div>
@@ -472,10 +472,10 @@ function SliderField({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <Label className={labelClass}>{label}</Label>
-        <span className="font-mono text-[9px] text-muted-foreground/50">{value}{unit}</span>
+        <span className="font-mono text-[10px] text-muted-foreground/60 font-medium">{value}{unit}</span>
       </div>
       <Slider
         value={[value]}
@@ -506,7 +506,7 @@ function TextField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1"
+        className="h-8 px-2.5 rounded-lg border-border/80 bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 transition-all"
       />
     </div>
   );
@@ -530,13 +530,13 @@ function PresetRow<T extends string>({
         type="single"
         value={value}
         onValueChange={(v) => v && onChange(v as T)}
-        className="inline-flex w-full gap-0.5 rounded-md border border-border p-0.5 bg-background h-7"
+        className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
       >
         {options.map((opt) => (
           <ToggleGroupItem
             key={opt.value}
             value={opt.value}
-            className="h-full flex-1 rounded-sm cursor-pointer text-[10px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"
+            className="h-full flex-1 rounded-md cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all"
           >
             {opt.text}
           </ToggleGroupItem>
@@ -577,7 +577,6 @@ export function ElementStylePanel({
   theme,
   responsiveEditMode,
   editBreakpoint,
-  onThemeChange,
   onChange,
   onRemove,
   onReset,
@@ -612,61 +611,90 @@ export function ElementStylePanel({
   const activeCard = activeCardStyleKey(style);
 
   return (
-    <aside className="flex h-full w-[300px] shrink-0 select-none flex-col overflow-hidden border border-border rounded-2xl text-foreground shadow-sm">
-      {/* Header */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-background border border-border">
-            <Sliders className="h-3 w-3 text-muted-foreground" />
+    <aside className="w-[320px] shrink-0 border-r border-border border-l text-sm flex flex-col h-full shadow-sm rounded-none bg-background select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Header matching TemplateSidebar */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/50 px-4 bg-background/50">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary/80 border border-border/60 shadow-xs">
+            <Sliders className="h-4 w-4 text-foreground" />
           </div>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-[11px] font-semibold text-foreground">Design</span>
+            <span className="truncate text-xs font-semibold text-foreground">
+              Element Style
+            </span>
+            <span className="truncate text-[10px] text-muted-foreground capitalize">
+              {edit.blockKind ? `${edit.blockKind} section` : "Selected Element"}
+              {responsiveEditMode && editBreakpoint ? ` · ${editBreakpoint}` : ""}
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" onClick={onReset} title="Reset style" className="h-6 w-6 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground">
-            <RotateCcw className="h-3 w-3" />
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onReset}
+            title="Reset Element Styles"
+            className="h-7 w-7 rounded-lg cursor-pointer text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose} title="Close" className="h-6 w-6 cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground">
-            <PanelLeft className="h-3 w-3" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            title="Back to Sidebar"
+            className="h-7 w-7 rounded-lg cursor-pointer text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <PanelLeft className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
-        <TabsList className="w-full h-7 shrink-0 grid grid-cols-5 border-b border-border bg-background/30 p-0 rounded-none">
-          <TabsTrigger value="text" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Text</TabsTrigger>
-          <TabsTrigger value="fill" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Fill</TabsTrigger>
-          <TabsTrigger value="border" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Border</TabsTrigger>
-          <TabsTrigger value="fx" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">FX</TabsTrigger>
-          <TabsTrigger value="layout" className="cursor-pointer rounded-none border-b border-transparent text-[9.5px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">Layout</TabsTrigger>
-        </TabsList>
+        <div className="px-3 py-2 shrink-0 border-b border-border/50 bg-background/30">
+          <TabsList className="w-full h-8 grid grid-cols-5 gap-0.5 rounded-lg bg-secondary/50 border border-border/40 p-0.5">
+            <TabsTrigger value="text" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
+            <TabsTrigger value="fill" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
+            <TabsTrigger value="border" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
+            <TabsTrigger value="fx" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
+            <TabsTrigger value="layout" className="cursor-pointer rounded-md text-[10px] font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 simple-scrollbar">
-          {/* Text */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar">
+          {/* Tab 1: Typography */}
           <TabsContent value="text" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3">
-              <div className="grid grid-cols-[1fr_70px] gap-1.5">
-                <div className="space-y-1">
-                  <Label className={labelClass}>Font</Label>
-                  <Select value={style.fontFamily ?? "inherit"} onValueChange={(fontFamily) => onChange({ fontFamily })}>
-                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {dynamicFontFamilies.map((font) => (
-                        <SelectItem key={font.value} value={font.value} className="cursor-pointer text-[11px]">{font.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <motion.div {...fadeIn()} className="space-y-4">
+              <div className="space-y-2.5">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Typography</div>
+                <div className="grid grid-cols-[1fr_80px] gap-2">
+                  <div className="space-y-1">
+                    <Label className={labelClass}>Font Family</Label>
+                    <Select value={style.fontFamily ?? "inherit"} onValueChange={(fontFamily) => onChange({ fontFamily })}>
+                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {dynamicFontFamilies.map((font) => (
+                          <SelectItem key={font.value} value={font.value} className="cursor-pointer text-[11px]">{font.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <NumberField label="Font Size" value={style.fontSize ?? 16} min={8} max={140} unit="px" onChange={(fontSize) => onChange({ fontSize })} />
                 </div>
-                <NumberField label="Size" value={style.fontSize ?? 16} min={8} max={140} onChange={(fontSize) => onChange({ fontSize })} />
+
+                <div className="space-y-3 pt-1">
+                  <SliderField label="Line Height" value={style.lineHeight ?? 1.5} min={0.8} max={3} step={0.1} onChange={(lineHeight) => onChange({ lineHeight })} />
+                  <SliderField label="Letter Spacing" value={style.letterSpacing ?? 0} min={-5} max={20} step={0.5} unit="px" onChange={(letterSpacing) => onChange({ letterSpacing })} />
+                </div>
               </div>
 
-              <SliderField label="Line Height" value={style.lineHeight ?? 1.5} min={0.8} max={3} step={0.1} onChange={(lineHeight) => onChange({ lineHeight })} />
-              <SliderField label="Letter Spacing" value={style.letterSpacing ?? 0} min={-5} max={20} step={0.5} unit="px" onChange={(letterSpacing) => onChange({ letterSpacing })} />
+              <Separator className="bg-border/60" />
 
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Style & Alignment</div>
                 <div className="space-y-1">
-                  <Label className={labelClass}>Style</Label>
+                  <Label className={labelClass}>Formatting</Label>
                   <ToggleGroup
                     type="multiple"
                     value={formatValues}
@@ -676,175 +704,145 @@ export function ElementStylePanel({
                       underline: v.includes("underline"),
                       strikethrough: v.includes("strike"),
                     })}
-                    className="inline-flex w-full gap-0.5 rounded-md border border-border p-0.5 bg-background h-7"
+                    className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
                   >
-                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><Bold className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><Italic className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><Underline className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><Strikethrough className="h-3 w-3" /></ToggleGroupItem>
+                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
                 </div>
 
                 <div className="space-y-1">
-                  <Label className={labelClass}>Align</Label>
+                  <Label className={labelClass}>Alignment</Label>
                   <ToggleGroup
                     type="single"
                     value={style.textAlign ?? "left"}
                     onValueChange={(v) => v && onChange({ textAlign: v as PreviewElementStyle["textAlign"] })}
-                    className="inline-flex w-full gap-0.5 rounded-md border border-border p-0.5 bg-background h-7"
+                    className="inline-flex w-full gap-1 rounded-lg border border-border/70 p-1 bg-secondary/30 h-8"
                   >
-                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><AlignLeft className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><AlignCenter className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><AlignRight className="h-3 w-3" /></ToggleGroupItem>
-                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-sm cursor-pointer data-[state=on]:bg-accent data-[state=on]:text-accent-foreground p-0"><AlignJustify className="h-3 w-3" /></ToggleGroupItem>
+                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
                 </div>
               </div>
 
-              <ColorPicker label="Color" value={style.color ?? "#ffffff"} onChange={(color) => onChange({ color })} />
+              <Separator className="bg-border/60" />
 
-              <div className="space-y-1">
-                <Label className={labelClass}>Shadow</Label>
-                <Select value={style.textShadow || "none"} onValueChange={(v) => onChange({ textShadow: v === "none" ? "" : v })}>
-                  <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {TEXT_SHADOW_PRESETS.map((preset) => (
-                      <SelectItem key={preset.name} value={preset.value || "none"} className="cursor-pointer text-[11px]">{preset.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Color & Shadow</div>
+                <ColorPicker label="Text Color" value={style.color ?? "#ffffff"} onChange={(color) => onChange({ color })} />
+
+                <div className="space-y-1">
+                  <Label className={labelClass}>Text Shadow</Label>
+                  <Select value={style.textShadow || "none"} onValueChange={(v) => onChange({ textShadow: v === "none" ? "" : v })}>
+                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {TEXT_SHADOW_PRESETS.map((preset) => (
+                        <SelectItem key={preset.name} value={preset.value || "none"} className="cursor-pointer text-[11px]">{preset.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </motion.div>
           </TabsContent>
 
-          {/* Fill */}
+          {/* Tab 2: Fill */}
           <TabsContent value="fill" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3">
-              {theme && onThemeChange && (
-                <>
-                  <div className="space-y-2 rounded-md border border-border bg-background/50 p-2">
-                    <div className="flex items-center gap-1">
-                      <Sparkles className="h-2.5 w-2.5 text-muted-foreground" />
-                      <Label className={labelClass}>Theme</Label>
-                    </div>
-
-                    <ColorPicker label="Background" value={theme.bg ?? "#ffffff"} onChange={(bg) => onThemeChange({ bg })} />
-                    <ColorPicker label="Text" value={theme.ink ?? "#000000"} onChange={(ink) => onThemeChange({ ink })} />
-                    <ColorPicker label="Accent" value={theme.accent ?? "#000000"} onChange={(accent) => onThemeChange({ accent })} />
-                    {theme.accent2 !== undefined && (
-                      <ColorPicker label="Accent 2" value={theme.accent2 ?? "#000000"} onChange={(accent2) => onThemeChange({ accent2 })} />
-                    )}
-                    {theme.surface !== undefined && (
-                      <ColorPicker label="Surface" value={theme.surface ?? "#ffffff"} onChange={(surface) => onThemeChange({ surface })} />
-                    )}
-
-                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                      <div className="space-y-1">
-                        <Label className={labelClass}>Spacing</Label>
-                        <Select value={String(theme.spacing ?? "cozy")} onValueChange={(spacing) => onThemeChange({ spacing } as Partial<Theme>)}>
-                          <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="compact" className="cursor-pointer text-[11px]">Compact</SelectItem>
-                            <SelectItem value="cozy" className="cursor-pointer text-[11px]">Cozy</SelectItem>
-                            <SelectItem value="airy" className="cursor-pointer text-[11px]">Airy</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className={labelClass}>Heading</Label>
-                        <Input
-                          value={String(theme.fontHeading ?? "")}
-                          onChange={(e) => onThemeChange({ fontHeading: e.target.value })}
-                          className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className={labelClass}>Body Font</Label>
-                      <Input
-                        value={String(theme.fontBody ?? "")}
-                        onChange={(e) => onThemeChange({ fontBody: e.target.value })}
-                        className="h-7 px-2 border-border bg-background text-[11px] font-medium text-foreground focus-visible:ring-ring focus-visible:ring-1 cursor-text"
-                      />
-                    </div>
-                  </div>
-
-                  <Separator className="bg-border" />
-                </>
-              )}
-
-              <ColorPicker label="Background" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
-
-              <div className="space-y-1">
-                <Label className={labelClass}>Gradient</Label>
-                <Select value={style.backgroundGradient || "none"} onValueChange={(v) => onChange({ backgroundGradient: v === "none" ? "" : v })}>
-                  <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {GRADIENT_PRESETS.map((grad) => (
-                      <SelectItem key={grad.name} value={grad.value || "none"} className="cursor-pointer text-[11px]">{grad.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <motion.div {...fadeIn()} className="space-y-4">
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Background Color</div>
+                <ColorPicker label="Color" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
               </div>
 
-              {style.backgroundGradient ? (
-                <div className="space-y-2 rounded-md border border-border bg-background/50 p-2">
-                  <SliderField label="Angle" value={gradient.angle} min={0} max={360} unit="°" onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })} />
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <ColorPicker label="A" value={gradient.colorA} onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })} />
-                    <ColorPicker label="B" value={gradient.colorB} onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })} />
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Gradient Overlay</div>
+                <div className="space-y-1">
+                  <Label className={labelClass}>Preset</Label>
+                  <Select value={style.backgroundGradient || "none"} onValueChange={(v) => onChange({ backgroundGradient: v === "none" ? "" : v })}>
+                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {GRADIENT_PRESETS.map((grad) => (
+                        <SelectItem key={grad.name} value={grad.value || "none"} className="cursor-pointer text-[11px]">{grad.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {style.backgroundGradient ? (
+                  <div className="space-y-3 rounded-lg border border-border/80 bg-secondary/20 p-3">
+                    <SliderField label="Angle" value={gradient.angle} min={0} max={360} unit="°" onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })} />
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <ColorPicker label="Stop A" value={gradient.colorA} onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })} />
+                      <ColorPicker label="Stop B" value={gradient.colorB} onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })} />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Transparency</div>
+                <SliderField label="Opacity" value={Math.round((style.opacity ?? 1) * 100)} min={0} max={100} unit="%" onChange={(v) => onChange({ opacity: v / 100 })} />
+              </div>
+            </motion.div>
+          </TabsContent>
+
+          {/* Tab 3: Border */}
+          <TabsContent value="border" className="mt-0">
+            <motion.div {...fadeIn()} className="space-y-4">
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Corners</div>
+                <PresetRow<CornerKey>
+                  label="Preset"
+                  value={cornerKeyFromValue(style.borderRadius)}
+                  options={[
+                    { value: "sharp", text: "Sharp" },
+                    { value: "rounded", text: "Rounded" },
+                    { value: "pill", text: "Pill" },
+                  ]}
+                  onChange={(key) => onChange({ borderRadius: CORNER_MAP[key] })}
+                />
+                <NumberField label="Corner Radius" value={style.borderRadius ?? 0} min={0} max={120} unit="px" onChange={(borderRadius) => onChange({ borderRadius })} />
+              </div>
+
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Border Line</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <NumberField label="Thickness" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
+                  <div className="space-y-1">
+                    <Label className={labelClass}>Style</Label>
+                    <Select value={style.borderStyle ?? "solid"} onValueChange={(borderStyle) => onChange({ borderStyle: borderStyle as PreviewElementStyle["borderStyle"] })}>
+                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="solid" className="cursor-pointer text-[11px]">Solid</SelectItem>
+                        <SelectItem value="dashed" className="cursor-pointer text-[11px]">Dashed</SelectItem>
+                        <SelectItem value="dotted" className="cursor-pointer text-[11px]">Dotted</SelectItem>
+                        <SelectItem value="none" className="cursor-pointer text-[11px]">None</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              ) : null}
 
-              <SliderField label="Opacity" value={Math.round((style.opacity ?? 1) * 100)} min={0} max={100} unit="%" onChange={(v) => onChange({ opacity: v / 100 })} />
+                <ColorPicker label="Border Color" value={style.borderColor ?? "#ffffff"} onChange={(borderColor) => onChange({ borderColor })} />
+              </div>
             </motion.div>
           </TabsContent>
 
-          {/* Border */}
-          <TabsContent value="border" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3">
-              <PresetRow<CornerKey>
-                label="Corners"
-                value={cornerKeyFromValue(style.borderRadius)}
-                options={[
-                  { value: "sharp", text: "Sharp" },
-                  { value: "rounded", text: "Rounded" },
-                  { value: "pill", text: "Pill" },
-                ]}
-                onChange={(key) => onChange({ borderRadius: CORNER_MAP[key] })}
-              />
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <NumberField label="Radius" value={style.borderRadius ?? 0} min={0} max={120} onChange={(borderRadius) => onChange({ borderRadius })} />
-                <NumberField label="Thickness" value={style.borderWidth ?? 0} min={0} max={20} onChange={(borderWidth) => onChange({ borderWidth })} />
-              </div>
-
-              <div className="space-y-1">
-                <Label className={labelClass}>Style</Label>
-                <Select value={style.borderStyle ?? "solid"} onValueChange={(borderStyle) => onChange({ borderStyle: borderStyle as PreviewElementStyle["borderStyle"] })}>
-                  <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="solid" className="cursor-pointer text-[11px]">Solid</SelectItem>
-                    <SelectItem value="dashed" className="cursor-pointer text-[11px]">Dashed</SelectItem>
-                    <SelectItem value="dotted" className="cursor-pointer text-[11px]">Dotted</SelectItem>
-                    <SelectItem value="none" className="cursor-pointer text-[11px]">None</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <ColorPicker label="Color" value={style.borderColor ?? "#ffffff"} onChange={(borderColor) => onChange({ borderColor })} />
-            </motion.div>
-          </TabsContent>
-
-          {/* Effects */}
+          {/* Tab 4: FX */}
           <TabsContent value="fx" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3">
-              {/* Card Style */}
-              <div className="space-y-1">
-                <Label className={labelClass}>Card Style</Label>
-                <div className="grid grid-cols-3 gap-1">
+            <motion.div {...fadeIn()} className="space-y-4">
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Card Presets</div>
+                <div className="grid grid-cols-2 gap-1.5">
                   {CARD_STYLE_PRESETS.map((preset) => {
                     const Icon = preset.icon;
                     const isActive = activeCard === preset.key;
@@ -853,12 +851,12 @@ export function ElementStylePanel({
                         key={preset.key}
                         type="button"
                         onClick={() => onChange(preset.apply)}
-                        className={`flex flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1 text-[9px] font-medium transition-colors cursor-pointer ${isActive
-                          ? "border-foreground bg-accent text-accent-foreground"
-                          : "border-border bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                        className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${isActive
+                          ? "border-foreground bg-foreground text-background shadow-xs font-semibold"
+                          : "border-border/70 bg-secondary/30 text-muted-foreground hover:bg-secondary hover:text-foreground"
                           }`}
                       >
-                        <Icon className="h-3 w-3" />
+                        <Icon className="h-3.5 w-3.5 shrink-0" />
                         {preset.name}
                       </button>
                     );
@@ -866,14 +864,10 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-border" />
+              <Separator className="bg-border/60" />
 
-              {/* Hover Effect */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <MousePointerClick className="h-2.5 w-2.5 text-muted-foreground" />
-                  <Label className={labelClass}>On Hover</Label>
-                </div>
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Hover Effect</div>
                 <ToggleGroup
                   type="single"
                   value={style.hoverEffect ?? "none"}
@@ -884,7 +878,7 @@ export function ElementStylePanel({
                     <ToggleGroupItem
                       key={opt.value}
                       value={opt.value}
-                      className={`h-6 rounded-md border cursor-pointer text-[9px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border"
+                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs transition-all ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border/80"
                         }`}
                     >
                       {opt.label}
@@ -893,12 +887,10 @@ export function ElementStylePanel({
                 </ToggleGroup>
               </div>
 
-              {/* Entrance Animation */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <PlayCircle className="h-2.5 w-2.5 text-muted-foreground" />
-                  <Label className={labelClass}>On Page Load</Label>
-                </div>
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Entrance Animation</div>
                 <ToggleGroup
                   type="single"
                   value={style.entrance ?? "none"}
@@ -909,7 +901,7 @@ export function ElementStylePanel({
                     <ToggleGroupItem
                       key={opt.value}
                       value={opt.value}
-                      className={`h-6 rounded-md border cursor-pointer text-[9px] font-medium data-[state=on]:bg-accent data-[state=on]:text-accent-foreground ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border"
+                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:shadow-xs transition-all ${opt.value === "none" ? "border-dashed border-border/70 text-muted-foreground/70" : "border-border/80"
                         }`}
                     >
                       {opt.label}
@@ -919,7 +911,7 @@ export function ElementStylePanel({
 
                 {style.entrance && style.entrance !== "none" && (
                   <SliderField
-                    label="Speed"
+                    label="Animation Duration"
                     value={style.entranceDuration ?? 0.6}
                     min={0.1}
                     max={2}
@@ -929,101 +921,113 @@ export function ElementStylePanel({
                   />
                 )}
               </div>
-
             </motion.div>
           </TabsContent>
 
-          {/* Layout */}
+          {/* Tab 5: Layout */}
           <TabsContent value="layout" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3">
-              <PresetRow<SpacingKey>
-                label="Spacing"
-                value={spacingKeyFromValue(style.padding)}
-                options={[
-                  { value: "tight", text: "Tight" },
-                  { value: "cozy", text: "Cozy" },
-                  { value: "roomy", text: "Roomy" },
-                ]}
-                onChange={(key) => onChange({ padding: SPACING_MAP[key] })}
-              />
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <NumberField label="Padding" value={style.padding ?? 0} min={0} max={120} onChange={(padding) => onChange({ padding })} />
-                <NumberField label="Margin" value={style.margin ?? 0} min={-60} max={120} onChange={(margin) => onChange({ margin })} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <TextField
-                  label="Width"
-                  value={style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "")}
-                  placeholder={edit.computedWidth ? `auto (${edit.computedWidth})` : "auto"}
-                  onChange={(width) => onChange({ width })}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                      e.preventDefault();
-                      const currentVal = style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "");
-                      const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
-                      if (match) {
-                        const num = parseFloat(match[1]);
-                        const unit = match[2] || "px";
-                        const step = e.shiftKey ? 10 : 1;
-                        const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
-                        onChange({ width: `${nextNum}${unit}` });
-                      } else {
-                        onChange({ width: e.key === "ArrowUp" ? "10px" : "0px" });
-                      }
-                    }
-                  }}
+            <motion.div {...fadeIn()} className="space-y-4">
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Spacing</div>
+                <PresetRow<SpacingKey>
+                  label="Preset"
+                  value={spacingKeyFromValue(style.padding)}
+                  options={[
+                    { value: "tight", text: "Tight" },
+                    { value: "cozy", text: "Cozy" },
+                    { value: "roomy", text: "Roomy" },
+                  ]}
+                  onChange={(key) => onChange({ padding: SPACING_MAP[key] })}
                 />
-                <TextField
-                  label="Height"
-                  value={style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "")}
-                  placeholder={edit.computedHeight ? `auto (${edit.computedHeight})` : "auto"}
-                  onChange={(height) => onChange({ height })}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                      e.preventDefault();
-                      const currentVal = style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "");
-                      const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
-                      if (match) {
-                        const num = parseFloat(match[1]);
-                        const unit = match[2] || "px";
-                        const step = e.shiftKey ? 10 : 1;
-                        const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
-                        onChange({ height: `${nextNum}${unit}` });
-                      } else {
-                        onChange({ height: e.key === "ArrowUp" ? "10px" : "0px" });
-                      }
-                    }
-                  }}
-                />
-              </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="space-y-1">
-                  <Label className={labelClass}>Cursor</Label>
-                  <Select value={style.cursor || "default"} onValueChange={(v) => onChange({ cursor: v === "default" ? "" : v })}>
-                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default" className="cursor-pointer text-[11px]">Default</SelectItem>
-                      <SelectItem value="pointer" className="cursor-pointer text-[11px]">Pointer</SelectItem>
-                      <SelectItem value="text" className="cursor-pointer text-[11px]">Text</SelectItem>
-                      <SelectItem value="grab" className="cursor-pointer text-[11px]">Grab</SelectItem>
-                      <SelectItem value="not-allowed" className="cursor-pointer text-[11px]">Not Allowed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <NumberField label="Padding" value={style.padding ?? 0} min={0} max={120} unit="px" onChange={(padding) => onChange({ padding })} />
+                  <NumberField label="Margin" value={style.margin ?? 0} min={-60} max={120} unit="px" onChange={(margin) => onChange({ margin })} />
                 </div>
-                <div className="space-y-1">
-                  <Label className={labelClass}>Overflow</Label>
-                  <Select value={style.overflow || "visible"} onValueChange={(v) => onChange({ overflow: v as PreviewElementStyle["overflow"] })}>
-                    <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="visible" className="cursor-pointer text-[11px]">Visible</SelectItem>
-                      <SelectItem value="hidden" className="cursor-pointer text-[11px]">Hidden</SelectItem>
-                      <SelectItem value="auto" className="cursor-pointer text-[11px]">Auto</SelectItem>
-                      <SelectItem value="scroll" className="cursor-pointer text-[11px]">Scroll</SelectItem>
-                    </SelectContent>
-                  </Select>
+              </div>
+
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Dimensions</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TextField
+                    label="Width"
+                    value={style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "")}
+                    placeholder={edit.computedWidth ? `auto (${edit.computedWidth})` : "auto"}
+                    onChange={(width) => onChange({ width })}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const currentVal = style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "");
+                        const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
+                        if (match) {
+                          const num = parseFloat(match[1]);
+                          const unit = match[2] || "px";
+                          const step = e.shiftKey ? 10 : 1;
+                          const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
+                          onChange({ width: `${nextNum}${unit}` });
+                        } else {
+                          onChange({ width: e.key === "ArrowUp" ? "10px" : "0px" });
+                        }
+                      }
+                    }}
+                  />
+                  <TextField
+                    label="Height"
+                    value={style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "")}
+                    placeholder={edit.computedHeight ? `auto (${edit.computedHeight})` : "auto"}
+                    onChange={(height) => onChange({ height })}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const currentVal = style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "");
+                        const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
+                        if (match) {
+                          const num = parseFloat(match[1]);
+                          const unit = match[2] || "px";
+                          const step = e.shiftKey ? 10 : 1;
+                          const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
+                          onChange({ height: `${nextNum}${unit}` });
+                        } else {
+                          onChange({ height: e.key === "ArrowUp" ? "10px" : "0px" });
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <Separator className="bg-border/60" />
+
+              <div className="space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Behavior</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className={labelClass}>Cursor</Label>
+                    <Select value={style.cursor || "default"} onValueChange={(v) => onChange({ cursor: v === "default" ? "" : v })}>
+                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default" className="cursor-pointer text-[11px]">Default</SelectItem>
+                        <SelectItem value="pointer" className="cursor-pointer text-[11px]">Pointer</SelectItem>
+                        <SelectItem value="text" className="cursor-pointer text-[11px]">Text</SelectItem>
+                        <SelectItem value="grab" className="cursor-pointer text-[11px]">Grab</SelectItem>
+                        <SelectItem value="not-allowed" className="cursor-pointer text-[11px]">Not Allowed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelClass}>Overflow</Label>
+                    <Select value={style.overflow || "visible"} onValueChange={(v) => onChange({ overflow: v as PreviewElementStyle["overflow"] })}>
+                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="visible" className="cursor-pointer text-[11px]">Visible</SelectItem>
+                        <SelectItem value="hidden" className="cursor-pointer text-[11px]">Hidden</SelectItem>
+                        <SelectItem value="auto" className="cursor-pointer text-[11px]">Auto</SelectItem>
+                        <SelectItem value="scroll" className="cursor-pointer text-[11px]">Scroll</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1031,22 +1035,24 @@ export function ElementStylePanel({
         </div>
       </Tabs>
 
-      {/* Footer */}
-      <div className="flex shrink-0 items-center justify-between gap-1.5 border-t border-border p-2.5">
+      {/* Footer Actions */}
+      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border/50 bg-background/50 p-3">
         <Button
           variant="outline"
+          size="sm"
           onClick={() => onChange({ removed: !isHidden })}
-          className="h-7 flex-1 cursor-pointer gap-1 border-border bg-background text-[10.5px] text-foreground hover:bg-accent hover:text-accent-foreground"
+          className="h-8 flex-1 cursor-pointer gap-1.5 border-border/80 bg-secondary/40 text-xs font-medium text-foreground hover:bg-secondary hover:text-foreground rounded-lg transition-colors"
         >
-          {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-          {isHidden ? "Show" : "Hide"}
+          {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          {isHidden ? "Show Element" : "Hide Element"}
         </Button>
         <Button
           variant="outline"
+          size="sm"
           onClick={onRemove}
-          className="h-7 flex-1 cursor-pointer gap-1 border-rose-500/20 bg-rose-500/10 text-[10.5px] text-rose-400 hover:bg-rose-500/20 hover:text-rose-300"
+          className="h-8 flex-1 cursor-pointer gap-1.5 border-rose-500/30 bg-rose-500/10 text-xs font-medium text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg transition-colors"
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="h-3.5 w-3.5" />
           Remove
         </Button>
       </div>
