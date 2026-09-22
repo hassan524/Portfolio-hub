@@ -17,7 +17,7 @@ export function AIProduct1Navbar({ props = {}, theme, onChange }: BlockComponent
 
   return (
     <nav
-      className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 backdrop-blur-md border-b transition-colors"
+      className="relative z-20 flex items-center justify-between px-6 md:px-12 py-4 backdrop-blur-md border-b transition-colors w-full h-full min-h-full"
       style={{
         backgroundColor: `${bg}E6`,
         borderColor: surface,

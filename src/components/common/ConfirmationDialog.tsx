@@ -46,8 +46,16 @@ export function ConfirmationDialog({
   const destructive = type === "delete";
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm rounded-2xl border-border p-5 shadow-lift duration-300 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2">
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+        if (!nextOpen) {
+          onCancel?.();
+        }
+      }}
+    >
+      <AlertDialogContent className="max-w-sm rounded-2xl border border-border bg-neutral-950 p-5 shadow-2xl duration-300 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 z-[105]">
         <AlertDialogHeader className="space-y-1.5">
           <AlertDialogTitle className="text-base font-bold">{copy.title}</AlertDialogTitle>
           {copy.description && (

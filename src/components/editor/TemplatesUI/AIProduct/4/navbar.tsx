@@ -17,7 +17,7 @@ export function AIProduct4Navbar({ props = {}, theme, onChange }: Props) {
 
   return (
     <header 
-      className="w-full px-4 sm:px-8 py-5 sticky top-0 z-50 backdrop-blur-xl border-b transition-all duration-300"
+      className="w-full px-4 sm:px-8 py-5 relative z-20 backdrop-blur-xl border-b transition-all duration-300 h-full min-h-full flex items-center"
       style={{ 
         backgroundColor: `${bg}E6`, 
         borderColor: surface,

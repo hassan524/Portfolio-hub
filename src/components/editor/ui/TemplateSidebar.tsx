@@ -30,8 +30,22 @@ import { uploadSiteLogo } from "@/lib/uploadLogo";
 import { IMAGE_OVERRIDES_PROP, getImageOverrides } from "@/lib/imageOverrideUtils";
 import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { TextOverrideProvider } from "@/components/editor/ui/Editable";
-
+import { useCallback } from "react";
+import { ChevronDown } from "lucide-react";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
+import type { ConfirmationCopy, ConfirmationType } from "@/lib/functions/template";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ThemeCircle } from "./ThemeColorPicker";
+
+export type EditorControls = {
+  moveMode: boolean;
+  editMode: boolean;
+  toggleMoveMode: () => void;
+  toggleResponsiveEdit: () => void;
+  toggleEditMode: () => void;
+};
+
+type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
 
 type Props = {
   site: SiteData;
@@ -45,6 +59,9 @@ type Props = {
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
   onReorderBlocks: (blocks: Block[]) => void;
   onSave?: (site: SiteData) => void;
+  onMobileClose?: () => void;
+  editorControls?: EditorControls | null;
+  responsiveEditMode?: boolean;
 };
 
 export function TemplateSidebar({
@@ -52,14 +69,13 @@ export function TemplateSidebar({
   theme,
   activeSection,
   onSectionChange,
-  onThemeChange,
   onSiteMetaChange,
   onUpdateBlock,
   onReorderBlocks,
+  onMobileClose,
 }: Props) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [siteName, setSiteName] = useState(site.name || site.category || "Portfolio");
-
   useEffect(() => {
     setSiteName(site.name || site.category || "Portfolio");
   }, [site.name, site.category]);
@@ -76,148 +92,220 @@ export function TemplateSidebar({
     [site.blocks],
   );
 
-  function handleAddBlock() {
-    handleAddBlockFn(sortedBlocks, theme, onReorderBlocks);
+  const [confirmState, setConfirmState] = useState<(ConfirmOptions & { open: boolean }) | null>(
+    null,
+  );
+  const confirmResolveRef = useRef<((value: boolean) => void) | null>(null);
+
+  const confirm = useCallback((options: ConfirmOptions = {}) => {
+    return new Promise<boolean>((resolve) => {
+      confirmResolveRef.current = resolve;
+      setConfirmState({ ...options, open: true });
+    });
+  }, []);
+
+  const resolveConfirm = useCallback((value: boolean) => {
+    setConfirmState(null);
+    if (confirmResolveRef.current) {
+      const fn = confirmResolveRef.current;
+      confirmResolveRef.current = null;
+      fn(value);
+    }
+  }, []);
+
+  async function handleAddBlock() {
+    const ok = await confirm({
+      title: "Add a new block?",
+      description: "A new block will be added to the end of your layout. You can rename, restyle, or reorder it anytime.",
+      confirmLabel: "Add Block",
+      cancelLabel: "Cancel",
+    });
+    if (!ok) return;
+
+    handleAddBlockFn(sortedBlocks, theme, (nextBlocks) => {
+      const patched = nextBlocks.map((nb) => {
+        const existed = sortedBlocks.some((b) => b.id === nb.id);
+        if (existed) return nb;
+        const isSpacerDefault = (nb.label ?? "").toLowerCase() === "spacer";
+        return isSpacerDefault ? { ...nb, label: "New Block" } : nb;
+      });
+      onReorderBlocks(patched);
+    });
+  }
+
+  function rgbStringToHex(rgb: string): string | null {
+    const match = rgb.match(/\d+(\.\d+)?/g);
+    if (!match || match.length < 3) return null;
+    const [r, g, b] = match.map(Number);
+    if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+    return `#${[r, g, b]
+      .map((n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0"))
+      .join("")}`;
   }
 
   return (
-    <aside className="w-[320px] shrink-0 border-r border-l border-primary/25 bg-black text-sm flex flex-col h-full shadow-[0_0_50px_rgba(0,0,0,0.9)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      {/* Header: Project Identity */}
-      <div className="flex flex-col gap-4 border-b border-primary/20 p-4 shrink-0 bg-black/80 shadow-xs">
-        <div className="flex items-center gap-3">
-          <LogoUploader
-            logo={site.logo ?? null}
-            onChange={(url) => onSiteMetaChange({ logo: url })}
-          />
-          <div className="flex min-w-0 flex-1 flex-col justify-center">
-            {isEditingName ? (
-              <input
-                type="text"
-                autoFocus
-                value={siteName}
-                onChange={(e) => setSiteName(e.target.value)}
-                onBlur={commitNameChange}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") commitNameChange();
-                  if (e.key === "Escape") {
-                    setIsEditingName(false);
-                    setSiteName(site.name || site.category || "Portfolio");
-                  }
-                }}
-                className="w-full rounded-lg border border-primary bg-zinc-950 px-2.5 py-1 text-sm font-semibold text-white outline-none ring-2 ring-primary/40 transition-all"
-              />
-            ) : (
-              <div
-                onClick={() => setIsEditingName(true)}
-                title="Click to rename website"
-                className="group flex items-center justify-between gap-1.5 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900/80 transition-colors"
-              >
-                <div className="flex min-w-0 flex-col">
-                  <span className="truncate font-display text-sm font-semibold text-white group-hover:text-primary transition-colors">
-                    {site.name || site.category || "Portfolio"}
-                  </span>
-                  <span className="truncate text-[10px] text-zinc-400 capitalize">
-                    {site.category || "Portfolio"} · Click to edit
-                  </span>
+    <>
+      <aside className="w-full shrink-0 border-r border-zinc-800 bg-zinc-950 text-sm flex flex-col h-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {/* Header: Project Identity */}
+        <div className="flex flex-col gap-4 border-b border-zinc-800 p-4 shrink-0 bg-zinc-950 shadow-xs">
+          <div className="flex items-center gap-3">
+            <LogoUploader
+              logo={site.logo ?? null}
+              onChange={(url) => onSiteMetaChange({ logo: url })}
+            />
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
+              {isEditingName ? (
+                <input
+                  type="text"
+                  autoFocus
+                  value={siteName}
+                  onChange={(e) => setSiteName(e.target.value)}
+                  onBlur={commitNameChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitNameChange();
+                    if (e.key === "Escape") {
+                      setIsEditingName(false);
+                      setSiteName(site.name || site.category || "Portfolio");
+                    }
+                  }}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-sm font-semibold text-white outline-none focus:border-zinc-500 transition-all"
+                />
+              ) : (
+                <div
+                  onClick={() => setIsEditingName(true)}
+                  title="Click to rename website"
+                  className="group flex items-center justify-between gap-1.5 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900/80 transition-colors"
+                >
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-display text-sm font-semibold text-white group-hover:text-zinc-200 transition-colors">
+                      {site.name || site.category || "Portfolio"}
+                    </span>
+                    <span className="truncate text-[10px] text-zinc-400 capitalize">
+                      {site.category || "Portfolio"} · Click to edit
+                    </span>
+                  </div>
+                  <PencilLine className="h-3 w-3 shrink-0 text-zinc-500 opacity-0 group-hover:opacity-100 group-hover:text-zinc-300 transition-opacity" />
                 </div>
-                <PencilLine className="h-3 w-3 shrink-0 text-zinc-500 opacity-0 group-hover:opacity-100 group-hover:text-primary transition-opacity" />
-              </div>
+              )}
+            </div>
+            {onMobileClose && (
+              <button
+                onClick={onMobileClose}
+                className="lg:hidden grid h-8 w-8 shrink-0 place-items-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                title="Close sidebar"
+              >
+                <X className="h-4 w-4" />
+              </button>
             )}
           </div>
         </div>
-      </div>
 
-      <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
-        <div className="px-3 py-2.5 shrink-0 border-b border-primary/20 bg-black/60">
-          <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-zinc-950 border border-white/10 p-1">
-            <TabsTrigger
-              value="blocks"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
-            >
-              <LayoutGrid className="h-3 w-3" />
-              Blocks
-            </TabsTrigger>
-            <TabsTrigger
-              value="text"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
-            >
-              <Type className="h-3 w-3" />
-              Text
-            </TabsTrigger>
-            <TabsTrigger
-              value="images"
-              className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
-            >
-              <ImageIcon className="h-3 w-3" />
-              Images
-            </TabsTrigger>
-            <TabsTrigger
-              value="pages"
-              className="relative cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all"
-            >
-              <Files className="h-3 w-3" />
-              Pages
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
+          <div className="px-3 py-2.5 shrink-0 border-b border-zinc-800 bg-zinc-950">
+            <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
+              <TabsTrigger
+                value="blocks"
+                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+              >
+                <LayoutGrid className="h-3 w-3" />
+                Blocks
+              </TabsTrigger>
+              <TabsTrigger
+                value="text"
+                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+              >
+                <Type className="h-3 w-3" />
+                Text
+              </TabsTrigger>
+              <TabsTrigger
+                value="images"
+                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+              >
+                <ImageIcon className="h-3 w-3" />
+                Images
+              </TabsTrigger>
+              <TabsTrigger
+                value="pages"
+                className="relative cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+              >
+                <Files className="h-3 w-3" />
+                Pages
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-transparent">
-          <TabsContent value="blocks" className="mt-0 h-full">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <SectionLabel>Layout Blocks</SectionLabel>
-                <button
-                  type="button"
-                  onClick={handleAddBlock}
-                  className="flex items-center gap-1 rounded-lg bg-zinc-900 border border-primary/30 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-primary/20 hover:border-primary cursor-pointer shadow-xs"
-                >
-                  <Plus className="h-3 w-3" />
-                  Add
-                </button>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-zinc-950">
+            <TabsContent value="blocks" className="mt-0 h-full">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <SectionLabel>Layout Blocks</SectionLabel>
+                  <button
+                    type="button"
+                    onClick={handleAddBlock}
+                    className="flex items-center gap-1 rounded-lg bg-zinc-900 border border-zinc-700 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add
+                  </button>
+                </div>
+                <BlocksList
+                  blocks={sortedBlocks}
+                  theme={theme}
+                  activeSection={activeSection}
+                  onSectionChange={onSectionChange}
+                  onReorderBlocks={onReorderBlocks}
+                  onUpdateBlock={onUpdateBlock}
+                />
               </div>
-              <BlocksList
-                blocks={sortedBlocks}
-                theme={theme}
-                activeSection={activeSection}
-                onSectionChange={onSectionChange}
-                onReorderBlocks={onReorderBlocks}
-                onUpdateBlock={onUpdateBlock}
-              />
-            </div>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="text" className="mt-0">
-            <div className="space-y-4">
-              {/* <SectionLabel>Text Content</SectionLabel>  */}
-              <TextPanel
-                blocks={sortedBlocks}
-                site={site}
-                onUpdateBlock={onUpdateBlock}
-                onSectionChange={onSectionChange}
-              />
-            </div>
-          </TabsContent>
+            <TabsContent value="text" className="mt-0">
+              <div className="space-y-4">
+                {/* <SectionLabel>Text Content</SectionLabel>  */}
+                <TextPanel
+                  blocks={sortedBlocks}
+                  site={site}
+                  onUpdateBlock={onUpdateBlock}
+                  onSectionChange={onSectionChange}
+                />
+              </div>
+            </TabsContent>
 
-          <TabsContent value="images" className="mt-0">
-            <div className="space-y-4">
-              <SectionLabel>Images</SectionLabel>
-              <ImagesPanel
-                blocks={sortedBlocks}
-                theme={theme}
-                site={site}
-                onUpdateBlock={onUpdateBlock}
-                onSiteMetaChange={onSiteMetaChange}
-                onSectionChange={onSectionChange}
-              />
-            </div>
-          </TabsContent>
+            <TabsContent value="images" className="mt-0">
+              <div className="space-y-4">
+                <SectionLabel>Images</SectionLabel>
+                <ImagesPanel
+                  blocks={sortedBlocks}
+                  theme={theme}
+                  site={site}
+                  onUpdateBlock={onUpdateBlock}
+                  onSiteMetaChange={onSiteMetaChange}
+                  onSectionChange={onSectionChange}
+                />
+              </div>
+            </TabsContent>
 
-          <TabsContent value="pages" className="mt-0 h-full">
-            <PagesComingSoon />
-          </TabsContent>
-        </div>
-      </Tabs>
-    </aside>
+            <TabsContent value="pages" className="mt-0 h-full">
+              <PagesComingSoon />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </aside>
+
+      <ConfirmationDialog
+        open={!!confirmState?.open}
+        type={confirmState?.type}
+        title={confirmState?.title}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.confirmLabel}
+        cancelLabel={confirmState?.cancelLabel}
+        onOpenChange={(open) => {
+          if (!open) resolveConfirm(false);
+        }}
+        onConfirm={() => resolveConfirm(true)}
+        onCancel={() => resolveConfirm(false)}
+      />
+    </>
   );
 }
 
@@ -274,6 +362,8 @@ function LogoUploader({
     }
   }
 
+  
+
   return (
     <div className="group relative shrink-0">
       <label
@@ -324,6 +414,84 @@ function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
+function rgbStringToHex(rgb: string): string | null {
+  const match = rgb.match(/\d+(\.\d+)?/g);
+  if (!match || match.length < 3) return null;
+  const [r, g, b] = match.map(Number);
+  if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+  return `#${[r, g, b]
+    .map((n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function findVisibleBackgroundColor(root: HTMLElement | null): string | null {
+  if (!root) return null;
+  const queue: HTMLElement[] = [root];
+
+  while (queue.length) {
+    const node = queue.shift()!;
+    // skip editor chrome (resize handles, labels, blend button, etc.)
+    if (node.hasAttribute("data-preview-chrome") || node.hasAttribute("data-blend-ignore")) {
+      continue;
+    }
+
+    const bg = getComputedStyle(node).backgroundColor;
+    if (bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") {
+      const hex = rgbStringToHex(bg);
+      if (hex) return hex;
+    }
+
+    for (const child of Array.from(node.children)) {
+      if (child instanceof HTMLElement) queue.push(child);
+    }
+  }
+  return null;
+}
+
+function findBlockElement(blockId: string): HTMLElement | null {
+  const el = document.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`);
+  if (el) return el;
+  const iframe = document.querySelector<HTMLIFrameElement>("iframe");
+  return iframe?.contentDocument?.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`) ?? null;
+}
+
+function useLiveBlockBg(blockId: string, active: boolean, fallback: string): string {
+  const [color, setColor] = useState(fallback);
+
+  useEffect(() => {
+    if (!active) {
+      setColor(fallback);
+      return;
+    }
+    const el = findBlockElement(blockId);
+    const hex = findVisibleBackgroundColor(el);
+    setColor(hex ?? fallback);
+  }, [active, blockId, fallback]);
+
+  return color;
+}
+
+function useLiveBlockHeight(blockId: string, active: boolean): number | null {
+  const [liveHeight, setLiveHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    const measure = () => {
+      const el = findBlockElement(blockId);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const h = Math.round(rect.height || el.offsetHeight);
+        if (h > 0) setLiveHeight(h);
+      }
+    };
+    measure();
+    const timer = setTimeout(measure, 100);
+    return () => clearTimeout(timer);
+  }, [active, blockId]);
+
+  return liveHeight;
+}
+
 function BlocksList({
   blocks,
   theme,
@@ -340,6 +508,7 @@ function BlocksList({
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
 }) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function moveBlock(targetId: string) {
     moveSidebarBlock(draggedId, targetId, blocks, onReorderBlocks);
@@ -347,102 +516,206 @@ function BlocksList({
 
   return (
     <div className="space-y-2">
-      {blocks.map((block, index) => {
-        const active = activeSection === block.props.kind;
-        const isDragging = draggedId === block.id;
-        const height = block.height;
-        const displayName = block.label ?? block.name ?? block.props.kind;
-        const isNewBlock = Boolean(
-          block.isCustom ||
-          (block as Record<string, unknown>).isNew ||
-          (block.props as { isCustom?: boolean })?.isCustom ||
-          block.props?.kind === "spacer",
-        );
+      {blocks.map((block, index) => (
+        <BlockRow
+          key={block.id}
+          block={block}
+          index={index}
+          blocks={blocks}
+          theme={theme}
+          active={activeSection === block.props.kind}
+          isDragging={draggedId === block.id}
+          isExpanded={expandedId === block.id}
+          onExpandToggle={() => setExpandedId(expandedId === block.id ? null : block.id)}
+          onSectionChange={onSectionChange}
+          onUpdateBlock={onUpdateBlock}
+          onDragStart={() => setDraggedId(block.id)}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={() => moveBlock(block.id)}
+          onDragEnd={() => setDraggedId(null)}
+        />
+      ))}
+    </div>
+  );
+}
 
-        return (
-          <div
-            key={block.id}
-            draggable
-            onDragStart={() => setDraggedId(block.id)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => moveBlock(block.id)}
-            onDragEnd={() => setDraggedId(null)}
-            className={`group relative flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-primary scale-[0.98]" : ""
-              } ${active
-                ? "border-primary bg-primary/10 text-white shadow-md ring-1 ring-primary/40"
-                : "border-white/10 bg-zinc-900/40 hover:border-primary/40 hover:bg-zinc-900/70 text-zinc-300 shadow-xs"
-              }`}
+function BlockRow({
+  block,
+  index,
+  blocks,
+  theme,
+  active,
+  isDragging,
+  isExpanded,
+  onExpandToggle,
+  onSectionChange,
+  onUpdateBlock,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+}: {
+  block: Block;
+  index: number;
+  blocks: Block[];
+  theme: Theme;
+  active: boolean;
+  isDragging: boolean;
+  isExpanded: boolean;
+  onExpandToggle: () => void;
+  onSectionChange: (id: string) => void;
+  onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void;
+  onDragStart: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: () => void;
+  onDragEnd: () => void;
+}) {
+  const storedHeight = block.height;
+  const liveHeight = useLiveBlockHeight(block.id, isExpanded);
+  const storedBgColor = (block as { bgColor?: string }).bgColor;
+  const liveBg = useLiveBlockBg(block.id, isExpanded && !storedBgColor, theme.bg);
+  const bgColor = storedBgColor ?? liveBg;
+
+  const [heightInput, setHeightInput] = useState<string>(
+    typeof storedHeight === "number" ? String(storedHeight) : (liveHeight ? String(liveHeight) : "")
+  );
+
+  useEffect(() => {
+    if (typeof storedHeight === "number") {
+      setHeightInput(String(storedHeight));
+    } else if (liveHeight) {
+      setHeightInput(String(liveHeight));
+    } else {
+      setHeightInput("");
+    }
+  }, [storedHeight, liveHeight]);
+
+  const handleHeightInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setHeightInput(val);
+    handleBlockHeightChange(block.id, val, onUpdateBlock);
+  };
+
+  const displayName = block.label ?? block.name ?? block.props.kind;
+  const isNewBlock = Boolean(
+    block.isCustom ||
+    (block as Record<string, unknown>).isNew ||
+    (block.props as { isCustom?: boolean })?.isCustom ||
+    block.props?.kind === "spacer",
+  );
+
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+
+  return (
+    <div>
+      <div
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        onDragEnd={onDragEnd}
+        className={`group relative flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-primary scale-[0.98]" : ""
+          } ${active
+            ? "border-primary bg-primary/10 text-white shadow-md ring-1 ring-primary/40"
+            : "border-white/10 bg-zinc-900/40 hover:border-primary/40 hover:bg-zinc-900/70 text-zinc-300 shadow-xs"
+          }`}
+      >
+        <div className="flex items-center justify-center shrink-0">
+          <GripVertical className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-90 text-primary" : "opacity-0 group-hover:opacity-40 text-muted-foreground"}`} />
+        </div>
+
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          <span
+            className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "text-primary font-bold" : "text-muted-foreground"}`}
           >
-            <div className="flex items-center justify-center shrink-0">
-              <GripVertical className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-90 text-primary" : "opacity-0 group-hover:opacity-40 text-muted-foreground"}`} />
-            </div>
+            {index + 1}.
+          </span>
+          <input
+            type="text"
+            value={displayName}
+            draggable={false}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSectionChange(block.props.kind);
+            }}
+            onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
+            className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] focus:ring-1 rounded px-1 py-0.5 transition-all ${active ? "text-foreground font-semibold focus:ring-primary/40" : "text-foreground focus:ring-primary/40 hover:bg-secondary/80"
+              }`}
+            title="Rename section"
+          />
+        </div>
 
-            <div className="flex-1 min-w-0 flex items-center gap-1.5">
-              <span
-                className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "text-primary font-bold" : "text-muted-foreground"}`}
-              >
-                {index + 1}.
-              </span>
-              <input
-                type="text"
-                value={displayName}
-                draggable={false}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSectionChange(block.props.kind);
-                }}
-                onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
-                className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] focus:ring-1 rounded px-1 py-0.5 transition-all ${active ? "text-foreground font-semibold focus:ring-primary/40" : "text-foreground focus:ring-primary/40 hover:bg-secondary/80"
-                  }`}
-                title="Rename section"
-              />
-            </div>
+        {isNewBlock && (
+          <button
+            type="button"
+            draggable={false}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              const patch = blendBlockWithNeighbors(block.id, blocks, theme);
+              onUpdateBlock(block.id, patch);
+            }}
+            className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
+              ? "hover:bg-primary/20 text-primary"
+              : "hover:bg-accent text-muted-foreground hover:text-foreground"
+              }`}
+            title="Blend style dynamically"
+          >
+            <PencilLine className="h-3 w-3" />
+          </button>
+        )}
 
-            {isNewBlock && (
-              <button
-                type="button"
-                draggable={false}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const patch = blendBlockWithNeighbors(block.id, blocks, theme);
-                  onUpdateBlock(block.id, patch);
-                }}
-                className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
-                  ? "hover:bg-primary/20 text-primary"
-                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
-                  }`}
-                title="Blend style dynamically"
-              >
-                <PencilLine className="h-3 w-3" />
-              </button>
-            )}
+        <button
+          type="button"
+          draggable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExpandToggle();
+          }}
+          className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
+            ? "hover:bg-primary/20 text-primary"
+            : "hover:bg-accent text-muted-foreground hover:text-foreground"
+            }`}
+          title={isExpanded ? "Hide block settings" : "Show block settings"}
+          aria-label={isExpanded ? "Hide block settings" : "Show block settings"}
+          aria-expanded={isExpanded}
+        >
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? "rotate-180" : ""}`} />
+        </button>
+      </div>
 
-            <div className="flex items-center gap-0.5 shrink-0 pl-1">
-              <input
-                type="number"
-                value={typeof height === "number" ? height : ""}
-                placeholder="auto"
-                draggable={false}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => handleBlockHeightChange(block.id, e.target.value, onUpdateBlock)}
-                className={`w-9 bg-transparent text-right font-mono text-[10px] outline-none cursor-text rounded px-1 py-0.5 focus:ring-1 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${active
-                  ? "text-foreground placeholder:text-muted-foreground/40 focus:ring-primary/40 hover:bg-primary/10"
-                  : "text-muted-foreground placeholder:text-muted-foreground/40 focus:ring-primary/40 hover:bg-secondary/80"
-                  }`}
-                title="Height in pixels"
-              />
-              <span
-                className={`text-[9px] font-medium ${active ? "text-primary" : "text-muted-foreground/60"}`}
-              >
-                px
-              </span>
-            </div>
+      {isExpanded && (
+        <div className="flex items-center justify-between gap-3 px-2.5 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase select-none">BG</span>
+            <ThemeCircle
+              label={`${displayName} Background`}
+              shortLabel="BG"
+              value={bgColor || theme.bg || "#000000"}
+              isOpen={isColorPickerOpen}
+              onOpenChange={setIsColorPickerOpen}
+              onChange={(color) => onUpdateBlock(block.id, { bgColor: color })}
+              showLabel={false}
+            />
           </div>
-        );
-      })}
+
+          <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900/80 px-2.5 py-1 text-xs transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/40">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase select-none">H</span>
+            <input
+              type="number"
+              min={0}
+              max={2500}
+              value={heightInput}
+              placeholder={liveHeight ? `${liveHeight}` : "auto"}
+              onChange={handleHeightInputChange}
+              className="w-14 bg-transparent text-[11px] font-mono outline-none text-foreground text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-[10px] font-mono text-muted-foreground select-none">px</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -621,6 +894,48 @@ function ImagesPanel({
   );
 }
 
+function isImageUrl(val: string): boolean {
+  if (typeof val !== "string") return false;
+  const s = val.trim();
+  if (!s || s.length < 4) return false;
+  if (s.startsWith("data:image/")) return true;
+  if (s.startsWith("blob:")) return true;
+  if (/^https?:\/\//i.test(s) || s.startsWith("/")) {
+    if (/\.(png|jpe?g|webp|svg|gif|avif|ico|bmp)(\?.*)?$/i.test(s)) return true;
+    if (
+      s.includes("images.unsplash.com") ||
+      s.includes("unsplash.com") ||
+      s.includes("cloudinary.com") ||
+      s.includes("supabase.co/storage") ||
+      s.includes("/site-assets/") ||
+      s.includes("/logos/")
+    ) return true;
+  }
+  return false;
+}
+
+function extractImageUrlsFromProps(
+  obj: unknown,
+  path: ImagePath = [],
+  found: { url: string; path: ImagePath }[] = [],
+): { url: string; path: ImagePath }[] {
+  if (typeof obj === "string") {
+    if (isImageUrl(obj)) {
+      found.push({ url: obj, path });
+    }
+  } else if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      extractImageUrlsFromProps(item, [...path, index], found);
+    });
+  } else if (obj && typeof obj === "object") {
+    Object.entries(obj as Record<string, unknown>).forEach(([key, val]) => {
+      if (key === IMAGE_OVERRIDES_PROP) return;
+      extractImageUrlsFromProps(val, [...path, key], found);
+    });
+  }
+  return found;
+}
+
 function BlockImagesEntry({
   block,
   theme,
@@ -651,35 +966,182 @@ function BlockImagesEntry({
     [block.props, site.logo],
   );
 
-  useEffect(() => {
-    const el = probeRef.current;
-    if (!el) {
-      setImages([]);
-      return;
-    }
-
-    const imgEls = Array.from(el.querySelectorAll("img"));
-    if (imgEls.length === 0) {
-      setImages([]);
-      return;
-    }
-
+  const discoverImages = () => {
+    const foundMap = new Map<
+      string,
+      { src: string; originalSrc: string; path: ImagePath | null; siteKey?: "logo" }
+    >();
     const pathBySrc = buildImagePathMap(componentProps);
+    const overrides = getImageOverrides(componentProps as Record<string, unknown>);
 
-    const found = imgEls
-      .map((img) => {
-        const src = img.getAttribute("src") ?? "";
-        const originalSrc = img.dataset.originalSrc || src;
-        return {
-          src,
-          originalSrc,
-          siteKey: site.logo && originalSrc === site.logo ? ("logo" as const) : undefined,
-          path: pathBySrc.get(originalSrc) ?? pathBySrc.get(src) ?? null,
-        };
-      })
-      .filter((entry) => entry.src.length > 0);
+    // Source A: Props extraction (recursively find all image URLs in componentProps)
+    const propsImages = extractImageUrlsFromProps(componentProps);
+    for (const item of propsImages) {
+      const activeSrc = overrides[item.url] || item.url;
+      foundMap.set(item.url, {
+        src: activeSrc,
+        originalSrc: item.url,
+        siteKey: site.logo && item.url === site.logo ? ("logo" as const) : undefined,
+        path: item.path,
+      });
+    }
 
-    setImages(found);
+    // Helper to scan a DOM root (probeRef or live block in preview)
+    const scanDomRoot = (root: ParentNode | null) => {
+      if (!root) return;
+
+      // 1. <img> tags
+      const imgEls = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
+      imgEls.forEach((img) => {
+        const currentSrc = img.getAttribute("src") || img.src || "";
+        const originalSrc = img.dataset.originalSrc || currentSrc;
+        if (!originalSrc) return;
+        const activeSrc = overrides[originalSrc] || currentSrc || originalSrc;
+        if (!foundMap.has(originalSrc)) {
+          foundMap.set(originalSrc, {
+            src: activeSrc,
+            originalSrc,
+            siteKey: site.logo && originalSrc === site.logo ? ("logo" as const) : undefined,
+            path: pathBySrc.get(originalSrc) ?? pathBySrc.get(currentSrc) ?? null,
+          });
+        }
+      });
+
+      // 2. SVG <image> tags
+      const svgImages = Array.from(root.querySelectorAll<SVGImageElement>("image"));
+      svgImages.forEach((img) => {
+        const href = img.getAttribute("href") || img.getAttribute("xlink:href") || "";
+        if (!href) return;
+        const activeSrc = overrides[href] || href;
+        if (!foundMap.has(href)) {
+          foundMap.set(href, {
+            src: activeSrc,
+            originalSrc: href,
+            path: pathBySrc.get(href) ?? null,
+          });
+        }
+      });
+
+      // 3. Elements with background-image / url(...)
+      const bgEls = Array.from(root.querySelectorAll<HTMLElement>("[style*='url('], [style*='background']"));
+      bgEls.forEach((el) => {
+        const bg = el.style.backgroundImage || el.style.background || "";
+        const matches = bg.matchAll(/url\(\s*['"]?(.*?)['"]?\s*\)/gi);
+        for (const match of matches) {
+          const url = match[1];
+          if (url && !url.startsWith("data:image/svg+xml")) {
+            const activeSrc = overrides[url] || url;
+            if (!foundMap.has(url)) {
+              foundMap.set(url, {
+                src: activeSrc,
+                originalSrc: url,
+                path: pathBySrc.get(url) ?? null,
+              });
+            }
+          }
+        }
+      });
+    };
+
+    // Source B: Probe DOM
+    scanDomRoot(probeRef.current);
+
+    // Source C: Live Preview DOM
+    try {
+      const liveBlock = document.querySelector<HTMLElement>(`[data-block-id="${block.id}"]`);
+      if (liveBlock) scanDomRoot(liveBlock);
+    } catch {
+      // ignore selector error if any
+    }
+
+    // Source D: If navbar/footer and site has logo, ensure logo is listed
+    if (block.props.kind === "navbar" || block.props.kind === "footer") {
+      if (site.logo && !foundMap.has(site.logo)) {
+        foundMap.set(site.logo, {
+          src: site.logo,
+          originalSrc: site.logo,
+          siteKey: "logo",
+          path: null,
+        });
+      }
+    }
+
+    return Array.from(foundMap.values());
+  };
+
+  useEffect(() => {
+    // Initial discovery
+    const initial = discoverImages();
+    if (initial.length > 0) {
+      setImages((prev) => {
+        const map = new Map(prev.map((img) => [img.originalSrc, img]));
+        initial.forEach((img) => map.set(img.originalSrc, img));
+        return Array.from(map.values());
+      });
+    }
+
+    // Observe probe DOM mutations
+    const probeEl = probeRef.current;
+    let observer: MutationObserver | null = null;
+    if (probeEl) {
+      observer = new MutationObserver(() => {
+        const found = discoverImages();
+        setImages((prev) => {
+          const map = new Map(prev.map((img) => [img.originalSrc, img]));
+          let changed = false;
+          found.forEach((img) => {
+            if (!map.has(img.originalSrc) || map.get(img.originalSrc)?.src !== img.src) {
+              map.set(img.originalSrc, img);
+              changed = true;
+            }
+          });
+          return changed ? Array.from(map.values()) : prev;
+        });
+      });
+      observer.observe(probeEl, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["src", "style"],
+      });
+    }
+
+    // Also check on brief delays to catch carousel slides and async components
+    const t1 = setTimeout(() => {
+      const found = discoverImages();
+      setImages((prev) => {
+        const map = new Map(prev.map((img) => [img.originalSrc, img]));
+        let changed = false;
+        found.forEach((img) => {
+          if (!map.has(img.originalSrc)) {
+            map.set(img.originalSrc, img);
+            changed = true;
+          }
+        });
+        return changed ? Array.from(map.values()) : prev;
+      });
+    }, 200);
+
+    const t2 = setTimeout(() => {
+      const found = discoverImages();
+      setImages((prev) => {
+        const map = new Map(prev.map((img) => [img.originalSrc, img]));
+        let changed = false;
+        found.forEach((img) => {
+          if (!map.has(img.originalSrc)) {
+            map.set(img.originalSrc, img);
+            changed = true;
+          }
+        });
+        return changed ? Array.from(map.values()) : prev;
+      });
+    }, 800);
+
+    return () => {
+      observer?.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [block.props, Cmp, componentProps, site.logo]);
 
   if (!Cmp) return null;
@@ -692,12 +1154,15 @@ function BlockImagesEntry({
         ref={probeRef}
         aria-hidden
         style={{
-          position: "absolute",
-          width: 1,
-          height: 1,
+          position: "fixed",
+          left: -9999,
+          top: -9999,
+          width: 1280,
+          height: 800,
           overflow: "hidden",
           opacity: 0,
           pointerEvents: "none",
+          zIndex: -99,
         }}
       >
         <RenderedImageOverrides

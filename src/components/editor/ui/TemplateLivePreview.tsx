@@ -24,12 +24,14 @@ import {
   PencilLine,
   RefreshCw,
   Loader2,
+  Menu,
 } from "lucide-react";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
 import { TextOverrideProvider } from "./Editable";
 import { ThemeCircleRow } from "./ThemeColorPicker";
+import type { EditorControls } from "./TemplateSidebar";
 import type {
   PreviewEditableSite,
   PreviewElementEdit,
@@ -45,6 +47,7 @@ import {
   endFrameDrag,
   handleStartBlockResize as handleStartBlockResizeFn,
   handleInteractiveToggleEditMode,
+  selectFirstEditableElement,
   handleToggleMoveMode,
   handleInteractivePreviewClick,
   handleFrameResizeMove,
@@ -106,6 +109,8 @@ export function TemplateLivePreview({
   onResponsiveEditModeChange,
   onBreakpointChange,
   onThemeChange,
+  onOpenMobileMenu,
+  onControlsReady,
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -143,6 +148,10 @@ export function TemplateLivePreview({
   responsiveEditMode: boolean;
   onResponsiveEditModeChange: (on: boolean) => void;
   onBreakpointChange?: (breakpoint: ResponsiveBreakpoint) => void;
+
+  // Mobile menu & external controls
+  onOpenMobileMenu?: () => void;
+  onControlsReady?: (controls: EditorControls) => void;
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -185,9 +194,22 @@ export function TemplateLivePreview({
   }, []);
 
   const resolveConfirm = useCallback((value: boolean) => {
-    setConfirmState((prev) => (prev ? { ...prev, open: false } : prev));
-    confirmResolveRef.current?.(value);
-    confirmResolveRef.current = null;
+    setConfirmState(null);
+    if (confirmResolveRef.current) {
+      const fn = confirmResolveRef.current;
+      confirmResolveRef.current = null;
+      fn(value);
+    }
+  }, []);
+
+  // Safeguard: resolve any pending confirmation on unmount to prevent lingering locks
+  useEffect(() => {
+    return () => {
+      if (confirmResolveRef.current) {
+        confirmResolveRef.current(false);
+        confirmResolveRef.current = null;
+      }
+    };
   }, []);
 
   const [editMode, setEditMode] = useState(false);
@@ -278,6 +300,9 @@ export function TemplateLivePreview({
     });
     if (ok) {
       onResponsiveEditModeChange(true);
+      setEditMode(true);
+      const container = contentRef.current || responsiveFrameRef.current?.contentDocument?.body;
+      selectFirstEditableElement(sorted, site, container, activeSection, onSelectElement);
     }
   }
 
@@ -296,9 +321,12 @@ export function TemplateLivePreview({
   /* ---------------------------------------------------------------------- */
 
   const recalcScale = useCallback(() => {
+    const isMobileScreen = typeof window !== "undefined" && window.innerWidth < 1024;
+    const padding = isMobileScreen ? 8 : VIEWPORT_PADDING;
+
     if (isDesktop) {
       const viewportWidth = desktopScrollRef.current?.clientWidth ?? DEFAULT_DESKTOP_WIDTH;
-      const availableWidth = viewportWidth - VIEWPORT_PADDING * 2;
+      const availableWidth = viewportWidth - padding * 2;
       const next = Math.min(1, availableWidth / DEFAULT_DESKTOP_WIDTH);
       setScale(Number.isFinite(next) && next > 0 ? next : 1);
       return;
@@ -313,7 +341,7 @@ export function TemplateLivePreview({
       viewportRef.current.clientHeight,
       width,
       height,
-      VIEWPORT_PADDING,
+      padding,
     );
     setScale(next);
   }, [isDesktop, width, height]);
@@ -640,8 +668,14 @@ export function TemplateLivePreview({
     );
   }
 
-  function handleToggleMoveModeClick() {
-    handleToggleMoveMode(moveMode, setMoveMode, setEditMode, confirm);
+  async function handleToggleMoveModeClick() {
+    const wasMove = moveMode;
+    await handleToggleMoveMode(moveMode, setMoveMode, setEditMode, confirm);
+    if (!wasMove) {
+      setEditMode(true);
+      const container = contentRef.current || responsiveFrameRef.current?.contentDocument?.body;
+      selectFirstEditableElement(sorted, site, container, activeSection, onSelectElement);
+    }
   }
 
   async function handleSaveClick() {
@@ -653,6 +687,21 @@ export function TemplateLivePreview({
     });
     if (ok) onSave?.(site);
   }
+
+  useEffect(() => {
+    onControlsReady?.({
+      moveMode,
+      editMode,
+      toggleMoveMode: handleToggleMoveModeClick,
+      toggleResponsiveEdit: handleToggleResponsiveEdit,
+      toggleEditMode: handleToggleEditMode,
+    });
+  }, [
+    moveMode,
+    editMode,
+    responsiveEditMode,
+    onControlsReady,
+  ]);
 
   function handleRefresh() {
     if (isRefreshing) return;
@@ -701,6 +750,11 @@ export function TemplateLivePreview({
                 block.props?.kind === "spacer",
               );
 
+              const isNavbar = block.props.kind === "navbar";
+              const blockTheme = block.bgColor
+                ? { ...theme, bg: block.bgColor, "bg-second": block.bgColor, surface: block.bgColor }
+                : theme;
+
               return (
                 <DraggableBlockWrapper
                   key={block.id}
@@ -713,20 +767,34 @@ export function TemplateLivePreview({
                   <div
                     data-block-id={block.id}
                     data-block-kind={block.props.kind}
+                    data-has-custom-bg={block.bgColor ? "true" : undefined}
                     data-ai-product-theme={site.category === "AI Product" ? "true" : undefined}
-                    className={`relative group/block ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""
-                      }`}
+                    className={`relative group/block ${
+                      isNavbar
+                        ? "[&_header]:!relative [&_header]:!top-auto [&_header]:h-full [&_header]:min-h-full [&_header]:flex [&_header]:items-center [&_nav]:!relative [&_nav]:!top-auto [&_nav]:h-full [&_nav]:min-h-full [&_nav]:flex [&_nav]:items-center"
+                        : ""
+                    } ${
+                      block.height
+                        ? "[&_section]:!h-full [&_section]:!min-h-full [&_header]:!h-full [&_header]:!min-h-full [&_nav]:!h-full [&_nav]:!min-h-full [&_footer]:!h-full [&_footer]:!min-h-full"
+                        : ""
+                    } ${
+                      block.bgColor
+                        ? "[&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] [&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]"
+                        : ""
+                    } ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""}`}
                     style={{
                       ...(isActive ? { outlineColor: theme.accent } : undefined),
-                      minHeight: isDesktop && block.height ? `${block.height}px` : undefined,
-                      position: "relative",
+                      minHeight: block.height ? `${block.height}px` : undefined,
+                      height: block.height ? `${block.height}px` : undefined,
+                      backgroundColor: block.bgColor || undefined,
+                      ...(block.bgColor ? ({ "--block-bg": block.bgColor } as React.CSSProperties) : {}),
                       ...(site.category === "AI Product"
                         ? ({
-                            "--ai-theme-bg": theme.bg,
-                            "--ai-theme-ink": theme.ink,
-                            "--ai-theme-accent": theme.accent,
-                            "--ai-theme-surface": theme.surface ?? theme.bg,
-                          } as React.CSSProperties)
+                          "--ai-theme-bg": block.bgColor || theme.bg,
+                          "--ai-theme-ink": theme.ink,
+                          "--ai-theme-accent": theme.accent,
+                          "--ai-theme-surface": block.bgColor || (theme.surface ?? theme.bg),
+                        } as React.CSSProperties)
                         : {}),
                     }}
                   >
@@ -767,27 +835,7 @@ export function TemplateLivePreview({
                       </div>
                     )}
 
-                    {isNewBlock ? (
-                      <div style={{ height: "100%" }} className="[&>*]:h-full">
-                        <TextOverrideProvider
-                          overrides={
-                            ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
-                              string,
-                              string
-                            >
-                          }
-                        >
-                          <Cmp
-                            id={block.id}
-                            props={componentProps}
-                            theme={theme}
-                            onChange={(patch: Record<string, unknown>) =>
-                              editMode ? onUpdateBlock(block.id, patch) : undefined
-                            }
-                          />
-                        </TextOverrideProvider>
-                      </div>
-                    ) : (
+                    <div style={{ height: block.height ? "100%" : undefined }} className={block.height ? "h-full [&>*]:!h-full [&>*]:!min-h-full" : undefined}>
                       <TextOverrideProvider
                         overrides={
                           ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
@@ -799,13 +847,13 @@ export function TemplateLivePreview({
                         <Cmp
                           id={block.id}
                           props={componentProps}
-                          theme={theme}
+                          theme={blockTheme}
                           onChange={(patch: Record<string, unknown>) =>
                             editMode ? onUpdateBlock(block.id, patch) : undefined
                           }
                         />
                       </TextOverrideProvider>
-                    )}
+                    </div>
 
                     {draggingElementId?.startsWith(`${block.id}:`) && (
                       <div data-preview-chrome>
@@ -861,10 +909,11 @@ export function TemplateLivePreview({
   );
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden shadow-sm">
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-4 gap-4">
-        {/* Left side: Theme color circles without text, vertically centered with left breathing room */}
-        <div className="flex items-center gap-2.5 shrink-0 pl-2">
+    <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden shadow-sm">
+      {/* Desktop Top Header: spacious padding, preserved controls */}
+      <div className="hidden lg:flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6 gap-6 overflow-x-auto no-scrollbar">
+        {/* Left side: Theme color circles without text */}
+        <div className="flex items-center gap-3 shrink-0">
           <ThemeCircleRow
             theme={theme}
             site={site}
@@ -874,9 +923,9 @@ export function TemplateLivePreview({
         </div>
 
         {/* Right side: Device, edit, and window controls */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 pr-1">
           {responsiveEditMode && (
-            <span className="select-none rounded-full bg-accent/15 text-accent px-2 py-0.5 text-[10px] font-semibold capitalize">
+            <span className="select-none rounded-full bg-accent/15 text-accent px-2.5 py-0.5 text-[10px] font-semibold capitalize">
               Editing: {effectiveBreakpoint}
             </span>
           )}
@@ -913,8 +962,8 @@ export function TemplateLivePreview({
               <button
                 onClick={() => handlePickBreakpoint("desktop")}
                 className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "desktop"
-                    ? "bg-foreground text-background"
-                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
                   }`}
                 title="Edit Desktop styles"
               >
@@ -923,8 +972,8 @@ export function TemplateLivePreview({
               <button
                 onClick={() => handlePickBreakpoint("tablet")}
                 className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "tablet"
-                    ? "bg-foreground text-background"
-                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
                   }`}
                 title="Edit Tablet styles"
               >
@@ -933,8 +982,8 @@ export function TemplateLivePreview({
               <button
                 onClick={() => handlePickBreakpoint("mobile")}
                 className={`grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-all ${effectiveBreakpoint === "mobile"
-                    ? "bg-foreground text-background"
-                    : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  ? "bg-foreground text-background"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
                   }`}
                 title="Edit Mobile styles"
               >
@@ -970,8 +1019,8 @@ export function TemplateLivePreview({
           <button
             onClick={handleToggleResponsiveEdit}
             className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full border transition-all ${responsiveEditMode
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-ink-soft hover:bg-secondary hover:text-ink"
               }`}
             title={responsiveEditMode ? "Turn off Responsive Editing" : "Edit styles per screen size"}
             aria-label={responsiveEditMode ? "Turn off Responsive Editing" : "Edit styles per screen size"}
@@ -1060,10 +1109,140 @@ export function TemplateLivePreview({
         </div>
       </div>
 
+      {/* Mobile Top Header: Hamburger left, mode toggles + device center, Close right */}
+      {/* Mobile Top Header — cleaner spacing, segmented pill groups, better touch targets */}
+      <div className="flex lg:hidden h-14 shrink-0 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-3 gap-2">
+        {/* Left: Hamburger */}
+        <button
+          onClick={onOpenMobileMenu}
+          className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-surface text-ink-soft transition-colors hover:bg-secondary hover:text-ink active:scale-95"
+          title="Menu"
+          aria-label="Menu"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+
+        {/* Center: Mode toggles + Device controls, grouped as pills with a divider */}
+        <div className="flex flex-1 items-center justify-center gap-1.5 overflow-x-auto no-scrollbar">
+          {/* Mode toggles: Edit, Move, Responsive */}
+          <div className="inline-flex items-center gap-0.5 rounded-full border border-border bg-surface p-0.5 shrink-0">
+            <button
+              onClick={handleToggleEditMode}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${editMode
+                ? "bg-foreground text-background shadow-sm"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                }`}
+              title={editMode ? "Exit Edit" : "Edit"}
+              aria-label={editMode ? "Exit Edit" : "Edit"}
+            >
+              <PencilLine className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleToggleMoveModeClick}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${moveMode
+                ? "bg-foreground text-background shadow-sm"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                }`}
+              title={moveMode ? "Stop Moving" : "Move"}
+              aria-label={moveMode ? "Stop Moving" : "Move"}
+            >
+              <Move className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleToggleResponsiveEdit}
+              className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${responsiveEditMode
+                ? "bg-foreground text-background shadow-sm"
+                : "text-ink-soft hover:bg-secondary hover:text-ink"
+                }`}
+              title={responsiveEditMode ? "Responsive Off" : "Responsive"}
+              aria-label={responsiveEditMode ? "Responsive Off" : "Responsive"}
+            >
+              <MonitorSmartphone className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="h-5 w-px bg-border shrink-0" />
+
+          {/* Device / breakpoint controls */}
+          {responsiveEditMode ? (
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-border bg-surface p-0.5 shrink-0">
+              <button
+                onClick={() => handlePickBreakpoint("desktop")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${effectiveBreakpoint === "desktop"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Desktop"
+                aria-label="Desktop"
+              >
+                <Monitor className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => handlePickBreakpoint("tablet")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${effectiveBreakpoint === "tablet"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Tablet"
+                aria-label="Tablet"
+              >
+                <Tablet className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => handlePickBreakpoint("mobile")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${effectiveBreakpoint === "mobile"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Mobile"
+                aria-label="Mobile"
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-border bg-surface p-0.5 shrink-0">
+              <button
+                onClick={() => onDeviceChange("desktop")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${isDesktop
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Desktop"
+                aria-label="Desktop"
+              >
+                <Monitor className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => onDeviceChange("responsive")}
+                className={`grid h-8 w-8 cursor-pointer place-items-center rounded-full transition-all active:scale-95 ${!isDesktop
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-ink-soft hover:bg-secondary hover:text-ink"
+                  }`}
+                title="Responsive"
+                aria-label="Responsive"
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Close */}
+        <button
+          onClick={onClose}
+          className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-surface text-ink-soft transition-colors hover:bg-secondary hover:text-ink active:scale-95"
+          title="Close"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
       {isDesktop ? (
         <div
           ref={desktopScrollRef}
-          className="simple-scrollbar flex-1 min-h-0 overflow-auto p-4 md:p-6"
+          className="simple-scrollbar flex-1 min-h-0 overflow-auto p-2 sm:p-4 md:p-6"
           style={{ overscrollBehavior: "contain" }}
         >
           <div
@@ -1080,7 +1259,7 @@ export function TemplateLivePreview({
       ) : (
         <div
           ref={viewportRef}
-          className="flex-1 min-h-0 overflow-hidden flex items-center justify-center select-none"
+          className="flex-1 min-h-0 overflow-hidden flex items-center justify-center select-none p-1 sm:p-3"
           onWheel={(e) => {
             if (e.target === viewportRef.current) {
               const win = responsiveFrameRef.current?.contentWindow;
@@ -1103,7 +1282,7 @@ export function TemplateLivePreview({
               width={width}
               height={height}
               scale={scale}
-              isDragging={isDragging}
+              isDragging={isDragging || !!confirmState?.open}
               editMode={editMode}
               iframeRef={responsiveFrameRef}
               onDocumentReady={handleResponsiveDocumentReady}
@@ -1145,6 +1324,27 @@ export function TemplateLivePreview({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Save button in absolute screen free space on mobile */}
+      {onSave && (
+        <button
+          onClick={canSave ? handleSaveClick : undefined}
+          disabled={!canSave}
+          className={`lg:hidden fixed bottom-6 right-6 z-30 flex h-11 items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-2xl transition-all cursor-pointer ${canSave
+            ? "bg-foreground text-background hover:scale-105 active:scale-95 ring-2 ring-primary/40"
+            : "cursor-not-allowed bg-foreground/20 text-ink-soft/70 backdrop-blur-md"
+            }`}
+          title={
+            canSave
+              ? "Save changes"
+              : `Make ${REQUIRED_CHANGES - changesMade} more change${REQUIRED_CHANGES - changesMade === 1 ? "" : "s"
+              } to enable saving`
+          }
+        >
+          <Save className="h-4 w-4" />
+          <span>Save{changesMade < REQUIRED_CHANGES ? ` (${changesMade}/${REQUIRED_CHANGES})` : ""}</span>
+        </button>
       )}
 
       <ConfirmationDialog

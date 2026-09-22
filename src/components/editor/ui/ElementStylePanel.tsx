@@ -29,6 +29,7 @@ import {
 import type { PreviewElementEdit, PreviewElementStyle, ResponsiveBreakpoint } from "@/types/previewEditTypes";
 import type { Theme } from "@/types/builder.schema";
 import { isHexColor, to6DigitHex } from "@/lib/functions/template";
+import { extractElementComputedStyles } from "@/lib/functions/TemplateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -249,12 +250,18 @@ function parseGradient(css: string) {
 /* ---------------------------------- color picker ---------------------------------- */
 
 function ColorPicker({
+  id,
   label,
   value,
+  isOpen = false,
+  onOpenChange,
   onChange,
 }: {
+  id?: string;
   label: string;
   value: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onChange: (value: string) => void;
 }) {
   const safeHex = isHexColor(value) ? to6DigitHex(value) : "#ffffff";
@@ -279,6 +286,28 @@ function ColorPicker({
     setHexInput(hex6);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  // Capture-phase outside click listener guarantees closing when clicking outside
+  useEffect(() => {
+    if (!isOpen || !onOpenChange) return;
+
+    function handleCapturePointerDown(e: PointerEvent | MouseEvent) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (
+        target.closest("[data-element-color-popover]") ||
+        target.closest("[data-color-picker-trigger]")
+      ) {
+        return;
+      }
+      onOpenChange?.(false);
+    }
+
+    window.addEventListener("pointerdown", handleCapturePointerDown, true);
+    return () => {
+      window.removeEventListener("pointerdown", handleCapturePointerDown, true);
+    };
+  }, [isOpen, onOpenChange]);
 
   const applyHsv = (nh: number, ns: number, nv: number) => {
     const { r, g, b } = hsvToRgb(nh, ns, nv);
@@ -345,10 +374,11 @@ function ColorPicker({
       </div>
 
       <div className="flex flex-wrap items-center gap-1">
-        <Popover>
+        <Popover open={isOpen} onOpenChange={onOpenChange}>
           <PopoverTrigger asChild>
             <button
               type="button"
+              data-color-picker-trigger={id}
               className="h-5 w-5 shrink-0 rounded-full border border-border cursor-pointer relative overflow-hidden focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring hover:scale-105 transition-transform"
               title="Custom Color"
               style={{
@@ -362,7 +392,11 @@ function ColorPicker({
             </button>
           </PopoverTrigger>
 
-          <PopoverContent align="start" className="w-52 space-y-2 border border-border bg-popover p-2.5 z-[60] shadow-2xl rounded-xl">
+          <PopoverContent
+            align="start"
+            data-element-color-popover=""
+            className="w-52 space-y-2 border border-border bg-popover p-2.5 z-[60] shadow-2xl rounded-xl"
+          >
             <div
               ref={svRef}
               onPointerDown={dragSv}
@@ -585,13 +619,36 @@ export function ElementStylePanel({
 }: Props) {
   if (!edit) return null;
 
+  const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
+
+  const [computedStyles, setComputedStyles] = useState<Partial<PreviewElementStyle>>(
+    () => edit.computedStyle || {},
+  );
+
+  useEffect(() => {
+    if (!edit?.id) return;
+    try {
+      const el =
+        document.querySelector<HTMLElement>(`[data-preview-edit-id="${CSS.escape(edit.id)}"]`) ||
+        document.querySelector<HTMLElement>(`[data-preview-edit-id="${edit.id}"]`);
+      if (el) {
+        const extracted = extractElementComputedStyles(el);
+        setComputedStyles(extracted);
+      } else if (edit.computedStyle) {
+        setComputedStyles(edit.computedStyle);
+      }
+    } catch {
+      if (edit.computedStyle) setComputedStyles(edit.computedStyle);
+    }
+  }, [edit?.id, edit?.computedStyle]);
+
   const style = useMemo(() => {
-    const base = { ...edit.style };
+    const base: PreviewElementStyle = { ...computedStyles, ...edit.style };
     if (editBreakpoint && edit.style.responsive?.[editBreakpoint]) {
       Object.assign(base, edit.style.responsive[editBreakpoint]);
     }
     return base;
-  }, [edit.style, editBreakpoint]);
+  }, [computedStyles, edit.style, editBreakpoint]);
   const isHidden = Boolean(style.removed);
   const gradient = parseGradient(style.backgroundGradient || "");
 
@@ -612,11 +669,11 @@ export function ElementStylePanel({
   const activeCard = activeCardStyleKey(style);
 
   return (
-    <aside className="w-[320px] shrink-0 border-r border-l border-primary/25 text-sm flex flex-col h-full shadow-[0_0_50px_rgba(0,0,0,0.9)] rounded-none bg-black select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <aside className="w-full shrink-0 border-r border-l border-zinc-800 text-sm flex flex-col h-full rounded-none bg-zinc-950 select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Header matching TemplateSidebar */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-primary/20 px-4 bg-black/80 shadow-xs">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 px-4 bg-zinc-950 shadow-xs">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-zinc-950 border border-primary/30 shadow-xs text-primary">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-zinc-900 border border-zinc-800 shadow-xs text-zinc-200">
             <Sliders className="h-4 w-4" />
           </div>
           <div className="flex min-w-0 flex-col">
@@ -653,17 +710,17 @@ export function ElementStylePanel({
       </div>
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
-        <div className="px-3 py-2.5 shrink-0 border-b border-primary/20 bg-black/60">
-          <TabsList className="w-full h-9 grid grid-cols-5 gap-1 rounded-xl bg-zinc-950 border border-white/10 p-1">
-            <TabsTrigger value="text" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
-            <TabsTrigger value="fill" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
-            <TabsTrigger value="border" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
-            <TabsTrigger value="fx" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
-            <TabsTrigger value="layout" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 data-[state=active]:font-bold data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
+        <div className="px-3 py-2.5 shrink-0 border-b border-zinc-800 bg-zinc-950">
+          <TabsList className="w-full h-9 grid grid-cols-5 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
+            <TabsTrigger value="text" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
+            <TabsTrigger value="fill" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
+            <TabsTrigger value="border" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
+            <TabsTrigger value="fx" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
+            <TabsTrigger value="layout" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
           </TabsList>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-transparent">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-zinc-950">
           {/* Tab 1: Typography */}
           <TabsContent value="text" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
@@ -690,12 +747,11 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-primary/15" />
+              <Separator className="bg-zinc-800" />
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Style & Alignment</div>
-                <div className="space-y-1">
-                  <Label className={labelClass}>Formatting</Label>
+                <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                   <ToggleGroup
                     type="multiple"
                     value={formatValues}
@@ -705,36 +761,40 @@ export function ElementStylePanel({
                       underline: v.includes("underline"),
                       strikethrough: v.includes("strike"),
                     })}
-                    className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
+                    className="inline-flex w-full gap-0.5 rounded-lg border border-white/10 p-0.5 bg-zinc-950 h-8"
                   >
-                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
-                </div>
 
-                <div className="space-y-1">
-                  <Label className={labelClass}>Alignment</Label>
                   <ToggleGroup
                     type="single"
                     value={style.textAlign ?? "left"}
                     onValueChange={(v) => v && onChange({ textAlign: v as PreviewElementStyle["textAlign"] })}
-                    className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
+                    className="inline-flex w-full gap-0.5 rounded-lg border border-white/10 p-0.5 bg-zinc-950 h-8"
                   >
-                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
                   </ToggleGroup>
                 </div>
               </div>
 
-              <Separator className="bg-primary/15" />
+              <Separator className="bg-zinc-800" />
 
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Color & Shadow</div>
-                <ColorPicker label="Text Color" value={style.color ?? "#ffffff"} onChange={(color) => onChange({ color })} />
+                <ColorPicker
+                  id="text-color"
+                  label="Text Color"
+                  value={style.color ?? "#ffffff"}
+                  isOpen={activeColorPicker === "text-color"}
+                  onOpenChange={(open) => setActiveColorPicker(open ? "text-color" : null)}
+                  onChange={(color) => onChange({ color })}
+                />
 
                 <div className="space-y-1">
                   <Label className={labelClass}>Text Shadow</Label>
@@ -756,7 +816,14 @@ export function ElementStylePanel({
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Background Color</div>
-                <ColorPicker label="Color" value={style.backgroundColor ?? "#000000"} onChange={(backgroundColor) => onChange({ backgroundColor })} />
+                <ColorPicker
+                  id="bg-color"
+                  label="Color"
+                  value={style.backgroundColor ?? "#000000"}
+                  isOpen={activeColorPicker === "bg-color"}
+                  onOpenChange={(open) => setActiveColorPicker(open ? "bg-color" : null)}
+                  onChange={(backgroundColor) => onChange({ backgroundColor })}
+                />
               </div>
 
               <Separator className="bg-primary/15" />
@@ -779,8 +846,22 @@ export function ElementStylePanel({
                   <div className="space-y-3 rounded-xl border border-white/15 bg-zinc-950 p-3 shadow-xs">
                     <SliderField label="Angle" value={gradient.angle} min={0} max={360} unit="°" onChange={(angle) => onChange({ backgroundGradient: buildGradient(angle, gradient.colorA, gradient.colorB) })} />
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      <ColorPicker label="Stop A" value={gradient.colorA} onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })} />
-                      <ColorPicker label="Stop B" value={gradient.colorB} onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })} />
+                      <ColorPicker
+                        id="stop-a"
+                        label="Stop A"
+                        value={gradient.colorA}
+                        isOpen={activeColorPicker === "stop-a"}
+                        onOpenChange={(open) => setActiveColorPicker(open ? "stop-a" : null)}
+                        onChange={(colorA) => onChange({ backgroundGradient: buildGradient(gradient.angle, colorA, gradient.colorB) })}
+                      />
+                      <ColorPicker
+                        id="stop-b"
+                        label="Stop B"
+                        value={gradient.colorB}
+                        isOpen={activeColorPicker === "stop-b"}
+                        onOpenChange={(open) => setActiveColorPicker(open ? "stop-b" : null)}
+                        onChange={(colorB) => onChange({ backgroundGradient: buildGradient(gradient.angle, gradient.colorA, colorB) })}
+                      />
                     </div>
                   </div>
                 ) : null}
@@ -799,26 +880,9 @@ export function ElementStylePanel({
           <TabsContent value="border" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Corners</div>
-                <PresetRow<CornerKey>
-                  label="Preset"
-                  value={cornerKeyFromValue(style.borderRadius)}
-                  options={[
-                    { value: "sharp", text: "Sharp" },
-                    { value: "rounded", text: "Rounded" },
-                    { value: "pill", text: "Pill" },
-                  ]}
-                  onChange={(key) => onChange({ borderRadius: CORNER_MAP[key] })}
-                />
-                <NumberField label="Corner Radius" value={style.borderRadius ?? 0} min={0} max={120} unit="px" onChange={(borderRadius) => onChange({ borderRadius })} />
-              </div>
-
-              <Separator className="bg-primary/15" />
-
-              <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Border Line</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Stroke & Border</div>
                 <div className="grid grid-cols-2 gap-2">
-                  <NumberField label="Thickness" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
+                  <NumberField label="Stroke Width" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
                   <div className="space-y-1">
                     <Label className={labelClass}>Style</Label>
                     <Select value={style.borderStyle ?? "solid"} onValueChange={(borderStyle) => onChange({ borderStyle: borderStyle as PreviewElementStyle["borderStyle"] })}>
@@ -833,7 +897,16 @@ export function ElementStylePanel({
                   </div>
                 </div>
 
-                <ColorPicker label="Border Color" value={style.borderColor ?? "#ffffff"} onChange={(borderColor) => onChange({ borderColor })} />
+                <NumberField label="Corner Radius" value={style.borderRadius ?? 0} min={0} max={120} unit="px" onChange={(borderRadius) => onChange({ borderRadius })} />
+
+                <ColorPicker
+                  id="stroke-color"
+                  label="Stroke Color"
+                  value={style.borderColor ?? "#ffffff"}
+                  isOpen={activeColorPicker === "stroke-color"}
+                  onOpenChange={(open) => setActiveColorPicker(open ? "stroke-color" : null)}
+                  onChange={(borderColor) => onChange({ borderColor })}
+                />
               </div>
             </motion.div>
           </TabsContent>

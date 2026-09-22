@@ -23,7 +23,7 @@ export function AIProduct2Navbar({ props = { links: [] }, theme, onChange }: Pro
   const links = props?.links || [];
 
   return (
-    <header className={`w-full px-6 py-4 transition-colors ${props?.sticky ? "sticky top-0 z-50" : ""}`}>
+    <header className="w-full px-6 py-4 transition-colors relative z-20 h-full min-h-full flex items-center">
       <div
         className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5 rounded-2xl backdrop-blur-xl shadow-sm transition-all"
         style={{ backgroundColor: `${bg}E6`, border: `1px solid ${surface}`, color: ink }}

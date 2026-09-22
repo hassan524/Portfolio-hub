@@ -64,14 +64,29 @@ export function buildAppTsx(
         ? `{ ...siteData.blocks[${i}].props, logo: siteData.logo }`
         : `siteData.blocks[${i}].props`;
 
-    const componentTag = `<TextOverrideProvider overrides={(siteData.blocks[${i}].props as any)._textOverrides}><${alias} key="${block.id}" id="${block.id}" props={${propsExpr}} theme={siteData.theme} onChange={() => {}} /></TextOverrideProvider>`;
+    const blockThemeExpr = block.bgColor
+      ? `{ ...siteData.theme, bg: "${block.bgColor}", "bg-second": "${block.bgColor}", surface: "${block.bgColor}" }`
+      : `siteData.theme`;
 
-    const innerJsx = isNewBlock(block)
-      ? `<div style={{ height: "100%" }} className="[&>*]:h-full">${componentTag}</div>`
+    const componentTag = `<TextOverrideProvider overrides={(siteData.blocks[${i}].props as any)._textOverrides}><${alias} key="${block.id}" id="${block.id}" props={${propsExpr}} theme={${blockThemeExpr}} onChange={() => {}} /></TextOverrideProvider>`;
+
+    const innerJsx = block.height || isNewBlock(block)
+      ? `<div style={{ height: "100%" }} className="[&>*]:h-full [&>*]:min-h-full">${componentTag}</div>`
       : componentTag;
 
+    const isNavbar = block.props.kind === "navbar";
+    const navbarClass = isNavbar
+      ? `[&_header]:!relative [&_header]:!top-auto [&_header]:h-full [&_header]:min-h-full [&_header]:flex [&_header]:items-center [&_nav]:!relative [&_nav]:!top-auto [&_nav]:h-full [&_nav]:min-h-full [&_nav]:flex [&_nav]:items-center`
+      : "";
+    const heightClass = block.height
+      ? ` [&_section]:!h-full [&_section]:!min-h-full [&_header]:!h-full [&_header]:!min-h-full [&_nav]:!h-full [&_nav]:!min-h-full [&_footer]:!h-full [&_footer]:!min-h-full`
+      : "";
+    const customBgClass = block.bgColor
+      ? ` [&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] [&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]`
+      : "";
+
     renderLines.push(
-      `<div data-block-id="${block.id}" data-ai-product-theme={siteData.category === "AI Product" ? "true" : undefined} style={{ position: "relative"${block.height ? `, minHeight: "${block.height}px"` : ""}, ...(siteData.category === "AI Product" ? { "--ai-theme-bg": siteData.theme.bg, "--ai-theme-ink": siteData.theme.ink, "--ai-theme-accent": siteData.theme.accent, "--ai-theme-surface": siteData.theme.surface || siteData.theme.bg } : {}) }}>
+      `<div data-block-id="${block.id}" data-block-kind="${block.props.kind}" data-has-custom-bg={${block.bgColor ? '"true"' : "undefined"}} data-ai-product-theme={siteData.category === "AI Product" ? "true" : undefined} className="${navbarClass}${heightClass}${customBgClass}" style={{ position: "relative",${block.height ? ` minHeight: "${block.height}px", height: "${block.height}px",` : ""}${block.bgColor ? ` backgroundColor: "${block.bgColor}", "--block-bg": "${block.bgColor}",` : ""} ...(siteData.category === "AI Product" ? { "--ai-theme-bg": "${block.bgColor || ""}" || siteData.theme.bg, "--ai-theme-ink": siteData.theme.ink, "--ai-theme-accent": siteData.theme.accent, "--ai-theme-surface": "${block.bgColor || ""}" || siteData.theme.surface || siteData.theme.bg } : {}) }}>
         ${innerJsx}
       </div>`,
     );

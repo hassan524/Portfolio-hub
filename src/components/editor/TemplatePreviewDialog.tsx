@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { TemplateSidebar } from "./ui/TemplateSidebar";
+import { TemplateSidebar, type EditorControls } from "./ui/TemplateSidebar";
 import { TemplateLivePreview } from "./ui/TemplateLivePreview";
 import { ElementStylePanel } from "./ui/ElementStylePanel";
 import { SaveDeployModal, slugifyName } from "@/components/common/SaveDeployModal";
+import { toast } from "sonner";
 import { useAppContext } from "@/context/AppContext";
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
 import { SaveMode } from "@/components/common/SaveDeployModal";
@@ -25,7 +26,6 @@ import {
   handleFullscreenChange,
 } from "@/lib/functions/template";
 import { DeployModal } from "../common/Deploymodal";
-import { toast } from "sonner";
 import { PortfolioRow } from "@/types/portfolio";
 
 interface Props {
@@ -57,6 +57,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const [device, setDevice] = useState<"responsive" | "desktop">("desktop");
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
   const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
   const [websiteName, setWebsiteName] = useState("");
@@ -67,6 +68,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   const [responsiveEditMode, setResponsiveEditMode] = useState(false);
   const [editBreakpoint, setEditBreakpoint] = useState<ResponsiveBreakpoint>("desktop");
+  const [editorControls, setEditorControls] = useState<EditorControls | null>(null);
 
   // Numeric change counter — Save unlocks once the user has made enough
   // distinct edits (see REQUIRED_CHANGES threshold in TemplateLivePreview).
@@ -103,6 +105,21 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
     setDeployFiles(null);
   }, [template]);
 
+  // On mobile, default to responsive mode and show desktop hint toast
+  useEffect(() => {
+    if (!open) return;
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setDevice("responsive");
+      toast("This editor works best on desktop", {
+        description: "Switch to a larger screen for the full experience.",
+        position: "bottom-center",
+        duration: 4000,
+        style: { background: "#111", color: "#fff", border: "1px solid #333" },
+      });
+    }
+  }, [open]);
+
   useEffect(() => {
     function onFullscreenChange() {
       handleFullscreenChange(setIsMaximized);
@@ -116,6 +133,10 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const theme = site.theme ?? FALLBACK_THEME;
 
   // ── State Handler Delegates ──────────────────────────────────────────
+  const handleSelectElement = (elem: PreviewElementEdit | null) => {
+    setSelectedElement(elem);
+  };
+
   const handleUpdateBlockProps = (blockId: string, patch: Record<string, unknown>) => {
     updateBlockProps(setSite, blockId, patch);
     setChangeCount((c) => c + 1);
@@ -123,7 +144,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   const handleUpdateTheme = (patch: Partial<Theme>) => {
     updateTheme(setSite, patch, FALLBACK_THEME);
-    setChangeCount((c) => c + 1);
+    setChangeCount((c) => (c < 10 ? c + 1 : c));
   };
 
   const handleUpdateSiteMeta = (
@@ -254,14 +275,11 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
-              className={`relative border border-border bg-background shadow-lift overflow-hidden flex ${isMaximized
-                ? "h-screen w-screen rounded-none gap-2"
-                : "h-[94vh] w-[98vw] max-w-[1800px] rounded-3xl gap-3"
+              className={`relative border border-border bg-background shadow-lift overflow-hidden flex flex-col lg:flex-row ${isMaximized
+                ? "h-screen w-screen rounded-none gap-0 lg:gap-2"
+                : "h-full w-full sm:h-[94vh] sm:w-[98vw] max-w-[1800px] rounded-none sm:rounded-3xl gap-0 lg:gap-3"
                 }`}
             >
-              {/* Sidebar Controls - auto-collapses when element edit panel is open */}
-
-
               {/* Live Interactive Preview Canvas */}
               <TemplateLivePreview
                 site={site}
@@ -271,7 +289,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 onBreakpointChange={setEditBreakpoint}
                 activeSection={activeSection}
                 selectedElementId={selectedElement?.id ?? null}
-                onSelectElement={setSelectedElement}
+                onSelectElement={handleSelectElement}
                 onChangeElementStyle={handleChangeElementStyle}
                 onDeviceChange={setDevice}
                 onUpdateBlock={handleUpdateBlockProps}
@@ -285,35 +303,61 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 changeCount={changeCount}
                 contentRef={contentRef}
                 onThemeChange={handleUpdateTheme}
+                onOpenMobileMenu={() => setMobilePanelOpen(true)}
+                onControlsReady={setEditorControls}
               />
 
-              {!selectedElement && (
-                <TemplateSidebar
-                  site={site}
-                  theme={theme}
-                  activeSection={activeSection}
-                  onSectionChange={setActiveSection}
-                  onThemeChange={handleUpdateTheme}
-                  onSiteMetaChange={handleUpdateSiteMeta}
-                  onUpdateBlock={handleUpdateBlockProps}
-                  onReorderBlocks={handleReorderBlocks}
-                  onSave={handleSaveClick}
+              {/* Mobile overlay backdrop when panel is open on screens < lg */}
+              {mobilePanelOpen && (
+                <div
+                  className="lg:hidden fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+                  onClick={() => setMobilePanelOpen(false)}
                 />
               )}
 
-              {/* Element Fine-Tuning Panel */}
-              {selectedElement && (
-                <ElementStylePanel
-                  edit={selectedElement}
-                  theme={theme}
-                  responsiveEditMode={responsiveEditMode}
-                  editBreakpoint={editBreakpoint}
-                  onChange={(patch) => handleChangeElementStyle(selectedElement.id, patch)}
-                  onRemove={handleRemoveSelectedElement}
-                  onReset={handleResetSelectedElement}
-                  onClose={() => setSelectedElement(null)}
-                />
-              )}
+              {/* Sidebar Controls or Element Style Panel */}
+              <div
+                className={`
+                  fixed inset-y-0 left-0 z-[70] w-[280px] sm:w-[320px]
+                  lg:relative lg:inset-auto lg:z-auto lg:w-[320px] lg:max-w-none lg:order-last
+                  transition-transform duration-200 ease-out flex flex-col h-full shrink-0 bg-zinc-950
+                  ${mobilePanelOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto"}
+                `}
+              >
+                {!selectedElement && (
+                  <TemplateSidebar
+                    site={site}
+                    theme={theme}
+                    activeSection={activeSection}
+                    onSectionChange={setActiveSection}
+                    onThemeChange={handleUpdateTheme}
+                    onSiteMetaChange={handleUpdateSiteMeta}
+                    onUpdateBlock={handleUpdateBlockProps}
+                    onReorderBlocks={handleReorderBlocks}
+                    onSave={handleSaveClick}
+                    onMobileClose={() => setMobilePanelOpen(false)}
+                    editorControls={editorControls}
+                    responsiveEditMode={responsiveEditMode}
+                  />
+                )}
+
+                {/* Element Fine-Tuning Panel */}
+                {selectedElement && (
+                  <ElementStylePanel
+                    edit={selectedElement}
+                    theme={theme}
+                    responsiveEditMode={responsiveEditMode}
+                    editBreakpoint={editBreakpoint}
+                    onChange={(patch) => handleChangeElementStyle(selectedElement.id, patch)}
+                    onRemove={handleRemoveSelectedElement}
+                    onReset={handleResetSelectedElement}
+                    onClose={() => {
+                      setSelectedElement(null);
+                      setMobilePanelOpen(false);
+                    }}
+                  />
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}

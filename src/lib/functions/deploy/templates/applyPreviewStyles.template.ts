@@ -306,6 +306,12 @@ export function applyAllPreviewEdits(
 
     if (elements[\`\${blockId}:root\`]?.style) {
       applyPreviewStyle(blockRoot, elements[\`\${blockId}:root\`].style, breakpoint);
+      const rootBg = elements[\`\${blockId}:root\`].style.backgroundColor;
+      if (rootBg) {
+        blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer, header > div, nav > div").forEach((el) => {
+          el.style.setProperty("background-color", rootBg, "important");
+        });
+      }
     }
 
     blockRoot.querySelectorAll<HTMLElement>("*").forEach((element) => {

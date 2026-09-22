@@ -35,6 +35,8 @@ export function ThemeCircleRow({
   onThemeChange?: (patch: Partial<Theme>) => void;
   showLabels?: boolean;
 }) {
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+
   const NON_COLOR_KEYS = new Set([
     "fontHeading",
     "fontBody",
@@ -93,6 +95,8 @@ export function ThemeCircleRow({
             label={label}
             shortLabel={shortLabel}
             value={value}
+            isOpen={activeKey === key}
+            onOpenChange={(open) => setActiveKey(open ? key : null)}
             showLabel={showLabels}
             onChange={(next) => onThemeChange?.({ [key]: next } as Partial<Theme>)}
           />
@@ -106,12 +110,16 @@ export function ThemeCircle({
   label,
   shortLabel,
   value,
+  isOpen = false,
+  onOpenChange,
   onChange,
   showLabel = true,
 }: {
   label: string;
   shortLabel: string;
   value: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onChange: (value: string) => void;
   showLabel?: boolean;
 }) {
@@ -125,6 +133,7 @@ export function ThemeCircle({
   const [val, setVal] = useState(start.v);
   const [hexInput, setHexInput] = useState(safeHex);
 
+
   useEffect(() => {
     if (!isHexColor(value)) return;
     const hex6 = to6DigitHex(value);
@@ -137,6 +146,28 @@ export function ThemeCircle({
     setHexInput(hex6);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  // Capture-phase outside click listener guarantees closing when clicking anywhere outside
+  useEffect(() => {
+    if (!isOpen || !onOpenChange) return;
+
+    function handleCapturePointerDown(e: PointerEvent | MouseEvent) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (
+        target.closest("[data-theme-popover-content]") ||
+        target.closest("[data-theme-circle-trigger]")
+      ) {
+        return;
+      }
+      onOpenChange?.(false);
+    }
+
+    window.addEventListener("pointerdown", handleCapturePointerDown, true);
+    return () => {
+      window.removeEventListener("pointerdown", handleCapturePointerDown, true);
+    };
+  }, [isOpen, onOpenChange]);
 
   const applyHsv = (nh: number, ns: number, nv: number) => {
     const { r, g, b } = hsvToRgb(nh, ns, nv);
@@ -196,12 +227,13 @@ export function ThemeCircle({
   };
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         {showLabel ? (
           <div className="flex w-12 flex-col items-center gap-1">
             <button
               type="button"
+              data-theme-circle-trigger={label}
               aria-label={`${label} color`}
               className="group relative h-6 w-6 shrink-0 rounded-full cursor-pointer transition-all duration-200 ease-out hover:scale-[1.12] active:scale-95"
               style={{
@@ -223,6 +255,7 @@ export function ThemeCircle({
         ) : (
           <button
             type="button"
+            data-theme-circle-trigger={label}
             aria-label={`${label} color`}
             className="group relative h-5 w-5 shrink-0 rounded-full cursor-pointer transition-all duration-200 ease-out hover:scale-110 active:scale-95 border border-border/60"
             style={{
@@ -240,7 +273,11 @@ export function ThemeCircle({
         )}
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-56 space-y-3 border-border bg-surface p-3 z-[60] rounded-xl shadow-lg">
+      <PopoverContent
+        align="start"
+        data-theme-popover-content=""
+        className="w-56 space-y-3 border-border bg-surface p-3 z-[60] rounded-xl shadow-lg"
+      >
         <div className="text-[10px] font-bold uppercase tracking-wide text-foreground">
           {label}
         </div>

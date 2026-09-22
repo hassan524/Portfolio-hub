@@ -80,6 +80,7 @@ export type PreviewElementEdit = {
   style: PreviewElementStyle;
   computedWidth?: string;
   computedHeight?: string;
+  computedStyle?: Partial<PreviewElementStyle>;
 };
 
 export type PreviewEditState = {

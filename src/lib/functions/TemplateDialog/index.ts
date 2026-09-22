@@ -71,7 +71,7 @@ export function updateBlockProps(
 ): void {
   setSite((prev) => {
     if (!prev) return prev;
-    const { height, label, name, elementStyle, ...restProps } = patch;
+    const { height, label, name, bgColor ,elementStyle, ...restProps } = patch;
 
     const updatedBlocks = prev.blocks.map((b) => {
       if (b.id !== blockId) return b;
@@ -80,13 +80,18 @@ export function updateBlockProps(
         ...(height !== undefined ? { height: height as number } : {}),
         ...(label !== undefined ? { label: label as string } : {}),
         ...(name !== undefined ? { name: name as string } : {}),
-        props: { ...b.props, ...restProps },
+        ...(bgColor !== undefined ? { bgColor: bgColor as string } : {}), // ← and this line
+        props: {
+          ...b.props,
+          ...restProps,
+          ...(bgColor !== undefined ? { backgroundColor: bgColor as string } : {}),
+        },
       };
     });
 
     let nextPreviewEdits = prev.previewEdits;
 
-    if (elementStyle) {
+    if (elementStyle || bgColor !== undefined) {
       const targetElementId = `${blockId}:root`;
       const prevElements = prev.previewEdits?.elements ?? {};
       const targetBlock = updatedBlocks.find((b) => b.id === blockId);
@@ -101,6 +106,7 @@ export function updateBlockProps(
         style: {
           ...(prevElements[targetElementId]?.style ?? {}),
           ...(elementStyle as Partial<PreviewElementStyle>),
+          ...(bgColor !== undefined ? { backgroundColor: bgColor as string } : {}),
         },
       };
 
@@ -383,6 +389,7 @@ export function handleInteractivePreviewClick(
     : getElementLabel(element);
 
   const rect = element.getBoundingClientRect();
+  const computedStyle = extractElementComputedStyles(element);
   const nextSelection: PreviewElementEdit = {
     id: elementId,
     blockId: block.id,
@@ -391,6 +398,7 @@ export function handleInteractivePreviewClick(
     style: site.previewEdits?.elements[elementId]?.style ?? {},
     computedWidth: `${Math.round(rect.width)}px`,
     computedHeight: `${Math.round(rect.height)}px`,
+    computedStyle,
   };
 
   e.stopPropagation();
@@ -400,6 +408,70 @@ export function handleInteractivePreviewClick(
 // Turns edit mode on/off. Turning it ON auto-selects the first editable
 // element inside the currently active section, so the sidebar has something
 // to show right away. Turning it OFF clears the selection and move mode.
+export function selectFirstEditableElement(
+  sortedBlocks: Block[],
+  site: PreviewEditableSite,
+  container: HTMLElement | null | undefined,
+  activeSection: string,
+  onSelectElement?: (edit: PreviewElementEdit | null) => void,
+): void {
+  if (!onSelectElement) return;
+
+  const activeBlock =
+    sortedBlocks.find((block) => block.props.kind === activeSection) ?? sortedBlocks.find(Boolean);
+
+  let targetElement: HTMLElement | null = null;
+  let targetBlock = activeBlock;
+
+  if (container) {
+    if (activeBlock) {
+      const blockRoot = container.querySelector<HTMLElement>(`[data-block-id="${activeBlock.id}"]`);
+      targetElement = blockRoot?.querySelector<HTMLElement>(
+        '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
+      ) ?? null;
+    }
+    if (!targetElement) {
+      targetElement = container.querySelector<HTMLElement>(
+        '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
+      );
+      if (targetElement) {
+        const blkId = targetElement.closest<HTMLElement>("[data-block-id]")?.dataset.blockId;
+        if (blkId) {
+          targetBlock = sortedBlocks.find((b) => b.id === blkId) ?? activeBlock;
+        }
+      }
+    }
+  }
+
+  if (targetBlock && targetElement) {
+    const elementId = targetElement.dataset.previewEditId ?? "";
+    const firstChildRect = targetElement.getBoundingClientRect();
+    const firstChildComputed = extractElementComputedStyles(targetElement);
+    onSelectElement({
+      id: elementId,
+      blockId: targetBlock.id,
+      blockKind: targetBlock.props.kind,
+      label: getElementLabel(targetElement),
+      style: site.previewEdits?.elements[elementId]?.style ?? {},
+      computedWidth: `${Math.round(firstChildRect.width)}px`,
+      computedHeight: `${Math.round(firstChildRect.height)}px`,
+      computedStyle: firstChildComputed,
+    });
+  } else if (targetBlock) {
+    const fallbackId = `${targetBlock.id}:title`;
+    onSelectElement({
+      id: fallbackId,
+      blockId: targetBlock.id,
+      blockKind: targetBlock.props.kind,
+      label: "Heading",
+      style: site.previewEdits?.elements[fallbackId]?.style ?? {},
+      computedWidth: "auto",
+      computedHeight: "auto",
+      computedStyle: {},
+    });
+  }
+}
+
 export function handleInteractiveToggleEditMode(
   editMode: boolean,
   setEditMode: Dispatch<SetStateAction<boolean>>,
@@ -411,29 +483,13 @@ export function handleInteractiveToggleEditMode(
   onSelectElement?: (edit: PreviewElementEdit | null) => void,
 ): void {
   if (!editMode && onSelectElement) {
-    const activeBlock =
-      sortedBlocks.find((block) => block.props.kind === activeSection) ?? sortedBlocks.find(Boolean);
-    const blockRoot = activeBlock
-      ? contentRef.current?.querySelector<HTMLElement>(`[data-block-id="${activeBlock.id}"]`)
-      : null;
-    const firstChild =
-      blockRoot?.querySelector<HTMLElement>(
-        '[data-preview-edit-id]:not([data-preview-edit-id$=":root"])',
-      ) ?? null;
-
-    if (activeBlock && firstChild) {
-      const elementId = firstChild.dataset.previewEditId ?? "";
-      const firstChildRect = firstChild.getBoundingClientRect();
-      onSelectElement({
-        id: elementId,
-        blockId: activeBlock.id,
-        blockKind: activeBlock.props.kind,
-        label: getElementLabel(firstChild),
-        style: site.previewEdits?.elements[elementId]?.style ?? {},
-        computedWidth: `${Math.round(firstChildRect.width)}px`,
-        computedHeight: `${Math.round(firstChildRect.height)}px`,
-      });
-    }
+    selectFirstEditableElement(
+      sortedBlocks,
+      site,
+      contentRef.current,
+      activeSection,
+      onSelectElement,
+    );
   }
 
   if (editMode) {
@@ -870,6 +926,12 @@ export function ensurePreviewEffectsStylesheet(doc: Document | null | undefined)
     [data-entrance-fx="fade"] { animation: pe-fade-in 0.5s ease both; }
     [data-entrance-fx="slideUp"] { animation: pe-slide-up 0.5s ease both; }
     [data-entrance-fx="zoom"] { animation: pe-zoom-in 0.4s ease both; }
+
+    [data-block-kind="navbar"] header,
+    [data-block-kind="navbar"] nav {
+      position: relative !important;
+      top: auto !important;
+    }
   `;
   doc.head.appendChild(styleEl);
 }
@@ -892,6 +954,36 @@ export function tagAndApplyPreviewStyles(
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
+
+    const block = blocks.find((b) => b.id === blockId);
+    if (block?.bgColor) {
+      blockRoot.style.setProperty("background-color", block.bgColor, "important");
+      blockRoot.style.setProperty("--block-bg", block.bgColor);
+      const topContainers = blockRoot.querySelectorAll<HTMLElement>(
+        "section, nav, header, footer, header > div, nav > div"
+      );
+      topContainers.forEach((tc) => {
+        if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+          tc.style.setProperty("background-color", block.bgColor!, "important");
+        }
+      });
+    }
+
+    if (block?.height) {
+      blockRoot.style.setProperty("height", `${block.height}px`, "important");
+      blockRoot.style.setProperty("min-height", `${block.height}px`, "important");
+      const topContainers = blockRoot.querySelectorAll<HTMLElement>(
+        "section, nav, header, footer"
+      );
+      topContainers.forEach((tc) => {
+        if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+          tc.style.setProperty("height", "100%", "important");
+          tc.style.setProperty("min-height", "100%", "important");
+        }
+      });
+    } else {
+      blockRoot.style.removeProperty("height");
+    }
 
     if (!blockRoot.dataset.previewEditId) {
       stampEditableElement(blockRoot, blockId, "root");
@@ -1808,6 +1900,119 @@ export function to6DigitHex(value: string): string {
   return "#ffffff";
 }
 
+export function rgbStringToHex(colorStr: string): string | null {
+  if (!colorStr) return null;
+  const trimmed = colorStr.trim();
+  if (trimmed.startsWith("#")) return to6DigitHex(trimmed);
+  const match = trimmed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/i);
+  if (!match) return null;
+  const r = parseInt(match[1], 10);
+  const g = parseInt(match[2], 10);
+  const b = parseInt(match[3], 10);
+  const a = match[4] !== undefined ? parseFloat(match[4]) : 1;
+  if (a === 0) return null;
+  return (
+    "#" +
+    [r, g, b]
+      .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+export function extractElementComputedStyles(element: HTMLElement): Partial<PreviewElementStyle> {
+  try {
+    const computed = window.getComputedStyle(element);
+    const result: Partial<PreviewElementStyle> = {};
+
+    // 1. Text color
+    const textColor = rgbStringToHex(computed.color);
+    if (textColor) result.color = textColor;
+
+    // 2. Background color
+    const bgColor = rgbStringToHex(computed.backgroundColor);
+    if (bgColor) result.backgroundColor = bgColor;
+
+    // 3. Border / Stroke
+    const borderColor = rgbStringToHex(computed.borderColor);
+    if (borderColor) result.borderColor = borderColor;
+    const bw = parseFloat(computed.borderWidth);
+    if (!isNaN(bw) && bw > 0) {
+      result.borderWidth = Math.round(bw);
+      if (computed.borderStyle && computed.borderStyle !== "none") {
+        result.borderStyle = computed.borderStyle as any;
+      }
+    }
+
+    // 4. Text alignment: left / center / right / justify
+    const align = (computed.textAlign || "").toLowerCase().trim();
+    if (align === "center") {
+      result.textAlign = "center";
+    } else if (align === "right" || align === "end") {
+      result.textAlign = "right";
+    } else if (align === "justify") {
+      result.textAlign = "justify";
+    } else if (align === "left" || align === "start") {
+      result.textAlign = "left";
+    }
+
+    // 5. Typography formatting
+    const fw = (computed.fontWeight || "").toLowerCase();
+    const fwNum = parseInt(fw, 10);
+    if (fw === "bold" || fw === "bolder" || (!isNaN(fwNum) && fwNum >= 600)) {
+      result.bold = true;
+    } else if (fw === "normal" || (!isNaN(fwNum) && fwNum <= 400)) {
+      result.bold = false;
+    }
+
+    if (computed.fontStyle === "italic") {
+      result.italic = true;
+    }
+
+    const td = computed.textDecorationLine || computed.textDecoration || "";
+    if (td.includes("underline")) {
+      result.underline = true;
+    }
+    if (td.includes("line-through")) {
+      result.strikethrough = true;
+    }
+
+    // 6. Font size & line height & letter spacing
+    const fs = parseFloat(computed.fontSize);
+    if (!isNaN(fs) && fs > 0) {
+      result.fontSize = Math.round(fs);
+    }
+
+    const lh = parseFloat(computed.lineHeight);
+    if (!isNaN(lh) && !isNaN(fs) && fs > 0) {
+      const ratio = Math.round((lh / fs) * 10) / 10;
+      if (ratio >= 0.8 && ratio <= 3) {
+        result.lineHeight = ratio;
+      }
+    }
+
+    const ls = parseFloat(computed.letterSpacing);
+    if (!isNaN(ls)) {
+      result.letterSpacing = Math.round(ls * 10) / 10;
+    }
+
+    // 7. Border radius (corners)
+    const br = parseFloat(computed.borderRadius);
+    if (!isNaN(br) && br >= 0) {
+      result.borderRadius = Math.round(br);
+    }
+
+    // 8. Opacity
+    const op = parseFloat(computed.opacity);
+    if (!isNaN(op) && op < 1) {
+      result.opacity = op;
+    }
+
+    return result;
+  } catch {
+    return {};
+  }
+}
+
 // Adds a fresh blank block into the list at a sensible default position.
 export function handleAddBlock(
   sortedBlocks: Block[],
@@ -1844,7 +2049,12 @@ export function handleBlockHeightChange(
   rawValue: string,
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void,
 ): void {
-  onUpdateBlock(blockId, { height: rawValue === "" ? undefined : Number(rawValue) });
+  if (rawValue.trim() === "") {
+    onUpdateBlock(blockId, { height: undefined });
+    return;
+  }
+  const num = Number(rawValue);
+  onUpdateBlock(blockId, { height: isNaN(num) ? undefined : Math.max(0, Math.round(num)) });
 }
 
 // Replaces one item inside an array-valued field (e.g. a list of testimonials)

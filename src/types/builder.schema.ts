@@ -212,6 +212,7 @@ export type Block = {
   order: number;
   props: BlockProps;
   height?: number;
+  bgColor?: string;
   label?: string;
   isCustom?: boolean;
   name?: string;

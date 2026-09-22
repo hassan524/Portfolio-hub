@@ -16,7 +16,7 @@ export function AIProduct3Navbar({ props = {}, theme, onChange }: Props) {
   const accent = theme?.accent || "#FF3B76";
 
   return (
-    <header className="w-full px-4 sm:px-8 py-5 sticky top-0 z-50 transition-all">
+    <header className="w-full px-4 sm:px-8 py-5 relative z-20 transition-all h-full min-h-full flex items-center">
       <div 
         className="max-w-7xl mx-auto flex items-center justify-between px-5 sm:px-7 py-3.5 rounded-2xl border backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.45)] transition-all duration-300"
         style={{ 
