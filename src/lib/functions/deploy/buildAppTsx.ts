@@ -106,19 +106,19 @@ export default function App() {
   const mainRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
-    applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits);
+    applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits, (siteData as any).blocks);
 
     const handleResize = () => {
-      applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits);
+      applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits, (siteData as any).blocks);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
-    applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits);
+    applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits, (siteData as any).blocks);
     const observer = new MutationObserver(() => {
-      applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits);
+      applyAllPreviewEdits(mainRef.current, (siteData as any).previewEdits, (siteData as any).blocks);
     });
     if (mainRef.current) {
       observer.observe(mainRef.current, { childList: true, subtree: true });

@@ -30,6 +30,8 @@ import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
 import { DraggableBlockWrapper } from "./DraggableBlockWrapper";
 import { TextOverrideProvider } from "./Editable";
+import { getImageOverrides } from "@/lib/imageOverrideUtils";
+import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { ThemeCircleRow } from "./ThemeColorPicker";
 import type { EditorControls } from "./TemplateSidebar";
 import type {
@@ -111,6 +113,7 @@ export function TemplateLivePreview({
   onThemeChange,
   onOpenMobileMenu,
   onControlsReady,
+  sectionLinks = [],
 }: {
   site: PreviewEditableSite;
   device: Device;
@@ -152,6 +155,7 @@ export function TemplateLivePreview({
   // Mobile menu & external controls
   onOpenMobileMenu?: () => void;
   onControlsReady?: (controls: EditorControls) => void;
+  sectionLinks?: string[];
 }) {
   const { theme, blocks } = site;
   const bg = theme.bg;
@@ -171,10 +175,6 @@ export function TemplateLivePreview({
   const dragRafRef = useRef<number | null>(null);
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null);
   const isDesktop = device === "desktop";
-
-  console.log(
-    "site", site
-  )
 
   /* ---------------------------------------------------------------------- */
   /*                    LOCAL CONFIRM MODAL (context-free)                   */
@@ -220,6 +220,7 @@ export function TemplateLivePreview({
     width: DEFAULT_RESPONSIVE_WIDTH,
     height: DEFAULT_RESPONSIVE_HEIGHT,
   });
+  const { width, height } = size;
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(1);
   const [resizingBlock, setResizingBlock] = useState<{
@@ -231,7 +232,6 @@ export function TemplateLivePreview({
   const [dragGuides, setDragGuides] = useState<GuideLine[]>([]);
   const [draggingElementId, setDraggingElementId] = useState<string | null>(null);
   const hoveredElementRef = useRef<HTMLElement | null>(null);
-
   const resizingRef = useRef<typeof resizingBlock>(null);
   useEffect(() => {
     resizingRef.current = resizingBlock;
@@ -252,8 +252,6 @@ export function TemplateLivePreview({
       desktopScrollRef.current?.scrollTo({ top: 0, left: 0 });
     }
   }, [isDesktop]);
-
-  const { width, height } = size;
 
   /* ---------------------------------------------------------------------- */
   /*                    RESPONSIVE PER-BREAKPOINT EDITING                    */
@@ -505,6 +503,7 @@ export function TemplateLivePreview({
   function handlePreviewClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement;
     const anchor = target.closest("a");
+    const linkedElement = target.closest<HTMLElement>("[data-preview-link-href]");
 
     if (anchor) {
       e.preventDefault();
@@ -532,6 +531,16 @@ export function TemplateLivePreview({
         }
       } else if (href && href.startsWith("http")) {
         window.open(href, "_blank", "noopener,noreferrer");
+      }
+    } else if (linkedElement?.dataset.previewLinkHref) {
+      e.preventDefault();
+      const href = linkedElement.dataset.previewLinkHref;
+      if (href.startsWith("#")) {
+        const id = href.slice(1);
+        const targetEl = contentRef.current?.querySelector(`[id="${id}"]`);
+        targetEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (/^https?:\/\//i.test(href)) {
+        window.open(href, linkedElement.dataset.previewLinkTarget === "_self" ? "_self" : "_blank", "noopener,noreferrer");
       }
     } else if (target.closest("button")) {
       const btn = target.closest("button") as HTMLButtonElement;
@@ -712,10 +721,22 @@ export function TemplateLivePreview({
     }, 1500);
   }
 
+  const handleBlendBlock = (blockId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const patch = blendBlockWithNeighbors(
+      blockId,
+      blocks,
+      theme,
+      site,
+      contentRef.current,
+    );
+    onUpdateBlock(blockId, patch);
+  };
+
   const previewContent = (
     <div
       ref={contentRef}
-      className={`min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
+      className={`relative min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
       style={{ background: bg, color: ink }}
       onClick={handlePreviewClick}
       onMouseDown={handleContentMouseDown}
@@ -742,6 +763,13 @@ export function TemplateLivePreview({
               const componentProps =
                 block.props.kind === "navbar" || block.props.kind === "footer"
                   ? { ...block.props, logo: site.logo }
+                  : block.props.kind === "spacer"
+                  ? {
+                      ...block.props,
+                      backgroundColor: block.bgColor || (block.props as Record<string, unknown>).backgroundColor,
+                      backgroundImage: block.bgColor ? "none" : (block.props as Record<string, unknown>).backgroundImage,
+                      isBlended: block.bgColor ? false : Boolean((block.props as Record<string, unknown>).isBlended),
+                    }
                   : block.props;
               const isNewBlock = Boolean(
                 block.isCustom ||
@@ -769,19 +797,16 @@ export function TemplateLivePreview({
                     data-block-kind={block.props.kind}
                     data-has-custom-bg={block.bgColor ? "true" : undefined}
                     data-ai-product-theme={site.category === "AI Product" ? "true" : undefined}
-                    className={`relative group/block ${
-                      isNavbar
-                        ? "[&_header]:!relative [&_header]:!top-auto [&_header]:h-full [&_header]:min-h-full [&_header]:flex [&_header]:items-center [&_nav]:!relative [&_nav]:!top-auto [&_nav]:h-full [&_nav]:min-h-full [&_nav]:flex [&_nav]:items-center"
-                        : ""
-                    } ${
-                      block.height
+                    className={`relative group/block ${isNavbar
+                      ? "[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 [&_nav]:!relative [&_nav]:!top-auto [&_nav]:!h-auto [&_nav]:!min-h-0"
+                      : ""
+                      } ${block.height && !isNavbar
                         ? "[&_section]:!h-full [&_section]:!min-h-full [&_header]:!h-full [&_header]:!min-h-full [&_nav]:!h-full [&_nav]:!min-h-full [&_footer]:!h-full [&_footer]:!min-h-full"
                         : ""
-                    } ${
-                      block.bgColor
+                      } ${block.bgColor
                         ? "[&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] [&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]"
                         : ""
-                    } ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""}`}
+                      } ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""}`}
                     style={{
                       ...(isActive ? { outlineColor: theme.accent } : undefined),
                       minHeight: block.height ? `${block.height}px` : undefined,
@@ -811,19 +836,9 @@ export function TemplateLivePreview({
                         {isNewBlock && (
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const patch = blendBlockWithNeighbors(
-                                block.id,
-                                blocks,
-                                theme,
-                                site,
-                                contentRef.current,
-                              );
-                              onUpdateBlock(block.id, patch);
-                            }}
+                            onClick={(e) => handleBlendBlock(block.id, e)}
                             className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
-                            title="Blend block style & colors dynamically with portfolio"
+                            title="Blend block style and colors dynamically with portfolio"
                           >
                             <PencilLine className="h-3 w-3 text-accent" />
                             Blend
@@ -836,23 +851,27 @@ export function TemplateLivePreview({
                     )}
 
                     <div style={{ height: block.height ? "100%" : undefined }} className={block.height ? "h-full [&>*]:!h-full [&>*]:!min-h-full" : undefined}>
-                      <TextOverrideProvider
-                        overrides={
-                          ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
-                            string,
-                            string
-                          >
-                        }
+                      <RenderedImageOverrides
+                        overrides={getImageOverrides(componentProps as Record<string, unknown>)}
                       >
-                        <Cmp
-                          id={block.id}
-                          props={componentProps}
-                          theme={blockTheme}
-                          onChange={(patch: Record<string, unknown>) =>
-                            editMode ? onUpdateBlock(block.id, patch) : undefined
+                        <TextOverrideProvider
+                          overrides={
+                            ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
+                              string,
+                              string
+                            >
                           }
-                        />
-                      </TextOverrideProvider>
+                        >
+                          <Cmp
+                            id={block.id}
+                            props={componentProps}
+                            theme={blockTheme}
+                            onChange={(patch: Record<string, unknown>) =>
+                              editMode ? onUpdateBlock(block.id, patch) : undefined
+                            }
+                          />
+                        </TextOverrideProvider>
+                      </RenderedImageOverrides>
                     </div>
 
                     {draggingElementId?.startsWith(`${block.id}:`) && (
@@ -1346,6 +1365,8 @@ export function TemplateLivePreview({
           <span>Save{changesMade < REQUIRED_CHANGES ? ` (${changesMade}/${REQUIRED_CHANGES})` : ""}</span>
         </button>
       )}
+
+
 
       <ConfirmationDialog
         open={!!confirmState?.open}

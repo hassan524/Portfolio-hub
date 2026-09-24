@@ -87,6 +87,10 @@ export function applyPreviewStyle(
     }
   };
 
+  const linkHref = resolve("linkHref");
+  const linkTarget = resolve("linkTarget") || (linkHref && /^https?:\\/\\//i.test(linkHref) ? "_blank" : "_self");
+  applyElementLink(element, typeof linkHref === "string" ? linkHref : "", linkTarget || "_self");
+
   // Typography
   const bold = resolve("bold");
   const fontWeight = resolve("fontWeight");
@@ -285,9 +289,65 @@ export function applyPreviewStyle(
   }
 }
 
+function applyElementLink(element: HTMLElement, href: string, target: string): void {
+  const existingWrapper = element.parentElement?.dataset.previewLinkWrapper === "true"
+    ? element.parentElement
+    : null;
+
+  if (!href) {
+    element.removeAttribute("data-preview-link-href");
+    element.removeAttribute("data-preview-link-target");
+    element.style.removeProperty("cursor");
+    if (element instanceof HTMLAnchorElement && element.dataset.previewLinkOwner === "true") {
+      element.removeAttribute("href");
+      element.removeAttribute("target");
+      element.removeAttribute("rel");
+      element.removeAttribute("data-preview-link-owner");
+    }
+    if (existingWrapper?.parentElement) {
+      existingWrapper.replaceWith(element);
+    }
+    return;
+  }
+
+  element.dataset.previewLinkHref = href;
+  element.dataset.previewLinkTarget = target;
+  element.style.setProperty("cursor", "pointer");
+
+  if (element.dataset.previewEditId?.endsWith(":root")) return;
+
+  const anchor = element.closest("a");
+  if (anchor instanceof HTMLAnchorElement) {
+    anchor.href = href;
+    anchor.target = target;
+    anchor.rel = target === "_blank" ? "noopener noreferrer" : "";
+    anchor.dataset.previewLinkOwner = "true";
+    return;
+  }
+
+  if (existingWrapper instanceof HTMLAnchorElement) {
+    existingWrapper.href = href;
+    existingWrapper.target = target;
+    existingWrapper.rel = target === "_blank" ? "noopener noreferrer" : "";
+    return;
+  }
+
+  const wrapper = element.ownerDocument.createElement("a");
+  wrapper.href = href;
+  wrapper.target = target;
+  wrapper.rel = target === "_blank" ? "noopener noreferrer" : "";
+  wrapper.dataset.previewLinkWrapper = "true";
+  wrapper.style.color = "inherit";
+  wrapper.style.textDecoration = "none";
+  wrapper.style.display = getComputedStyle(element).display === "block" ? "block" : "inline-block";
+  element.replaceWith(wrapper);
+  wrapper.appendChild(element);
+}
+
 export function applyAllPreviewEdits(
   root: HTMLElement | null,
   previewEdits: any,
+  blocks: any[] = [],
 ): void {
   if (!root || !previewEdits?.elements) return;
 
@@ -299,6 +359,11 @@ export function applyAllPreviewEdits(
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
+    const block = blocks.find((candidate) => candidate.id === blockId);
+    const sectionId = block ? getBlockSectionId(block) : "";
+    if (sectionId && !blockRoot.querySelector(\`#\${sectionId}\`)) {
+      blockRoot.id = sectionId;
+    }
 
     if (!blockRoot.dataset.previewEditId) {
       blockRoot.dataset.previewEditId = \`\${blockId}:root\`;
@@ -326,5 +391,18 @@ export function applyAllPreviewEdits(
       }
     });
   });
+}
+
+function getBlockSectionId(block) {
+  if (block && block.sectionHref !== undefined) {
+    const clean = String(block.sectionHref).replace(/^#+/, "").trim();
+    if (!clean) return "";
+    return clean.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+  const kind = block.props?.kind || block.kind;
+  const raw = kind === "hero"
+    ? "home"
+    : (block.label || block.name || kind);
+  return String(raw).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 `.trim() + "\n";

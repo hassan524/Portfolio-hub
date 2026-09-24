@@ -12,13 +12,13 @@ import {
   Image as ImageIcon,
   Files,
   Sparkles,
+  Link as LinkIcon,
 } from "lucide-react";
 
 import type { Block, SiteData, Theme } from "@/types/builder.schema";
-
+import { uploadBlockImage } from "@/lib/uploadBlockImage";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { blendBlockWithNeighbors } from "@/lib/functions/blockBlend";
-
 import {
   handleAddBlock as handleAddBlockFn,
   moveSidebarBlock,
@@ -127,7 +127,12 @@ export function TemplateSidebar({
         const existed = sortedBlocks.some((b) => b.id === nb.id);
         if (existed) return nb;
         const isSpacerDefault = (nb.label ?? "").toLowerCase() === "spacer";
-        return isSpacerDefault ? { ...nb, label: "New Block" } : nb;
+        return {
+          ...nb,
+          label: isSpacerDefault ? "New Block" : (nb.label ?? "New Block"),
+          sectionHref: "",
+          bgColor: nb.bgColor ?? theme.bg,
+        };
       });
       onReorderBlocks(patched);
     });
@@ -201,32 +206,32 @@ export function TemplateSidebar({
         </div>
 
         <Tabs defaultValue="blocks" className="flex min-h-0 flex-1 flex-col gap-0">
-          <div className="px-3 py-2.5 shrink-0 border-b border-zinc-800 bg-zinc-950">
-            <TabsList className="w-full h-9 grid grid-cols-4 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
+          <div className="shrink-0 border-b border-zinc-800">
+            <TabsList className="w-full h-9 rounded-none! grid grid-cols-4 gap-0 bg-background p-0">
               <TabsTrigger
                 value="blocks"
-                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+                className="cursor-pointer flex h-full items-center justify-center gap-1.5 rounded-none! text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
               >
                 <LayoutGrid className="h-3 w-3" />
                 Blocks
               </TabsTrigger>
               <TabsTrigger
                 value="text"
-                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+                className="cursor-pointer flex h-full items-center justify-center gap-1.5 rounded-none! text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
               >
                 <Type className="h-3 w-3" />
                 Text
               </TabsTrigger>
               <TabsTrigger
                 value="images"
-                className="cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+                className="cursor-pointer flex h-full items-center justify-center gap-1.5 rounded-none! text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
               >
                 <ImageIcon className="h-3 w-3" />
                 Images
               </TabsTrigger>
               <TabsTrigger
                 value="pages"
-                className="relative cursor-pointer flex items-center justify-center gap-1.5 rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
+                className="relative cursor-pointer flex h-full items-center justify-center gap-1.5 rounded-none! text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all"
               >
                 <Files className="h-3 w-3" />
                 Pages
@@ -237,12 +242,12 @@ export function TemplateSidebar({
           <div className="min-h-0 flex-1 overflow-y-auto p-4 simple-scrollbar bg-zinc-950">
             <TabsContent value="blocks" className="mt-0 h-full">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <SectionLabel>Layout Blocks</SectionLabel>
+                <div className="flex items-center justify-end">
+                  {/* <SectionLabel>Blocks</SectionLabel>  */}
                   <button
                     type="button"
                     onClick={handleAddBlock}
-                    className="flex items-center gap-1 rounded-lg bg-zinc-900 border border-zinc-700 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1 rounded-lg bg-background border border-zinc-700 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer shadow-xs"
                   >
                     <Plus className="h-3 w-3" />
                     Add
@@ -273,7 +278,7 @@ export function TemplateSidebar({
 
             <TabsContent value="images" className="mt-0">
               <div className="space-y-4">
-                <SectionLabel>Images</SectionLabel>
+                {/* <SectionLabel>Images</SectionLabel>  */}
                 <ImagesPanel
                   blocks={sortedBlocks}
                   theme={theme}
@@ -362,7 +367,7 @@ function LogoUploader({
     }
   }
 
-  
+
 
   return (
     <div className="group relative shrink-0">
@@ -408,7 +413,7 @@ function LogoUploader({
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-foreground mb-1">
+    <div className="text-[13px] font-bold tracking-[0.16em] text-foreground mb-1">
       {children}
     </div>
   );
@@ -572,7 +577,7 @@ function BlockRow({
 }) {
   const storedHeight = block.height;
   const liveHeight = useLiveBlockHeight(block.id, isExpanded);
-  const storedBgColor = (block as { bgColor?: string }).bgColor;
+  const storedBgColor = (block as { bgColor?: string }).bgColor || (block.props as { backgroundColor?: string })?.backgroundColor;
   const liveBg = useLiveBlockBg(block.id, isExpanded && !storedBgColor, theme.bg);
   const bgColor = storedBgColor ?? liveBg;
 
@@ -597,6 +602,27 @@ function BlockRow({
   };
 
   const displayName = block.label ?? block.name ?? block.props.kind;
+  const sectionHref = getBlockSectionHref(block);
+  const [linkInput, setLinkInput] = useState<string>(sectionHref);
+
+  useEffect(() => {
+    setLinkInput(sectionHref);
+  }, [sectionHref]);
+
+  const handleLinkCommit = () => {
+    const trimmed = linkInput.trim();
+    if (!trimmed || trimmed === "#") {
+      setLinkInput("");
+      onUpdateBlock(block.id, { sectionHref: "" });
+    } else {
+      const withoutHash = trimmed.replace(/^#+/, "");
+      const slugified = `#${withoutHash.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-|-$/g, "")}`;
+      const finalLink = slugified === "#" ? "" : slugified;
+      setLinkInput(finalLink);
+      onUpdateBlock(block.id, { sectionHref: finalLink });
+    }
+  };
+
   const isNewBlock = Boolean(
     block.isCustom ||
     (block as Record<string, unknown>).isNew ||
@@ -607,26 +633,27 @@ function BlockRow({
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
   return (
-    <div>
+    <div className="rounded-lg border border-white/10 overflow-hidden bg-zinc-900/40 mb-4">
       <div
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDrop={onDrop}
         onDragEnd={onDragEnd}
-        className={`group relative flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed border-primary scale-[0.98]" : ""
-          } ${active
-            ? "border-primary bg-primary/10 text-white shadow-md ring-1 ring-primary/40"
-            : "border-white/10 bg-zinc-900/40 hover:border-primary/40 hover:bg-zinc-900/70 text-zinc-300 shadow-xs"
-          }`}
+        className={`group relative flex items-center gap-2 px-2.5 py-1.5 text-xs transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40 border-dashed scale-[0.98]" : ""
+          } ${active ? "bg-zinc-800 text-white" : "text-zinc-300"}`}
       >
         <div className="flex items-center justify-center shrink-0">
-          <GripVertical className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-90 text-primary" : "opacity-0 group-hover:opacity-40 text-muted-foreground"}`} />
+          <GripVertical
+            className={`h-3.5 w-3.5 transition-opacity ${active ? "opacity-90 text-white" : "opacity-0 text-muted-foreground"
+              }`}
+          />
         </div>
 
         <div className="flex-1 min-w-0 flex items-center gap-1.5">
           <span
-            className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "text-primary font-bold" : "text-muted-foreground"}`}
+            className={`shrink-0 font-mono text-[10px] w-3 text-right ${active ? "text-white font-bold" : "text-muted-foreground"
+              }`}
           >
             {index + 1}.
           </span>
@@ -640,9 +667,8 @@ function BlockRow({
               onSectionChange(block.props.kind);
             }}
             onChange={(e) => onUpdateBlock(block.id, { label: e.target.value })}
-            className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] focus:ring-1 rounded px-1 py-0.5 transition-all ${active ? "text-foreground font-semibold focus:ring-primary/40" : "text-foreground focus:ring-primary/40 hover:bg-secondary/80"
+            className={`w-full bg-transparent font-medium capitalize outline-none cursor-text truncate text-[11px] rounded px-1 py-0.5 transition-all ${active ? "text-foreground font-semibold" : "text-foreground"
               }`}
-            title="Rename section"
           />
         </div>
 
@@ -656,11 +682,8 @@ function BlockRow({
               const patch = blendBlockWithNeighbors(block.id, blocks, theme);
               onUpdateBlock(block.id, patch);
             }}
-            className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
-              ? "hover:bg-primary/20 text-primary"
-              : "hover:bg-accent text-muted-foreground hover:text-foreground"
+            className={`relative z-10 p-1.5 rounded-md transition-colors shrink-0 cursor-pointer ${active ? "text-white" : "text-muted-foreground"
               }`}
-            title="Blend style dynamically"
           >
             <PencilLine className="h-3 w-3" />
           </button>
@@ -674,50 +697,92 @@ function BlockRow({
             e.stopPropagation();
             onExpandToggle();
           }}
-          className={`relative z-10 p-1.5 rounded-lg transition-colors shrink-0 ${active
-            ? "hover:bg-primary/20 text-primary"
-            : "hover:bg-accent text-muted-foreground hover:text-foreground"
-            }`}
-          title={isExpanded ? "Hide block settings" : "Show block settings"}
-          aria-label={isExpanded ? "Hide block settings" : "Show block settings"}
           aria-expanded={isExpanded}
+          className={`relative z-10 p-1.5 rounded-md transition-colors shrink-0 cursor-pointer ${active ? "text-white" : "text-muted-foreground"
+            }`}
         >
-          <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? "rotate-180" : ""
+              }`}
+          />
         </button>
       </div>
 
-      {isExpanded && (
-        <div className="flex items-center justify-between gap-3 px-2.5 py-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase select-none">BG</span>
-            <ThemeCircle
-              label={`${displayName} Background`}
-              shortLabel="BG"
-              value={bgColor || theme.bg || "#000000"}
-              isOpen={isColorPickerOpen}
-              onOpenChange={setIsColorPickerOpen}
-              onChange={(color) => onUpdateBlock(block.id, { bgColor: color })}
-              showLabel={false}
-            />
-          </div>
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-white/10 bg-zinc-950/40 px-2.5 py-3 space-y-3">
+            <div className="flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900/80 px-2 py-1.5 font-mono text-[10px] text-zinc-400 focus-within:text-zinc-200 transition-colors">
+              <LinkIcon className="h-3 w-3 shrink-0 opacity-70" />
+              <input
+                type="text"
+                value={linkInput}
+                placeholder="+ add link"
+                draggable={false}
+                onChange={(e) => setLinkInput(e.target.value)}
+                onBlur={handleLinkCommit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+                className="w-full bg-transparent text-[10px] font-mono outline-none text-inherit placeholder:text-zinc-600 focus:placeholder-transparent cursor-text select-text"
+              />
+            </div>
 
-          <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900/80 px-2.5 py-1 text-xs transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/40">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase select-none">H</span>
-            <input
-              type="number"
-              min={0}
-              max={2500}
-              value={heightInput}
-              placeholder={liveHeight ? `${liveHeight}` : "auto"}
-              onChange={handleHeightInputChange}
-              className="w-14 bg-transparent text-[11px] font-mono outline-none text-foreground text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <span className="text-[10px] font-mono text-muted-foreground select-none">px</span>
+            <div className="flex items-center justify-between gap-3">
+              <ThemeCircle
+                label={`${displayName} Background`}
+                shortLabel="BG"
+                value={bgColor || theme.bg || "#000000"}
+                isOpen={isColorPickerOpen}
+                onOpenChange={setIsColorPickerOpen}
+                onChange={(color) => {
+                  onUpdateBlock(block.id, {
+                    bgColor: color,
+                    backgroundColor: color,
+                    backgroundImage: "none",
+                    isBlended: false,
+                  });
+                }}
+                showLabel={false}
+              />
+
+              <div className="flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900/80 px-2.5 py-1 text-xs">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase select-none">
+                  H
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  max={2500}
+                  value={heightInput}
+                  placeholder={liveHeight ? `${liveHeight}` : "auto"}
+                  onChange={handleHeightInputChange}
+                  className="w-14 bg-transparent text-[11px] font-mono outline-none text-foreground text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-[10px] font-mono text-muted-foreground select-none">px</span>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
+}
+
+function getBlockSectionHref(block: Block): string {
+  if (block.sectionHref !== undefined) {
+    if (!block.sectionHref.trim()) return "";
+    return block.sectionHref.startsWith("#") ? block.sectionHref : `#${block.sectionHref}`;
+  }
+  const raw = block.props.kind === "hero"
+    ? "home"
+    : (block.label || block.name || block.props.kind);
+  const slug = raw.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `#${slug || block.props.kind}`;
 }
 
 function TextPanel({
@@ -759,6 +824,8 @@ function RenderedTextBlock({
 }) {
   const probeRef = useRef<HTMLDivElement>(null);
   const [textEntries, setTextEntries] = useState<{ index: string; text: string }[]>([]);
+  const [expandedIndices, setExpandedIndices] = useState<Record<string, boolean>>({});
+
   const variant = (block.props as { variant?: string }).variant;
   const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
   const componentProps =
@@ -789,12 +856,16 @@ function RenderedTextBlock({
     });
   }
 
+  const toggleExpand = (index: string) => {
+    setExpandedIndices((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
   return (
     <div className="space-y-3 border-b border-border/60 pb-4">
       <button
         type="button"
         onClick={() => onSectionChange(block.props.kind)}
-        className="flex w-full cursor-pointer items-center gap-2 text-left text-sm font-bold capitalize text-foreground transition-colors hover:text-ink-soft"
+        className="flex w-full cursor-pointer items-center gap-2 text-left text-xs font-medium capitalize text-ink-soft transition-colors hover:text-foreground"
       >
         <span className="truncate">{block.label ?? block.name ?? block.props.kind}</span>
       </button>
@@ -803,24 +874,66 @@ function RenderedTextBlock({
         aria-hidden
         className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0"
       >
-        <TextOverrideProvider overrides={overrides}>
-          <Cmp id={block.id} props={componentProps} theme={site.theme} onChange={() => { }} />
-        </TextOverrideProvider>
+        <RenderedImageOverrides
+          overrides={getImageOverrides(componentProps as Record<string, unknown>)}
+        >
+          <TextOverrideProvider overrides={overrides}>
+            <Cmp id={block.id} props={componentProps} theme={site.theme} onChange={() => { }} />
+          </TextOverrideProvider>
+        </RenderedImageOverrides>
       </div>
       <div className="space-y-2">
-        {textEntries.map((entry, position) => (
-          <label key={`${block.id}-${entry.index}`} className="block space-y-1.5">
-            <span className="pl-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-ink-soft/80">
-              Text {position + 1}
-            </span>
-            <textarea
-              value={entry.text}
-              rows={entry.text.length > 72 ? 3 : 1}
-              onChange={(event) => updateText(entry.index, event.target.value)}
-              className={compactInputClass}
-            />
-          </label>
-        ))}
+        {textEntries.map((entry) => {
+          const isExpanded = !!expandedIndices[entry.index];
+          const isLong = entry.text.length > 40 || entry.text.includes("\n");
+
+          // Dynamically calculate rows based on character wrapping and explicit newlines
+          const calculatedRows = Math.max(
+            2,
+            entry.text.split("\n").length,
+            Math.ceil(entry.text.length / 38)
+          );
+
+          return (
+            <div key={`${block.id}-${entry.index}`} className="relative">
+              {isExpanded ? (
+                <textarea
+                  value={entry.text}
+                  onChange={(event) => updateText(entry.index, event.target.value)}
+                  className={`${compactInputClass} text-xs pr-7 resize-none overflow-hidden`}
+                  rows={calculatedRows}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={entry.text}
+                  onChange={(event) => updateText(entry.index, event.target.value)}
+                  className={`${compactInputClass} text-xs ${isLong ? "pr-7" : ""} truncate`}
+                />
+              )}
+              {isLong && (
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(entry.index)}
+                  className="absolute right-2 top-2 text-ink-soft/60 hover:text-foreground transition-colors"
+                  title={isExpanded ? "Collapse" : "Expand"}
+                >
+                  <svg
+                    className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          );
+        })}
         {textEntries.length === 0 && (
           <p className="rounded-lg border border-dashed border-border px-3 py-2 text-[10px] text-ink-soft">
             This block has no visible text.
@@ -830,36 +943,9 @@ function RenderedTextBlock({
     </div>
   );
 }
-
-function getEditableProps(props: Block["props"]): Record<string, unknown> {
-  const defaults: Record<string, Record<string, unknown>> = {
-    navbar: { logoText: "", links: [], ctaLabel: "" },
-    hero: {
-      eyebrow: "",
-      name: "",
-      tagline: "",
-      bio: "",
-      primaryCta: "",
-      secondaryCta: "",
-      location: "",
-      availability: "",
-    },
-    projects: { eyebrow: "", heading: "", items: [] },
-    about: { heading: "", paragraphs: [], skills: [], experience: [] },
-    testimonials: { heading: "", items: [] },
-    contact: { heading: "", message: "", socials: [] },
-    footer: { heading: "", message: "", socials: [] },
-    stats: { heading: "", items: [] },
-    spacer: { backgroundColor: "" },
-  };
-
-  return { ...defaults[props.kind], ...props };
-}
-
 /* ---------------------------------------------------------------- */
 /* Images tab                                                       */
 /* ---------------------------------------------------------------- */
-
 type ImagePath = (string | number)[];
 
 function ImagesPanel({
@@ -894,23 +980,56 @@ function ImagesPanel({
   );
 }
 
-function isImageUrl(val: string): boolean {
+function isImageUrlSmart(val: string, path: ImagePath): boolean {
   if (typeof val !== "string") return false;
   const s = val.trim();
-  if (!s || s.length < 4) return false;
-  if (s.startsWith("data:image/")) return true;
-  if (s.startsWith("blob:")) return true;
-  if (/^https?:\/\//i.test(s) || s.startsWith("/")) {
+  if (!s || s.length < 5 || s.length > 2048) return false;
+  if (!s.startsWith("data:image/") && (s.includes(" ") || s.includes("\n"))) return false;
+
+  if (s.startsWith("data:image/") || s.startsWith("blob:") || s.startsWith("/")) return true;
+
+  if (/^https?:\/\//i.test(s)) {
+    if (/\.(html|htm|php|asp|jsp|js|css)(\?.*)?$/i.test(s)) return false;
+
+    // Check file extension
     if (/\.(png|jpe?g|webp|svg|gif|avif|ico|bmp)(\?.*)?$/i.test(s)) return true;
+
+    // Check known CDNs
+    const lower = s.toLowerCase();
     if (
-      s.includes("images.unsplash.com") ||
-      s.includes("unsplash.com") ||
-      s.includes("cloudinary.com") ||
-      s.includes("supabase.co/storage") ||
-      s.includes("/site-assets/") ||
-      s.includes("/logos/")
-    ) return true;
+      lower.includes("images.unsplash.com") ||
+      lower.includes("unsplash.com") ||
+      lower.includes("cloudinary.com") ||
+      lower.includes("supabase.co") ||
+      lower.includes("imgur.com") ||
+      lower.includes("picsum.photos") ||
+      lower.includes("firebasestorage.googleapis.com") ||
+      lower.includes("ibb.co")
+    ) {
+      return true;
+    }
+
+    // Check if the property path suggests an image, slide, carousel, or portfolio card
+    const pathStr = path.map(String).join("/").toLowerCase();
+    if (
+      pathStr.includes("image") ||
+      pathStr.includes("img") ||
+      pathStr.includes("photo") ||
+      pathStr.includes("avatar") ||
+      pathStr.includes("logo") ||
+      pathStr.includes("banner") ||
+      pathStr.includes("icon") ||
+      pathStr.includes("slide") ||
+      pathStr.includes("carousel") ||
+      pathStr.includes("gallery") ||
+      pathStr.includes("portfolio") ||
+      pathStr.includes("item") ||
+      pathStr.includes("card")
+    ) {
+      return true;
+    }
   }
+
   return false;
 }
 
@@ -920,7 +1039,7 @@ function extractImageUrlsFromProps(
   found: { url: string; path: ImagePath }[] = [],
 ): { url: string; path: ImagePath }[] {
   if (typeof obj === "string") {
-    if (isImageUrl(obj)) {
+    if (isImageUrlSmart(obj, path)) {
       found.push({ url: obj, path });
     }
   } else if (Array.isArray(obj)) {
@@ -952,9 +1071,6 @@ function BlockImagesEntry({
   onSectionChange: (id: string) => void;
 }) {
   const probeRef = useRef<HTMLDivElement>(null);
-  const [images, setImages] = useState<
-    { src: string; originalSrc: string; path: ImagePath | null; siteKey?: "logo" }[]
-  >([]);
 
   const variant = (block.props as { variant?: string }).variant;
   const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
@@ -966,31 +1082,36 @@ function BlockImagesEntry({
     [block.props, site.logo],
   );
 
-  const discoverImages = () => {
+  const discoverImages = useCallback(() => {
     const foundMap = new Map<
       string,
-      { src: string; originalSrc: string; path: ImagePath | null; siteKey?: "logo" }
+      {
+        src: string;
+        originalSrc: string;
+        path: ImagePath | null;
+        siteKey?: "logo";
+      }
     >();
     const pathBySrc = buildImagePathMap(componentProps);
     const overrides = getImageOverrides(componentProps as Record<string, unknown>);
 
-    // Source A: Props extraction (recursively find all image URLs in componentProps)
     const propsImages = extractImageUrlsFromProps(componentProps);
     for (const item of propsImages) {
       const activeSrc = overrides[item.url] || item.url;
+      const isLogoPath =
+        (block.props.kind === "navbar" || block.props.kind === "footer") &&
+        (item.path?.includes("logo") || item.url === site.logo);
+
       foundMap.set(item.url, {
         src: activeSrc,
         originalSrc: item.url,
-        siteKey: site.logo && item.url === site.logo ? ("logo" as const) : undefined,
+        siteKey: isLogoPath ? "logo" : undefined,
         path: item.path,
       });
     }
 
-    // Helper to scan a DOM root (probeRef or live block in preview)
     const scanDomRoot = (root: ParentNode | null) => {
       if (!root) return;
-
-      // 1. <img> tags
       const imgEls = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
       imgEls.forEach((img) => {
         const currentSrc = img.getAttribute("src") || img.src || "";
@@ -1001,62 +1122,16 @@ function BlockImagesEntry({
           foundMap.set(originalSrc, {
             src: activeSrc,
             originalSrc,
-            siteKey: site.logo && originalSrc === site.logo ? ("logo" as const) : undefined,
             path: pathBySrc.get(originalSrc) ?? pathBySrc.get(currentSrc) ?? null,
           });
         }
       });
-
-      // 2. SVG <image> tags
-      const svgImages = Array.from(root.querySelectorAll<SVGImageElement>("image"));
-      svgImages.forEach((img) => {
-        const href = img.getAttribute("href") || img.getAttribute("xlink:href") || "";
-        if (!href) return;
-        const activeSrc = overrides[href] || href;
-        if (!foundMap.has(href)) {
-          foundMap.set(href, {
-            src: activeSrc,
-            originalSrc: href,
-            path: pathBySrc.get(href) ?? null,
-          });
-        }
-      });
-
-      // 3. Elements with background-image / url(...)
-      const bgEls = Array.from(root.querySelectorAll<HTMLElement>("[style*='url('], [style*='background']"));
-      bgEls.forEach((el) => {
-        const bg = el.style.backgroundImage || el.style.background || "";
-        const matches = bg.matchAll(/url\(\s*['"]?(.*?)['"]?\s*\)/gi);
-        for (const match of matches) {
-          const url = match[1];
-          if (url && !url.startsWith("data:image/svg+xml")) {
-            const activeSrc = overrides[url] || url;
-            if (!foundMap.has(url)) {
-              foundMap.set(url, {
-                src: activeSrc,
-                originalSrc: url,
-                path: pathBySrc.get(url) ?? null,
-              });
-            }
-          }
-        }
-      });
     };
 
-    // Source B: Probe DOM
     scanDomRoot(probeRef.current);
 
-    // Source C: Live Preview DOM
-    try {
-      const liveBlock = document.querySelector<HTMLElement>(`[data-block-id="${block.id}"]`);
-      if (liveBlock) scanDomRoot(liveBlock);
-    } catch {
-      // ignore selector error if any
-    }
-
-    // Source D: If navbar/footer and site has logo, ensure logo is listed
-    if (block.props.kind === "navbar" || block.props.kind === "footer") {
-      if (site.logo && !foundMap.has(site.logo)) {
+    if ((block.props.kind === "navbar" || block.props.kind === "footer") && site.logo) {
+      if (!foundMap.has(site.logo)) {
         foundMap.set(site.logo, {
           src: site.logo,
           originalSrc: site.logo,
@@ -1067,89 +1142,76 @@ function BlockImagesEntry({
     }
 
     return Array.from(foundMap.values());
-  };
+  }, [block.props.kind, componentProps, site.logo]);
+
+  const [images, setImages] = useState<
+    {
+      src: string;
+      originalSrc: string;
+      path: ImagePath | null;
+      siteKey?: "logo";
+    }[]
+  >([]);
 
   useEffect(() => {
-    // Initial discovery
-    const initial = discoverImages();
-    if (initial.length > 0) {
-      setImages((prev) => {
-        const map = new Map(prev.map((img) => [img.originalSrc, img]));
-        initial.forEach((img) => map.set(img.originalSrc, img));
-        return Array.from(map.values());
-      });
-    }
-
-    // Observe probe DOM mutations
-    const probeEl = probeRef.current;
-    let observer: MutationObserver | null = null;
-    if (probeEl) {
-      observer = new MutationObserver(() => {
-        const found = discoverImages();
-        setImages((prev) => {
-          const map = new Map(prev.map((img) => [img.originalSrc, img]));
-          let changed = false;
-          found.forEach((img) => {
-            if (!map.has(img.originalSrc) || map.get(img.originalSrc)?.src !== img.src) {
-              map.set(img.originalSrc, img);
-              changed = true;
-            }
-          });
-          return changed ? Array.from(map.values()) : prev;
-        });
-      });
-      observer.observe(probeEl, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["src", "style"],
-      });
-    }
-
-    // Also check on brief delays to catch carousel slides and async components
-    const t1 = setTimeout(() => {
-      const found = discoverImages();
-      setImages((prev) => {
-        const map = new Map(prev.map((img) => [img.originalSrc, img]));
-        let changed = false;
-        found.forEach((img) => {
-          if (!map.has(img.originalSrc)) {
-            map.set(img.originalSrc, img);
-            changed = true;
-          }
-        });
-        return changed ? Array.from(map.values()) : prev;
-      });
-    }, 200);
-
-    const t2 = setTimeout(() => {
-      const found = discoverImages();
-      setImages((prev) => {
-        const map = new Map(prev.map((img) => [img.originalSrc, img]));
-        let changed = false;
-        found.forEach((img) => {
-          if (!map.has(img.originalSrc)) {
-            map.set(img.originalSrc, img);
-            changed = true;
-          }
-        });
-        return changed ? Array.from(map.values()) : prev;
-      });
-    }, 800);
-
-    return () => {
-      observer?.disconnect();
-      clearTimeout(t1);
-      clearTimeout(t2);
+    const update = () => {
+      const discovered = discoverImages();
+      setImages(discovered ?? []);
     };
-  }, [block.props, Cmp, componentProps, site.logo]);
+
+    update();
+
+    const root = probeRef.current;
+    if (!root) return;
+
+    const observer = new MutationObserver(() => {
+      update();
+    });
+
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["src"],
+    });
+
+    return () => observer.disconnect();
+  }, [discoverImages]);
 
   if (!Cmp) return null;
 
   const displayName = block.label ?? block.name ?? block.props.kind;
 
+  // NEW: still mount the hidden probe so discoverImages can run, but render
+  // nothing visible until we know this block actually has images.
+  if (images.length === 0) {
+    return (
+      <div
+        ref={probeRef}
+        aria-hidden
+        style={{
+          position: "fixed",
+          left: -9999,
+          top: -9999,
+          width: 1280,
+          height: 800,
+          overflow: "hidden",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -99,
+        }}
+      >
+        <RenderedImageOverrides
+          overrides={getImageOverrides(componentProps as Record<string, unknown>)}
+        >
+          <Cmp id={block.id} props={componentProps} theme={theme} onChange={() => { }} />
+        </RenderedImageOverrides>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="space-y-3 pb-4 border-b border-border/60">
       <div
         ref={probeRef}
         aria-hidden
@@ -1172,53 +1234,53 @@ function BlockImagesEntry({
         </RenderedImageOverrides>
       </div>
 
-      {images.length > 0 && (
-        <div className="space-y-3 rounded-xl border border-border/50 bg-background/50 p-3 shadow-sm">
-          <button
-            type="button"
-            onClick={() => onSectionChange(block.props.kind)}
-            className="text-left text-[10px] font-bold uppercase tracking-[0.16em] text-foreground hover:text-ink-soft transition-colors cursor-pointer w-full flex items-center gap-2 capitalize"
-          >
-            <div className="h-2 w-2 rounded-full bg-foreground/20" />
-            {displayName}
-          </button>
-          <div className="grid grid-cols-4 gap-2.5">
-            {images.map((img, idx) => (
-              <BlockImageThumb
-                key={`${block.id}-${idx}`}
-                url={img.src}
-                editable={img.originalSrc.length > 0}
-                onReplace={(newUrl) => {
-                  const currentOverrides = getImageOverrides(
-                    block.props as Record<string, unknown>,
-                  );
+      <button
+        type="button"
+        onClick={() => onSectionChange(block.props.kind)}
+        className="flex w-full cursor-pointer items-center gap-2 text-left text-xs font-medium capitalize text-ink-soft transition-colors hover:text-foreground"
+      >
+        <span className="truncate">{displayName}</span>
+      </button>
 
-                  if (img.siteKey === "logo") {
-                    onSiteMetaChange({ logo: newUrl });
-                    return;
-                  }
+      <div className="grid grid-cols-4 gap-2.5">
+        {images.map((img, idx) => (
+          <BlockImageThumb
+            key={`${block.id}-${idx}`}
+            url={img.src}
+            editable={img.originalSrc.length > 0}
+            onReplace={(newUrl) => {
+              const currentOverrides = getImageOverrides(
+                block.props as Record<string, unknown>,
+              );
 
-                  if (!img.path) {
-                    onUpdateBlock(block.id, {
-                      [IMAGE_OVERRIDES_PROP]: {
-                        ...currentOverrides,
-                        [img.originalSrc]: newUrl,
-                      },
-                    });
-                    return;
-                  }
+              if (img.siteKey === "logo") {
+                onSiteMetaChange({ logo: newUrl });
+                return;
+              }
 
-                  const nextProps = setNestedValue(block.props, img.path, newUrl) as Record<
-                    string,
-                    unknown
-                  >;
-                  onUpdateBlock(block.id, nextProps);
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+              const nextOverrides = {
+                ...currentOverrides,
+                [img.originalSrc]: newUrl,
+              };
+
+              if (!img.path) {
+                onUpdateBlock(block.id, {
+                  [IMAGE_OVERRIDES_PROP]: nextOverrides,
+                });
+                return;
+              }
+
+              const nextProps = setNestedValue(
+                block.props,
+                img.path,
+                newUrl
+              ) as Record<string, unknown>;
+              nextProps[IMAGE_OVERRIDES_PROP] = nextOverrides;
+              onUpdateBlock(block.id, nextProps);
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -1237,10 +1299,10 @@ function BlockImageThumb({
   async function handleFile(file: File) {
     setIsUploading(true);
     try {
-      const nextUrl = await uploadSiteLogo(file);
+      const nextUrl = await uploadBlockImage(file);
       onReplace(nextUrl);
-    } catch {
-      // keep the existing image if the upload fails
+    } catch (error) {
+      console.error("Upload failed:", error);
     } finally {
       setIsUploading(false);
     }
@@ -1252,7 +1314,12 @@ function BlockImageThumb({
         }`}
       title={editable ? "Replace image" : undefined}
     >
-      <img src={url} alt="" className="h-full w-full object-cover" />
+      <img
+        src={url}
+        alt=""
+        className={`h-full w-full object-cover transition-all duration-300 ${isUploading ? "blur-sm scale-105 filter" : ""
+          }`}
+      />
       <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
         {isUploading ? (
           <Loader2 className="h-4 w-4 animate-spin text-white drop-shadow-md" />

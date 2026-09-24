@@ -63,6 +63,8 @@ export type PreviewElementStyle = {
   hoverEffect?: "none" | "grow" | "lift" | "glow" | "darken";
   entrance?: "none" | "fade" | "slideUp" | "zoom";
   entranceDuration?: number;
+  linkHref?: string | null;
+  linkTarget?: "_self" | "_blank" | null;
 
   responsive?: {
     desktop?: Partial<Omit<PreviewElementStyle, "responsive">>;

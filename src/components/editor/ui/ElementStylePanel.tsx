@@ -16,15 +16,12 @@ import {
   PanelLeft,
   RotateCcw,
   Wand2,
-  Sparkles,
-  Zap,
   ChevronUp,
   ChevronDown,
-  MousePointerClick,
-  PlayCircle,
   Square,
   Layers,
   Ban,
+  X,
 } from "lucide-react";
 import type { PreviewElementEdit, PreviewElementStyle, ResponsiveBreakpoint } from "@/types/previewEditTypes";
 import type { Theme } from "@/types/builder.schema";
@@ -52,6 +49,7 @@ type Props = {
   theme?: Theme;
   responsiveEditMode?: boolean;
   editBreakpoint?: ResponsiveBreakpoint;
+  availableSectionLinks?: string[];
   onThemeChange?: (patch: Partial<Theme>) => void;
   onChange: (patch: Partial<PreviewElementStyle>) => void;
   onRemove: () => void;
@@ -612,6 +610,7 @@ export function ElementStylePanel({
   theme,
   responsiveEditMode,
   editBreakpoint,
+  availableSectionLinks = [],
   onChange,
   onRemove,
   onReset,
@@ -668,6 +667,97 @@ export function ElementStylePanel({
 
   const activeCard = activeCardStyleKey(style);
 
+  const [linkInput, setLinkInput] = useState(style.linkHref || "");
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLinkInput(style.linkHref || "");
+    setLinkError(null);
+  }, [edit.id, style.linkHref]);
+
+  function validateLink(value: string): { url: string; error?: string } {
+    const trimmed = value.trim();
+    if (!trimmed) return { url: "" };
+
+    if (trimmed.startsWith("#")) {
+      return { url: trimmed.toLowerCase() };
+    }
+
+    if (trimmed.startsWith("/")) {
+      return { url: "", error: "Other pages coming soon. Use #section or https://..." };
+    }
+
+    if (trimmed.startsWith("mailto:") || trimmed.startsWith("tel:")) {
+      return { url: trimmed };
+    }
+
+    let candidate = trimmed;
+    if (!/^https?:\/\//i.test(candidate)) {
+      if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(candidate)) {
+        candidate = `https://${candidate}`;
+      }
+    }
+
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return { url: parsed.toString() };
+      }
+      return { url: "", error: "Please enter a valid URL or #section." };
+    } catch {
+      return { url: "", error: "Please enter a valid URL or #section." };
+    }
+  }
+
+  const handleApplyLink = (overrideValue?: string) => {
+    const val = overrideValue !== undefined ? overrideValue : linkInput;
+    const trimmed = val.trim();
+    if (!trimmed) {
+      handleClearLink();
+      return;
+    }
+
+    const result = validateLink(trimmed);
+    if (result.error) {
+      setLinkError(result.error);
+      return;
+    }
+
+    setLinkError(null);
+    const finalHref = result.url || null;
+    const autoTarget = finalHref && /^https?:\/\//i.test(finalHref) ? "_blank" : "_self";
+
+    onChange({
+      linkHref: finalHref,
+      linkTarget: finalHref ? autoTarget : null,
+      cursor: finalHref ? "pointer" : "",
+    });
+
+    if (finalHref) {
+      setLinkInput(finalHref);
+    }
+  };
+
+  const handleClearLink = () => {
+    setLinkInput("");
+    setLinkError(null);
+    onChange({
+      linkHref: null,
+      linkTarget: null,
+      cursor: "",
+    });
+  };
+
+  const handleSelectSection = (section: string) => {
+    setLinkInput(section);
+    setLinkError(null);
+    onChange({
+      linkHref: section,
+      linkTarget: "_self",
+      cursor: "pointer",
+    });
+  };
+
   return (
     <aside className="w-full shrink-0 border-r border-l border-zinc-800 text-sm flex flex-col h-full rounded-none bg-zinc-950 select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Header matching TemplateSidebar */}
@@ -711,12 +801,18 @@ export function ElementStylePanel({
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
         <div className="px-3 py-2.5 shrink-0 border-b border-zinc-800 bg-zinc-950">
-          <TabsList className="w-full h-9 grid grid-cols-5 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
+          <TabsList className="w-full h-9 grid grid-cols-6 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
             <TabsTrigger value="text" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
             <TabsTrigger value="fill" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
             <TabsTrigger value="border" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
             <TabsTrigger value="fx" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
             <TabsTrigger value="layout" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
+            <TabsTrigger value="link" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all flex items-center justify-center gap-1">
+              <span>Link</span>
+              {style.linkHref ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 ring-2 ring-emerald-400/30 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+              ) : null}
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -1104,6 +1200,87 @@ export function ElementStylePanel({
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </TabsContent>
+
+          {/* Tab 6: Link */}
+          <TabsContent value="link" className="mt-0">
+            <motion.div {...fadeIn()} className="space-y-3 pt-1">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className={labelClass}>Link URL</Label>
+                  {style.linkHref ? (
+                    <button
+                      type="button"
+                      onClick={handleClearLink}
+                      className="text-[10px] text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+
+                <div className="relative">
+                  <Input
+                    value={linkInput}
+                    onChange={(e) => {
+                      setLinkInput(e.target.value);
+                      setLinkError(null);
+                    }}
+                    onBlur={() => handleApplyLink()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleApplyLink();
+                      }
+                    }}
+                    placeholder="#contact, https://..."
+                    className="h-8 pr-7 bg-zinc-950 border-white/15 text-xs text-white placeholder:text-zinc-500 rounded-lg focus-visible:border-primary focus-visible:ring-primary/40"
+                  />
+                  {linkInput && (
+                    <button
+                      type="button"
+                      onClick={handleClearLink}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                      title="Clear"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {linkError && (
+                  <p className="text-[10px] text-amber-400">{linkError}</p>
+                )}
+              </div>
+
+              {availableSectionLinks && availableSectionLinks.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <Label className={labelClass}>Sections</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {availableSectionLinks.map((sec) => {
+                      const isSelected = style.linkHref === sec;
+                      return (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => handleSelectSection(sec)}
+                          className={`rounded px-2 py-0.5 text-[10px] font-mono transition-colors cursor-pointer ${isSelected
+                              ? "bg-primary/25 text-primary border border-primary/40 font-semibold"
+                              : "bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                            }`}
+                        >
+                          {sec}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[10px] text-zinc-500 pt-1">
+                Other pages are coming soon.
+              </p>
             </motion.div>
           </TabsContent>
         </div>

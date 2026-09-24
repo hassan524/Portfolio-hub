@@ -65,7 +65,8 @@ function PreviewIframe({
       const doc = iframe?.contentDocument;
       if (!doc) return;
       doc.body.style.margin = "0";
-      doc.body.style.minHeight = "100%";
+      // Don't set min-height on body — doing so causes elements with h-full/min-h-full
+      // (like navbars) to stretch to the full iframe height instead of their natural height.
       doc.documentElement.style.minHeight = "100%";
       copyHeadAssets();
 
@@ -76,12 +77,19 @@ function PreviewIframe({
         const style = doc.createElement("style");
         style.id = "preview-iframe-scrollbar-reset";
         style.textContent = `
-          html, body {
+          html {
             scrollbar-width: none;
             -ms-overflow-style: none;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             min-height: 100%;
+            scroll-behavior: smooth;
+          }
+          body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
             scroll-behavior: smooth;
           }
           html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }

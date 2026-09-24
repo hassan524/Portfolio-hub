@@ -71,20 +71,27 @@ export function updateBlockProps(
 ): void {
   setSite((prev) => {
     if (!prev) return prev;
-    const { height, label, name, bgColor ,elementStyle, ...restProps } = patch;
+    const { height, label, name, bgColor, sectionHref, elementStyle, ...restProps } = patch;
 
     const updatedBlocks = prev.blocks.map((b) => {
       if (b.id !== blockId) return b;
+      const isSpacer = b.props.kind === "spacer" || b.type === "spacer";
       return {
         ...b,
         ...(height !== undefined ? { height: height as number } : {}),
         ...(label !== undefined ? { label: label as string } : {}),
         ...(name !== undefined ? { name: name as string } : {}),
-        ...(bgColor !== undefined ? { bgColor: bgColor as string } : {}), // ← and this line
+        ...(bgColor !== undefined ? { bgColor: bgColor as string } : {}),
+        ...(sectionHref !== undefined ? { sectionHref: sectionHref as string } : {}),
         props: {
           ...b.props,
           ...restProps,
-          ...(bgColor !== undefined ? { backgroundColor: bgColor as string } : {}),
+          ...(bgColor !== undefined
+            ? {
+                backgroundColor: bgColor as string,
+                ...(isSpacer ? { backgroundImage: undefined, isBlended: false } : {}),
+              }
+            : {}),
         },
       };
     });
@@ -93,10 +100,30 @@ export function updateBlockProps(
 
     if (elementStyle || bgColor !== undefined) {
       const targetElementId = `${blockId}:root`;
-      const prevElements = prev.previewEdits?.elements ?? {};
+      const prevElements = { ...(prev.previewEdits?.elements ?? {}) };
       const targetBlock = updatedBlocks.find((b) => b.id === blockId);
       const blockKind = targetBlock?.props.kind ?? "spacer";
       const blockLabel = targetBlock?.label ?? targetBlock?.name ?? blockKind;
+      const isSpacer = blockKind === "spacer" || targetBlock?.type === "spacer";
+
+      // If setting a solid bgColor on a spacer or block, clear any conflicting background-image
+      if (bgColor !== undefined) {
+        Object.keys(prevElements).forEach((key) => {
+          if (key === targetElementId || key.startsWith(`${blockId}:`)) {
+            const existing = prevElements[key];
+            if (existing) {
+              prevElements[key] = {
+                ...existing,
+                style: {
+                  ...existing.style,
+                  backgroundColor: bgColor as string,
+                  ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
+                },
+              };
+            }
+          }
+        });
+      }
 
       const updatedElementEdit: PreviewElementEdit = {
         id: targetElementId,
@@ -106,7 +133,12 @@ export function updateBlockProps(
         style: {
           ...(prevElements[targetElementId]?.style ?? {}),
           ...(elementStyle as Partial<PreviewElementStyle>),
-          ...(bgColor !== undefined ? { backgroundColor: bgColor as string } : {}),
+          ...(bgColor !== undefined
+            ? {
+                backgroundColor: bgColor as string,
+                ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
+              }
+            : {}),
         },
       };
 
@@ -931,6 +963,8 @@ export function ensurePreviewEffectsStylesheet(doc: Document | null | undefined)
     [data-block-kind="navbar"] nav {
       position: relative !important;
       top: auto !important;
+      height: auto !important;
+      min-height: 0 !important;
     }
   `;
   doc.head.appendChild(styleEl);
@@ -956,33 +990,66 @@ export function tagAndApplyPreviewStyles(
     if (!blockId) return;
 
     const block = blocks.find((b) => b.id === blockId);
+    const sectionId = block ? getBlockSectionId(block) : "";
+    if (sectionId && !blockRoot.querySelector(`#${sectionId}`)) {
+      blockRoot.id = sectionId;
+    } else if (!sectionId) {
+      blockRoot.removeAttribute("id");
+    }
+
     if (block?.bgColor) {
       blockRoot.style.setProperty("background-color", block.bgColor, "important");
       blockRoot.style.setProperty("--block-bg", block.bgColor);
+      const isSpacer = block.props.kind === "spacer" || block.type === "spacer";
+      if (isSpacer) {
+        blockRoot.style.setProperty("background-image", "none", "important");
+      }
       const topContainers = blockRoot.querySelectorAll<HTMLElement>(
         "section, nav, header, footer, header > div, nav > div"
       );
       topContainers.forEach((tc) => {
         if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
           tc.style.setProperty("background-color", block.bgColor!, "important");
+          if (isSpacer) {
+            tc.style.setProperty("background-image", "none", "important");
+          }
         }
       });
     }
 
+    const isNavbarBlock = block?.props.kind === "navbar";
     if (block?.height) {
       blockRoot.style.setProperty("height", `${block.height}px`, "important");
       blockRoot.style.setProperty("min-height", `${block.height}px`, "important");
-      const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-        "section, nav, header, footer"
-      );
-      topContainers.forEach((tc) => {
-        if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
-          tc.style.setProperty("height", "100%", "important");
-          tc.style.setProperty("min-height", "100%", "important");
-        }
-      });
+      // Don't force height: 100% into navbar's nav/header — navbars should
+      // always be auto-height; forcing 100% stretches them to fill the iframe.
+      if (!isNavbarBlock) {
+        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
+          "section, nav, header, footer"
+        );
+        topContainers.forEach((tc) => {
+          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+            tc.style.setProperty("height", "100%", "important");
+            tc.style.setProperty("min-height", "100%", "important");
+          }
+        });
+      }
     } else {
       blockRoot.style.removeProperty("height");
+      blockRoot.style.removeProperty("min-height");
+      // Also clear any previously set 100% heights from nav/header children
+      // so they revert to natural auto height when no block.height is set.
+      if (!isNavbarBlock) {
+        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
+          "section, nav, header, footer"
+        );
+        topContainers.forEach((tc) => {
+          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+            tc.style.removeProperty("height");
+            tc.style.removeProperty("min-height");
+          }
+        });
+      }
     }
 
     if (!blockRoot.dataset.previewEditId) {
@@ -1009,6 +1076,18 @@ export function tagAndApplyPreviewStyles(
       applyPreviewStyle(element, elements[editId].style, device, breakpoint);
     }
   });
+}
+
+export function getBlockSectionId(block: Block): string {
+  if (block.sectionHref !== undefined) {
+    const clean = block.sectionHref.replace(/^#+/, "").trim();
+    if (!clean) return "";
+    return clean.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+  const raw = block.props.kind === "hero"
+    ? "home"
+    : (block.label || block.name || block.props.kind);
+  return raw.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 // ------------------------------------------------------------
@@ -1874,6 +1953,8 @@ export function createBlankBlock(theme: Theme): Block {
     type: "spacer",
     order: 0,
     isCustom: true,
+    bgColor: theme.bg,
+    sectionHref: "",
     props: {
       kind: "spacer",
       height: 240,

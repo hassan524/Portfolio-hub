@@ -23,22 +23,26 @@ export function applyRenderedImageOverrides(root: ParentNode, overrides: ImageOv
   const imgs = Array.from(root.querySelectorAll("img"));
 
   imgs.forEach((img) => {
-    const currentSrc = img.getAttribute("src") || "";
+    const currentAttr = img.getAttribute("src") || "";
     const lastReplacement = img.dataset.appliedReplacement || "";
     const originalSrc =
-      currentSrc && currentSrc !== lastReplacement
-        ? currentSrc
-        : img.dataset.originalSrc || currentSrc;
+      currentAttr && currentAttr !== lastReplacement
+        ? currentAttr
+        : img.dataset.originalSrc || currentAttr;
 
     if (!originalSrc) return;
 
     img.dataset.originalSrc = originalSrc;
 
-    const replacement = overrides[originalSrc];
+    const replacement =
+      overrides[originalSrc] ||
+      (currentAttr ? overrides[currentAttr] : undefined) ||
+      (img.src ? overrides[img.src] : undefined);
+
     if (replacement && img.getAttribute("src") !== replacement) {
       img.setAttribute("src", replacement);
       img.dataset.appliedReplacement = replacement;
-    } else if (!replacement) {
+    } else if (!replacement && img.dataset.appliedReplacement) {
       delete img.dataset.appliedReplacement;
     }
   });

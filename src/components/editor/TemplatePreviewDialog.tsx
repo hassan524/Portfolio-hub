@@ -168,6 +168,27 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
     setChangeCount((c) => c + 1);
   };
 
+  const sectionLinks = site.blocks
+    .flatMap((block) => {
+      const customHref = typeof block.sectionHref === "string" && block.sectionHref.trim()
+        ? (block.sectionHref.startsWith("#") ? block.sectionHref : `#${block.sectionHref}`)
+        : "";
+      if (block.sectionHref === "") {
+        return [];
+      }
+      if (customHref) {
+        return [customHref];
+      }
+      const rawNames = [
+        block.props.kind === "hero" ? "home" : block.props.kind,
+        block.label,
+        block.name,
+      ].filter(Boolean) as string[];
+
+      return rawNames.map((name) => `#${String(name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`);
+    })
+    .filter((link, index, all) => link.length > 1 && all.indexOf(link) === index);
+
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
       changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint),
@@ -303,6 +324,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 changeCount={changeCount}
                 contentRef={contentRef}
                 onThemeChange={handleUpdateTheme}
+                sectionLinks={sectionLinks}
                 onOpenMobileMenu={() => setMobilePanelOpen(true)}
                 onControlsReady={setEditorControls}
               />
@@ -348,6 +370,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                     theme={theme}
                     responsiveEditMode={responsiveEditMode}
                     editBreakpoint={editBreakpoint}
+                    availableSectionLinks={sectionLinks}
                     onChange={(patch) => handleChangeElementStyle(selectedElement.id, patch)}
                     onRemove={handleRemoveSelectedElement}
                     onReset={handleResetSelectedElement}

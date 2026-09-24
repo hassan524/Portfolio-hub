@@ -184,6 +184,11 @@ export type SpacerProps = {
   variant: string;
   height: number;
   backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
+  isBlended?: boolean;
   isCustom?: boolean;
 };
 
@@ -216,6 +221,7 @@ export type Block = {
   label?: string;
   isCustom?: boolean;
   name?: string;
+  sectionHref?: string;
   overrides?: { style?: Record<string, unknown> };
 };
 
