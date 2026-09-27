@@ -62,5 +62,12 @@ export function resolveComponentInfo(
             }
         }
     }
+    if (kind.toLowerCase() === "spacer") {
+        return {
+            path: "/src/components/blocks/spacer/index.tsx",
+            exportName: "SpacerBlock",
+            isDefault: false,
+        };
+    }
     return null;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Bold,
@@ -16,8 +16,6 @@ import {
   PanelLeft,
   RotateCcw,
   Wand2,
-  ChevronUp,
-  ChevronDown,
   Square,
   Layers,
   Ban,
@@ -25,17 +23,15 @@ import {
 } from "lucide-react";
 import type { PreviewElementEdit, PreviewElementStyle, ResponsiveBreakpoint } from "@/types/previewEditTypes";
 import type { Theme } from "@/types/builder.schema";
-import { isHexColor, to6DigitHex } from "@/lib/functions/template";
 import { extractElementComputedStyles } from "@/lib/functions/TemplateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs";
+import { SidebarTabTrigger as ElementTabTrigger } from "@/components/editor/ui/TemplateSidebar";
 import {
   Select,
   SelectContent,
@@ -43,6 +39,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  CORNER_MAP,
+  DEPTH_PRESETS,
+  ENTRANCE_OPTIONS,
+  FONT_FAMILIES_STATIC,
+  GRADIENT_PRESETS,
+  HOVER_EFFECT_OPTIONS,
+  SPACING_MAP,
+  TEXT_SHADOW_PRESETS,
+  activeStylePresetKey,
+  buildGradient,
+  cornerKeyFromValue,
+  fadeIn,
+  parseGradient,
+  spacingKeyFromValue,
+  type CornerKey,
+  type SpacingKey,
+} from "@/lib/functions/elementStyle";
+import {
+  ColorPicker,
+  NumberField,
+  PresetRow,
+  SliderField,
+  DimensionField,
+  fieldClass,
+  labelClass,
+} from "@/components/editor/element-style/ElementStyleFields";
 
 type Props = {
   edit: PreviewElementEdit | null;
@@ -56,57 +79,6 @@ type Props = {
   onReset: () => void;
   onClose: () => void;
 };
-
-const FONT_FAMILIES_STATIC = [
-  { label: "Inter", value: "'Inter', sans-serif" },
-  { label: "Outfit", value: "'Outfit', sans-serif" },
-  { label: "Roboto", value: "'Roboto', sans-serif" },
-  { label: "Playfair Display", value: "'Playfair Display', serif" },
-  { label: "Space Grotesk", value: "'Space Grotesk', sans-serif" },
-  { label: "Fira Code", value: "'Fira Code', monospace" },
-];
-
-const GRADIENT_PRESETS = [
-  { name: "None", value: "" },
-  { name: "Emerald Mint", value: "linear-gradient(135deg, #10b981 0%, #059669 100%)" },
-  { name: "Cyber Neon", value: "linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)" },
-  { name: "Sunset Glow", value: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)" },
-  { name: "Ocean Breeze", value: "linear-gradient(135deg, #2b5876 0%, #4e4376 100%)" },
-  { name: "Dark Slate", value: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" },
-  { name: "Cosmic Sunset", value: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)" },
-];
-
-const DEPTH_PRESETS = [
-  { name: "None", value: "none" },
-  { name: "Soft", value: "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)" },
-  { name: "Medium", value: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)" },
-  { name: "Strong", value: "0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4)" },
-  { name: "Emerald Glow", value: "0 0 25px rgba(16, 185, 129, 0.5)" },
-  { name: "Rose Glow", value: "0 0 25px rgba(244, 63, 94, 0.5)" },
-];
-
-const TEXT_SHADOW_PRESETS = [
-  { name: "None", value: "" },
-  { name: "Soft", value: "1px 1px 2px rgba(0,0,0,0.35)" },
-  { name: "Medium", value: "2px 2px 4px rgba(0,0,0,0.5)" },
-  { name: "Strong", value: "3px 3px 6px rgba(0,0,0,0.7)" },
-  { name: "Glow", value: "0 0 8px rgba(255,255,255,0.8)" },
-];
-
-const HOVER_EFFECT_OPTIONS: { value: NonNullable<PreviewElementStyle["hoverEffect"]>; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "grow", label: "Grow" },
-  { value: "lift", label: "Lift" },
-  { value: "glow", label: "Glow" },
-  { value: "darken", label: "Darken" },
-];
-
-const ENTRANCE_OPTIONS: { value: NonNullable<PreviewElementStyle["entrance"]>; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "fade", label: "Fade" },
-  { value: "slideUp", label: "Slide Up" },
-  { value: "zoom", label: "Zoom" },
-];
 
 type CardPreset = {
   key: string;
@@ -160,449 +132,6 @@ const CARD_STYLE_PRESETS: CardPreset[] = [
   },
 ];
 
-function activeCardStyleKey(style: PreviewElementStyle): string {
-  for (const preset of CARD_STYLE_PRESETS) {
-    if (preset.key === "none") continue;
-    const matches = Object.entries(preset.apply).every(([k, v]) => {
-      const current = (style as Record<string, unknown>)[k];
-      return current === v || (v === undefined && (current === undefined || current === null));
-    });
-    if (matches) return preset.key;
-  }
-  return "none";
-}
-
-const SWATCHES = [
-  "#f43f5e", "#f97316", "#eab308", "#22c55e",
-  "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
-  "#ffffff", "#a1a1aa", "#52525b", "#000000",
-];
-
-const fieldClass =
-  "h-8 px-2.5 cursor-pointer rounded-lg border border-white/15 bg-zinc-950 text-[11px] font-medium text-white hover:border-white/30 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary shadow-xs transition-all";
-
-const labelClass = "text-[10px] font-semibold text-zinc-400 leading-tight";
-
-/* ---------------------------------- color math ---------------------------------- */
-
-function hexToRgb(hex: string) {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const int = parseInt(full || "000000", 16);
-  return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
-}
-
-function rgbToHex(r: number, g: number, b: number) {
-  return (
-    "#" +
-    [r, g, b]
-      .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"))
-      .join("")
-  );
-}
-
-function rgbToHsv(r: number, g: number, b: number) {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  let h = 0;
-  if (d !== 0) {
-    if (max === r) h = ((g - b) / d) % 6;
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
-    h *= 60;
-    if (h < 0) h += 360;
-  }
-  return { h, s: max === 0 ? 0 : d / max, v: max };
-}
-
-function hsvToRgb(h: number, s: number, v: number) {
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
-  let r = 0, g = 0, b = 0;
-  if (h < 60) [r, g, b] = [c, x, 0];
-  else if (h < 120) [r, g, b] = [x, c, 0];
-  else if (h < 180) [r, g, b] = [0, c, x];
-  else if (h < 240) [r, g, b] = [0, x, c];
-  else if (h < 300) [r, g, b] = [x, 0, c];
-  else[r, g, b] = [c, 0, x];
-  return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
-}
-
-function buildGradient(angle: number, colorA: string, colorB: string) {
-  return `linear-gradient(${Math.round(angle)}deg, ${colorA} 0%, ${colorB} 100%)`;
-}
-
-function parseGradient(css: string) {
-  const angleMatch = css.match(/(-?\d+(\.\d+)?)deg/);
-  const colors = css.match(/#[0-9a-fA-F]{3,8}/g) || [];
-  return {
-    angle: angleMatch ? parseFloat(angleMatch[1]) : 135,
-    colorA: colors[0] || "#10b981",
-    colorB: colors[colors.length - 1] || "#059669",
-  };
-}
-
-/* ---------------------------------- color picker ---------------------------------- */
-
-function ColorPicker({
-  id,
-  label,
-  value,
-  isOpen = false,
-  onOpenChange,
-  onChange,
-}: {
-  id?: string;
-  label: string;
-  value: string;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onChange: (value: string) => void;
-}) {
-  const safeHex = isHexColor(value) ? to6DigitHex(value) : "#ffffff";
-  const svRef = useRef<HTMLDivElement>(null);
-  const hueRef = useRef<HTMLDivElement>(null);
-
-  const start = rgbToHsv(hexToRgb(safeHex).r, hexToRgb(safeHex).g, hexToRgb(safeHex).b);
-  const [hue, setHue] = useState(start.h);
-  const [sat, setSat] = useState(start.s);
-  const [val, setVal] = useState(start.v);
-  const [hexInput, setHexInput] = useState(safeHex);
-
-  useEffect(() => {
-    if (!isHexColor(value)) return;
-    const hex6 = to6DigitHex(value);
-    if (hex6.toLowerCase() === hexInput.toLowerCase()) return;
-    const { r, g, b } = hexToRgb(hex6);
-    const hsv = rgbToHsv(r, g, b);
-    setHue(hsv.h);
-    setSat(hsv.s);
-    setVal(hsv.v);
-    setHexInput(hex6);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  // Capture-phase outside click listener guarantees closing when clicking outside
-  useEffect(() => {
-    if (!isOpen || !onOpenChange) return;
-
-    function handleCapturePointerDown(e: PointerEvent | MouseEvent) {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      if (
-        target.closest("[data-element-color-popover]") ||
-        target.closest("[data-color-picker-trigger]")
-      ) {
-        return;
-      }
-      onOpenChange?.(false);
-    }
-
-    window.addEventListener("pointerdown", handleCapturePointerDown, true);
-    return () => {
-      window.removeEventListener("pointerdown", handleCapturePointerDown, true);
-    };
-  }, [isOpen, onOpenChange]);
-
-  const applyHsv = (nh: number, ns: number, nv: number) => {
-    const { r, g, b } = hsvToRgb(nh, ns, nv);
-    const hex = rgbToHex(r, g, b);
-    setHexInput(hex);
-    onChange(hex);
-  };
-
-  const applyHex = (hex: string) => {
-    const { r, g, b } = hexToRgb(hex);
-    const hsv = rgbToHsv(r, g, b);
-    setHue(hsv.h);
-    setSat(hsv.s);
-    setVal(hsv.v);
-    setHexInput(hex);
-    onChange(hex);
-  };
-
-  const dragSv = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = svRef.current;
-    if (!el) return;
-    const move = (clientX: number, clientY: number) => {
-      const rect = el.getBoundingClientRect();
-      const ns = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-      const nv = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
-      setSat(ns);
-      setVal(nv);
-      applyHsv(hue, ns, nv);
-    };
-    move(e.clientX, e.clientY);
-    const onMove = (ev: PointerEvent) => move(ev.clientX, ev.clientY);
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  };
-
-  const dragHue = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = hueRef.current;
-    if (!el) return;
-    const move = (clientX: number) => {
-      const rect = el.getBoundingClientRect();
-      const nh = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1) * 360;
-      setHue(nh);
-      applyHsv(nh, sat, val);
-    };
-    move(e.clientX);
-    const onMove = (ev: PointerEvent) => move(ev.clientX);
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  };
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <Label className={labelClass}>{label}</Label>
-        <span className="font-mono text-[9px] text-muted-foreground/50">{value.toUpperCase()}</span>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-1">
-        <Popover open={isOpen} onOpenChange={onOpenChange}>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              data-color-picker-trigger={id}
-              className="h-5 w-5 shrink-0 rounded-full border border-border cursor-pointer relative overflow-hidden focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring hover:scale-105 transition-transform"
-              title="Custom Color"
-              style={{
-                background: "conic-gradient(from 0deg, red, yellow, lime, aqua, blue, magenta, red)",
-              }}
-            >
-              <div
-                className="absolute inset-[2px] rounded-full border border-black/10 bg-background"
-                style={{ backgroundColor: hexInput }}
-              />
-            </button>
-          </PopoverTrigger>
-
-          <PopoverContent
-            align="start"
-            data-element-color-popover=""
-            className="w-52 space-y-2 border border-border bg-popover p-2.5 z-[60] shadow-2xl rounded-xl"
-          >
-            <div
-              ref={svRef}
-              onPointerDown={dragSv}
-              className="relative h-24 w-full cursor-crosshair select-none rounded-md border border-border"
-              style={{
-                backgroundColor: `hsl(${hue}, 100%, 50%)`,
-                backgroundImage:
-                  "linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent)",
-              }}
-            >
-              <div
-                className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.5)]"
-                style={{ left: `${sat * 100}%`, top: `${(1 - val) * 100}%` }}
-              />
-            </div>
-
-            <div
-              ref={hueRef}
-              onPointerDown={dragHue}
-              className="relative h-2.5 w-full cursor-pointer select-none rounded-full border border-border"
-              style={{ background: "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)" }}
-            >
-              <div
-                className="pointer-events-none absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.5)]"
-                style={{ left: `${(hue / 360) * 100}%` }}
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <div className="h-6 w-6 shrink-0 rounded border border-input" style={{ backgroundColor: hexInput }} />
-              <Input
-                value={hexInput}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setHexInput(next);
-                  if (isHexColor(next)) applyHex(to6DigitHex(next));
-                }}
-                className="h-6 px-1.5 border-input bg-secondary font-mono text-[10px] uppercase text-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30"
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {SWATCHES.map((swatch) => {
-          const isSelected = swatch.toLowerCase() === value.toLowerCase();
-          return (
-            <button
-              key={swatch}
-              type="button"
-              onClick={() => applyHex(swatch)}
-              className={`h-4.5 w-4.5 rounded-full cursor-pointer transition-all hover:scale-110 ${isSelected
-                ? "ring-1.5 ring-foreground ring-offset-1 ring-offset-background"
-                : "border border-border/80"
-                }`}
-              style={{ backgroundColor: swatch }}
-              title={swatch}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------- small field helpers ---------------------------------- */
-
-function NumberField({
-  label, value, min, max, step = 1, unit, onChange,
-}: {
-  label: string; value: number; min: number; max: number; step?: number; unit?: string;
-  onChange: (value: number) => void;
-}) {
-  const clamp = (n: number) => Math.min(max, Math.max(min, n));
-  const bump = (delta: number) => onChange(Math.round((clamp(value + delta)) * 100) / 100);
-
-  return (
-    <div className="space-y-1">
-      <Label className={labelClass}>{label}</Label>
-      <div className="flex h-8 items-center rounded-lg border border-white/15 bg-zinc-950 pl-2.5 pr-1 hover:border-white/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/40 shadow-xs transition-all">
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => {
-            const n = Number(e.target.value);
-            if (!Number.isNaN(n)) onChange(clamp(n));
-          }}
-          className="h-full w-full min-w-0 bg-transparent text-[11px] font-medium text-white placeholder:text-zinc-600 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        />
-        {unit && <span className="mr-1 text-[10px] font-medium text-zinc-400">{unit}</span>}
-        <div className="flex flex-col">
-          <button type="button" onClick={() => bump(step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-zinc-400 hover:text-white transition-colors">
-            <ChevronUp className="h-2.5 w-2.5" />
-          </button>
-          <button type="button" onClick={() => bump(-step)} className="grid h-3.5 w-3.5 cursor-pointer place-items-center text-zinc-400 hover:text-white transition-colors">
-            <ChevronDown className="h-2.5 w-2.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SliderField({
-  label, value, min, max, step = 1, unit = "", onChange,
-}: {
-  label: string; value: number; min: number; max: number; step?: number; unit?: string;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label className={labelClass}>{label}</Label>
-        <span className="font-mono text-[10px] text-zinc-400 font-medium">{value}{unit}</span>
-      </div>
-      <Slider
-        value={[value]}
-        min={min}
-        max={max}
-        step={step}
-        onValueChange={([v]) => onChange(v)}
-        className="cursor-pointer [&_[data-slot=slider-track]]:bg-zinc-800 [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:cursor-pointer [&_[data-slot=slider-thumb]]:shadow-md"
-      />
-    </div>
-  );
-}
-
-function TextField({
-  label, value, placeholder, onChange, onKeyDown,
-}: {
-  label: string;
-  value: string;
-  placeholder?: string;
-  onChange: (value: string) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <div className="space-y-1">
-      <Label className={labelClass}>{label}</Label>
-      <input
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={onKeyDown}
-        className="h-8 w-full px-2.5 rounded-lg border border-white/15 bg-zinc-950 text-[11px] font-medium text-white placeholder:text-zinc-600 hover:border-white/30 focus:border-primary focus:ring-1 focus:ring-primary/40 outline-none shadow-xs transition-all"
-      />
-    </div>
-  );
-}
-
-function PresetRow<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: { value: T; text: string }[];
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="space-y-1">
-      <Label className={labelClass}>{label}</Label>
-      <ToggleGroup
-        type="single"
-        value={value}
-        onValueChange={(v) => v && onChange(v as T)}
-        className="inline-flex w-full gap-1 rounded-lg border border-white/10 p-1 bg-zinc-950 h-8"
-      >
-        {options.map((opt) => (
-          <ToggleGroupItem
-            key={opt.value}
-            value={opt.value}
-            className="h-full flex-1 rounded-md cursor-pointer text-[10px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all"
-          >
-            {opt.text}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </div>
-  );
-}
-
-function fadeIn(delay = 0) {
-  return {
-    initial: { opacity: 0, y: 6 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.18, ease: "easeOut" as const, delay },
-  };
-}
-
-const SPACING_MAP = { tight: 8, cozy: 16, roomy: 32 } as const;
-type SpacingKey = keyof typeof SPACING_MAP;
-function spacingKeyFromValue(padding: number | null | undefined): SpacingKey {
-  if (padding === SPACING_MAP.tight) return "tight";
-  if (padding === SPACING_MAP.roomy) return "roomy";
-  return "cozy";
-}
-
-const CORNER_MAP = { sharp: 0, rounded: 12, pill: 999 } as const;
-type CornerKey = keyof typeof CORNER_MAP;
-function cornerKeyFromValue(radius: number | null | undefined): CornerKey {
-  if (!radius) return "sharp";
-  if (radius >= 100) return "pill";
-  return "rounded";
-}
-
 /* ---------------------------------- main panel ---------------------------------- */
 
 export function ElementStylePanel({
@@ -643,12 +172,31 @@ export function ElementStylePanel({
 
   const style = useMemo(() => {
     const base: PreviewElementStyle = { ...computedStyles, ...edit.style };
-    if (editBreakpoint && edit.style.responsive?.[editBreakpoint]) {
-      Object.assign(base, edit.style.responsive[editBreakpoint]);
+    if (editBreakpoint && edit.style.responsive) {
+      if (edit.style.responsive[editBreakpoint]) {
+        Object.assign(base, edit.style.responsive[editBreakpoint]);
+      }
+      const otherBreakpoints: ResponsiveBreakpoint[] = (["desktop", "tablet", "mobile"] as ResponsiveBreakpoint[]).filter(
+        (b) => b !== editBreakpoint
+      );
+      for (const otherBp of otherBreakpoints) {
+        const otherOverrides = edit.style.responsive[otherBp];
+        if (otherOverrides) {
+          for (const k in otherOverrides) {
+            if (!edit.style.responsive[editBreakpoint] || !(k in edit.style.responsive[editBreakpoint]!)) {
+              if (computedStyles && (computedStyles as any)[k] !== undefined) {
+                (base as any)[k] = (computedStyles as any)[k];
+              } else {
+                delete (base as any)[k];
+              }
+            }
+          }
+        }
+      }
     }
     return base;
   }, [computedStyles, edit.style, editBreakpoint]);
-  const isHidden = Boolean(style.removed);
+  const isHidden = Boolean(style.hidden || style.visibility === "hidden");
   const gradient = parseGradient(style.backgroundGradient || "");
 
   const dynamicFontFamilies = [
@@ -665,7 +213,7 @@ export function ElementStylePanel({
     style.strikethrough ? "strike" : "",
   ].filter(Boolean);
 
-  const activeCard = activeCardStyleKey(style);
+  const activeCard = activeStylePresetKey(style, CARD_STYLE_PRESETS);
 
   const [linkInput, setLinkInput] = useState(style.linkHref || "");
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -800,19 +348,31 @@ export function ElementStylePanel({
       </div>
 
       <Tabs defaultValue="text" className="flex min-h-0 flex-1 flex-col gap-0">
-        <div className="px-3 py-2.5 shrink-0 border-b border-zinc-800 bg-zinc-950">
-          <TabsList className="w-full h-9 grid grid-cols-6 gap-1 rounded-xl bg-zinc-900 border border-zinc-800 p-1">
-            <TabsTrigger value="text" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Text</TabsTrigger>
-            <TabsTrigger value="fill" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Fill</TabsTrigger>
-            <TabsTrigger value="border" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Border</TabsTrigger>
-            <TabsTrigger value="fx" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">FX</TabsTrigger>
-            <TabsTrigger value="layout" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all">Layout</TabsTrigger>
-            <TabsTrigger value="link" className="cursor-pointer rounded-lg text-[10px] font-medium text-zinc-400 hover:text-white data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-xs transition-all flex items-center justify-center gap-1">
-              <span>Link</span>
-              {style.linkHref ? (
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 ring-2 ring-emerald-400/30 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-              ) : null}
-            </TabsTrigger>
+        <div className="shrink-0 border-b border-zinc-800">
+          <TabsList className="w-full h-9 rounded-none! grid grid-cols-6 gap-0 bg-background p-0">
+            <ElementTabTrigger value="text">
+              Text
+            </ElementTabTrigger>
+            <ElementTabTrigger value="fill">
+              Fill
+            </ElementTabTrigger>
+            <ElementTabTrigger value="border">
+              Border
+            </ElementTabTrigger>
+            <ElementTabTrigger value="fx">
+              FX
+            </ElementTabTrigger>
+            <ElementTabTrigger value="layout">
+              Layout
+            </ElementTabTrigger>
+            <ElementTabTrigger value="link">
+              <span className="flex items-center justify-center gap-1">
+                Link
+                {style.linkHref ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 ring-2 ring-emerald-400/30 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                ) : null}
+              </span>
+            </ElementTabTrigger>
           </TabsList>
         </div>
 
@@ -821,10 +381,8 @@ export function ElementStylePanel({
           <TabsContent value="text" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-2.5">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Typography</div>
                 <div className="grid grid-cols-[1fr_80px] gap-2">
                   <div className="space-y-1">
-                    <Label className={labelClass}>Font Family</Label>
                     <Select value={style.fontFamily ?? "inherit"} onValueChange={(fontFamily) => onChange({ fontFamily })}>
                       <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -834,7 +392,7 @@ export function ElementStylePanel({
                       </SelectContent>
                     </Select>
                   </div>
-                  <NumberField label="Font Size" value={style.fontSize ?? 16} min={8} max={140} unit="px" onChange={(fontSize) => onChange({ fontSize })} />
+                  <NumberField value={style.fontSize ?? 16} min={8} max={140} unit="px" onChange={(fontSize) => onChange({ fontSize })} />
                 </div>
 
                 <div className="space-y-3 pt-1">
@@ -846,43 +404,99 @@ export function ElementStylePanel({
               <Separator className="bg-zinc-800" />
 
               <div className="space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Style & Alignment</div>
                 <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                  <ToggleGroup
-                    type="multiple"
-                    value={formatValues}
-                    onValueChange={(v) => onChange({
-                      bold: v.includes("bold"),
-                      italic: v.includes("italic"),
-                      underline: v.includes("underline"),
-                      strikethrough: v.includes("strike"),
-                    })}
-                    className="inline-flex w-full gap-0.5 rounded-lg border border-white/10 p-0.5 bg-zinc-950 h-8"
-                  >
-                    <ToggleGroupItem value="bold" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Bold"><Bold className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="italic" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Italic"><Italic className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="underline" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Underline"><Underline className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="strike" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Strikethrough"><Strikethrough className="h-3.5 w-3.5" /></ToggleGroupItem>
-                  </ToggleGroup>
+                  {/* Bold / Italic / Underline / Strikethrough */}
+                  <div className="flex w-full h-7 rounded-md border border-white/10 bg-zinc-950 overflow-hidden">
+                    <ToggleGroup
+                      type="multiple"
+                      value={formatValues}
+                      onValueChange={(v) =>
+                        onChange({
+                          bold: v.includes("bold"),
+                          italic: v.includes("italic"),
+                          underline: v.includes("underline"),
+                          strikethrough: v.includes("strike"),
+                        })
+                      }
+                      className="flex w-full !gap-0 !p-0 !rounded-none !border-0 !bg-transparent"
+                    >
+                      <ToggleGroupItem
+                        value="bold"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Bold"
+                      >
+                        <Bold className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="italic"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Italic"
+                      >
+                        <Italic className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="underline"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Underline"
+                      >
+                        <Underline className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="strike"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white"
+                        title="Strikethrough"
+                      >
+                        <Strikethrough className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
 
-                  <ToggleGroup
-                    type="single"
-                    value={style.textAlign ?? "left"}
-                    onValueChange={(v) => v && onChange({ textAlign: v as PreviewElementStyle["textAlign"] })}
-                    className="inline-flex w-full gap-0.5 rounded-lg border border-white/10 p-0.5 bg-zinc-950 h-8"
-                  >
-                    <ToggleGroupItem value="left" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Left"><AlignLeft className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Center"><AlignCenter className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Align Right"><AlignRight className="h-3.5 w-3.5" /></ToggleGroupItem>
-                    <ToggleGroupItem value="justify" className="h-full flex-1 rounded-md cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5 data-[state=on]:bg-zinc-800 data-[state=on]:text-white data-[state=on]:border data-[state=on]:border-zinc-700 data-[state=on]:font-bold data-[state=on]:shadow-xs p-0 transition-all" title="Justify"><AlignJustify className="h-3.5 w-3.5" /></ToggleGroupItem>
-                  </ToggleGroup>
+                  {/* Text alignment */}
+                  <div className="flex w-full h-7 rounded-md border border-white/10 bg-zinc-950 overflow-hidden">
+                    <ToggleGroup
+                      type="single"
+                      value={style.textAlign ?? "left"}
+                      onValueChange={(v) =>
+                        v && onChange({ textAlign: v as PreviewElementStyle["textAlign"] })
+                      }
+                      className="flex w-full !gap-0 !p-0 !rounded-none !border-0 !bg-transparent"
+                    >
+                      <ToggleGroupItem
+                        value="left"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Align Left"
+                      >
+                        <AlignLeft className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="center"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Align Center"
+                      >
+                        <AlignCenter className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="right"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white border-r border-white/10"
+                        title="Align Right"
+                      >
+                        <AlignRight className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="justify"
+                        className="flex-1 !rounded-none !border-0 !shadow-none flex items-center justify-center cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white data-[state=on]:bg-white/10 data-[state=on]:text-white"
+                        title="Justify"
+                      >
+                        <AlignJustify className="h-3.5 w-3.5" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
                 </div>
               </div>
 
               <Separator className="bg-zinc-800" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Color & Shadow</div>
                 <ColorPicker
                   id="text-color"
                   label="Text Color"
@@ -893,7 +507,9 @@ export function ElementStylePanel({
                 />
 
                 <div className="space-y-1">
-                  <Label className={labelClass}>Text Shadow</Label>
+                  <Label className={`${labelClass} block mb-2 mt-2`}>
+                    Text Shadow
+                  </Label>
                   <Select value={style.textShadow || "none"} onValueChange={(v) => onChange({ textShadow: v === "none" ? "" : v })}>
                     <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -911,10 +527,9 @@ export function ElementStylePanel({
           <TabsContent value="fill" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Background Color</div>
                 <ColorPicker
                   id="bg-color"
-                  label="Color"
+                  label="Background Color"
                   value={style.backgroundColor ?? "#000000"}
                   isOpen={activeColorPicker === "bg-color"}
                   onOpenChange={(open) => setActiveColorPicker(open ? "bg-color" : null)}
@@ -925,9 +540,9 @@ export function ElementStylePanel({
               <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Gradient Overlay</div>
+
                 <div className="space-y-1">
-                  <Label className={labelClass}>Preset</Label>
+                  <Label className={`${labelClass} block mb-2`}>Gradient Overlay</Label>
                   <Select value={style.backgroundGradient || "none"} onValueChange={(v) => onChange({ backgroundGradient: v === "none" ? "" : v })}>
                     <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -963,10 +578,8 @@ export function ElementStylePanel({
                 ) : null}
               </div>
 
-              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Transparency</div>
                 <SliderField label="Opacity" value={Math.round((style.opacity ?? 1) * 100)} min={0} max={100} unit="%" onChange={(v) => onChange({ opacity: v / 100 })} />
               </div>
             </motion.div>
@@ -976,9 +589,8 @@ export function ElementStylePanel({
           <TabsContent value="border" className="mt-0">
             <motion.div {...fadeIn()} className="space-y-4">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Stroke & Border</div>
                 <div className="grid grid-cols-2 gap-2">
-                  <NumberField label="Stroke Width" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
+                  <NumberField label="Border Width" value={style.borderWidth ?? 0} min={0} max={20} unit="px" onChange={(borderWidth) => onChange({ borderWidth })} />
                   <div className="space-y-1">
                     <Label className={labelClass}>Style</Label>
                     <Select value={style.borderStyle ?? "solid"} onValueChange={(borderStyle) => onChange({ borderStyle: borderStyle as PreviewElementStyle["borderStyle"] })}>
@@ -997,7 +609,7 @@ export function ElementStylePanel({
 
                 <ColorPicker
                   id="stroke-color"
-                  label="Stroke Color"
+                  label="Border Color"
                   value={style.borderColor ?? "#ffffff"}
                   isOpen={activeColorPicker === "stroke-color"}
                   onOpenChange={(open) => setActiveColorPicker(open ? "stroke-color" : null)}
@@ -1021,9 +633,9 @@ export function ElementStylePanel({
                         key={preset.key}
                         type="button"
                         onClick={() => onChange(preset.apply)}
-                        className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${isActive
-                          ? "border-primary bg-primary/20 text-white font-semibold ring-1 ring-primary/40 shadow-xs"
-                          : "border-white/10 bg-zinc-900/40 text-zinc-300 hover:border-primary/30 hover:bg-zinc-900 hover:text-white"
+                        className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-[11px] font-medium cursor-pointer ${isActive
+                          ? "border-white/20 bg-white/10 text-white"
+                          : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:bg-zinc-900 hover:text-white"
                           }`}
                       >
                         <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -1034,50 +646,52 @@ export function ElementStylePanel({
                 </div>
               </div>
 
-              <Separator className="bg-primary/15" />
+              <Separator className="bg-zinc-800" />
 
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Hover Effect</div>
-                <ToggleGroup
-                  type="single"
-                  value={style.hoverEffect ?? "none"}
-                  onValueChange={(v) => v && onChange({ hoverEffect: v as PreviewElementStyle["hoverEffect"] })}
-                  className="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-xl border border-white/10"
-                >
-                  {HOVER_EFFECT_OPTIONS.map((opt) => (
-                    <ToggleGroupItem
-                      key={opt.value}
-                      value={opt.value}
-                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium transition-all ${opt.value === "none" ? "border-dashed border-white/15 text-zinc-500 hover:text-zinc-300" : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:text-white hover:bg-zinc-900/80"
-                        } data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs`}
-                    >
-                      {opt.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {HOVER_EFFECT_OPTIONS.map((opt) => {
+                    const isActive = (style.hoverEffect ?? "none") === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => onChange({ hoverEffect: opt.value as PreviewElementStyle["hoverEffect"] })}
+                        className={`flex items-center justify-center rounded-md border px-2 py-2 text-[11px] font-medium cursor-pointer ${isActive
+                          ? "border-white/20 bg-white/10 text-white"
+                          : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <Separator className="bg-primary/15" />
+              <Separator className="bg-zinc-800" />
 
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Entrance Animation</div>
-                <ToggleGroup
-                  type="single"
-                  value={style.entrance ?? "none"}
-                  onValueChange={(v) => v && onChange({ entrance: v as PreviewElementStyle["entrance"] })}
-                  className="grid grid-cols-2 gap-1 bg-zinc-950 p-1 rounded-xl border border-white/10"
-                >
-                  {ENTRANCE_OPTIONS.map((opt) => (
-                    <ToggleGroupItem
-                      key={opt.value}
-                      value={opt.value}
-                      className={`h-7 rounded-lg border cursor-pointer text-[10px] font-medium transition-all ${opt.value === "none" ? "border-dashed border-white/15 text-zinc-500 hover:text-zinc-300" : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:text-white hover:bg-zinc-900/80"
-                        } data-[state=on]:bg-primary/20 data-[state=on]:text-primary data-[state=on]:border-primary/40 data-[state=on]:font-bold data-[state=on]:shadow-xs`}
-                    >
-                      {opt.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {ENTRANCE_OPTIONS.map((opt) => {
+                    const isActive = (style.entrance ?? "none") === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => onChange({ entrance: opt.value as PreviewElementStyle["entrance"] })}
+                        className={`flex items-center justify-center rounded-md border px-2.5 py-2 text-[11px] font-medium cursor-pointer ${isActive
+                          ? "border-white/20 bg-white/10 text-white"
+                          : "border-white/10 bg-zinc-900/40 text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
 
                 {style.entrance && style.entrance !== "none" && (
                   <SliderField
@@ -1094,11 +708,9 @@ export function ElementStylePanel({
             </motion.div>
           </TabsContent>
 
-          {/* Tab 5: Layout */}
           <TabsContent value="layout" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-4">
+            <motion.div {...fadeIn()} className="space-y-5">
               <div className="space-y-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Spacing</div>
                 <PresetRow<SpacingKey>
                   label="Preset"
                   value={spacingKeyFromValue(style.padding)}
@@ -1110,65 +722,29 @@ export function ElementStylePanel({
                   onChange={(key) => onChange({ padding: SPACING_MAP[key] })}
                 />
 
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
                   <NumberField label="Padding" value={style.padding ?? 0} min={0} max={120} unit="px" onChange={(padding) => onChange({ padding })} />
                   <NumberField label="Margin" value={style.margin ?? 0} min={-60} max={120} unit="px" onChange={(margin) => onChange({ margin })} />
                 </div>
               </div>
 
-              <Separator className="bg-primary/15" />
-
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Dimensions</div>
                 <div className="grid grid-cols-2 gap-2">
-                  <TextField
+                  <DimensionField
                     label="Width"
-                    value={style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "")}
-                    placeholder={edit.computedWidth ? `auto (${edit.computedWidth})` : "auto"}
+                    value={style.width}
+                    defaultValue={edit.computedWidth}
                     onChange={(width) => onChange({ width })}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                        e.preventDefault();
-                        const currentVal = style.width !== undefined ? (style.width ?? "") : (edit.computedWidth ?? "");
-                        const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
-                        if (match) {
-                          const num = parseFloat(match[1]);
-                          const unit = match[2] || "px";
-                          const step = e.shiftKey ? 10 : 1;
-                          const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
-                          onChange({ width: `${nextNum}${unit}` });
-                        } else {
-                          onChange({ width: e.key === "ArrowUp" ? "10px" : "0px" });
-                        }
-                      }
-                    }}
                   />
-                  <TextField
+                  <DimensionField
                     label="Height"
-                    value={style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "")}
-                    placeholder={edit.computedHeight ? `auto (${edit.computedHeight})` : "auto"}
+                    value={style.height}
+                    defaultValue={edit.computedHeight}
                     onChange={(height) => onChange({ height })}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                        e.preventDefault();
-                        const currentVal = style.height !== undefined ? (style.height ?? "") : (edit.computedHeight ?? "");
-                        const match = currentVal.trim().match(/^(\d+(?:\.\d+)?)(.*)$/);
-                        if (match) {
-                          const num = parseFloat(match[1]);
-                          const unit = match[2] || "px";
-                          const step = e.shiftKey ? 10 : 1;
-                          const nextNum = e.key === "ArrowUp" ? num + step : Math.max(0, num - step);
-                          onChange({ height: `${nextNum}${unit}` });
-                        } else {
-                          onChange({ height: e.key === "ArrowUp" ? "10px" : "0px" });
-                        }
-                      }
-                    }}
                   />
                 </div>
               </div>
-
-              <Separator className="bg-primary/15" />
 
               <div className="space-y-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Behavior</div>
@@ -1205,7 +781,7 @@ export function ElementStylePanel({
 
           {/* Tab 6: Link */}
           <TabsContent value="link" className="mt-0">
-            <motion.div {...fadeIn()} className="space-y-3 pt-1">
+            <motion.div {...fadeIn()} className="space-y-4 pt-1">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className={labelClass}>Link URL</Label>
@@ -1213,7 +789,7 @@ export function ElementStylePanel({
                     <button
                       type="button"
                       onClick={handleClearLink}
-                      className="text-[10px] text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                      className="text-[10px] text-zinc-500 hover:text-rose-400 cursor-pointer"
                     >
                       Clear
                     </button>
@@ -1234,8 +810,8 @@ export function ElementStylePanel({
                         handleApplyLink();
                       }
                     }}
-                    placeholder="#contact, https://..."
-                    className="h-8 pr-7 bg-zinc-950 border-white/15 text-xs text-white placeholder:text-zinc-500 rounded-lg focus-visible:border-primary focus-visible:ring-primary/40"
+                    placeholder="#section or https://..."
+                    className="h-8 pr-7 !rounded-none bg-zinc-950 border-white/15 text-xs text-white placeholder:text-zinc-500 focus-visible:border-white/30 focus-visible:ring-white/10"
                   />
                   {linkInput && (
                     <button
@@ -1249,15 +825,19 @@ export function ElementStylePanel({
                   )}
                 </div>
 
-                {linkError && (
+                {linkError ? (
                   <p className="text-[10px] text-amber-400">{linkError}</p>
+                ) : (
+                  <p className="text-[10px] text-zinc-500">
+                    Use #section to jump within this page, or a full link to send people elsewhere.
+                  </p>
                 )}
               </div>
 
               {availableSectionLinks && availableSectionLinks.length > 0 && (
-                <div className="space-y-1.5 pt-1">
+                <div className="space-y-1.5">
                   <Label className={labelClass}>Sections</Label>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-2">
                     {availableSectionLinks.map((sec) => {
                       const isSelected = style.linkHref === sec;
                       return (
@@ -1265,9 +845,9 @@ export function ElementStylePanel({
                           key={sec}
                           type="button"
                           onClick={() => handleSelectSection(sec)}
-                          className={`rounded px-2 py-0.5 text-[10px] font-mono transition-colors cursor-pointer ${isSelected
-                              ? "bg-primary/25 text-primary border border-primary/40 font-semibold"
-                              : "bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                          className={`rounded-md px-2.5 py-1 text-[10px] font-mono cursor-pointer ${isSelected
+                            ? "bg-white/10 text-white border border-white/20"
+                            : "bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800"
                             }`}
                         >
                           {sec}
@@ -1278,8 +858,8 @@ export function ElementStylePanel({
                 </div>
               )}
 
-              <p className="text-[10px] text-zinc-500 pt-1">
-                Other pages are coming soon.
+              <p className="text-[10px] text-zinc-500">
+                Routes like /about for other pages are coming soon.
               </p>
             </motion.div>
           </TabsContent>
@@ -1287,12 +867,12 @@ export function ElementStylePanel({
       </Tabs>
 
       {/* Footer Actions */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-primary/20 bg-black/80 p-3 shadow-lg">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-white/10 bg-black/80 p-3">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange({ removed: !isHidden })}
-          className="h-8 flex-1 cursor-pointer gap-1.5 border-white/15 bg-zinc-900/60 text-xs font-semibold text-white hover:border-primary/40 hover:bg-zinc-900 hover:text-white rounded-lg transition-colors"
+          onClick={() => onChange({ hidden: !isHidden, visibility: !isHidden ? "hidden" : "visible" })}
+          className="h-8 flex-1 cursor-pointer gap-1.5 rounded-md border-white/15 bg-zinc-900/60 text-xs font-medium text-white hover:bg-zinc-900 hover:text-white"
         >
           {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
           {isHidden ? "Show Element" : "Hide Element"}
@@ -1301,7 +881,7 @@ export function ElementStylePanel({
           variant="outline"
           size="sm"
           onClick={onRemove}
-          className="h-8 flex-1 cursor-pointer gap-1.5 border-rose-500/40 bg-rose-500/10 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg transition-colors"
+          className="h-8 flex-1 cursor-pointer gap-1.5 rounded-md border-rose-500/30 bg-rose-500/10 text-xs font-medium text-rose-400 hover:bg-rose-500/20 hover:text-rose-300"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Remove
@@ -1310,3 +890,5 @@ export function ElementStylePanel({
     </aside>
   );
 }
+
+

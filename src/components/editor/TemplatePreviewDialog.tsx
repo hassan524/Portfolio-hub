@@ -25,8 +25,13 @@ import {
   syncTemplateState,
   handleFullscreenChange,
 } from "@/lib/functions/template";
+import { AlertCircle } from "lucide-react";
 import { DeployModal } from "../common/Deploymodal";
 import { PortfolioRow } from "@/types/portfolio";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 interface Props {
   template: SiteData | null;
@@ -59,6 +64,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   const [selectedElement, setSelectedElement] = useState<PreviewElementEdit | null>(null);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState<boolean>(false);
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState<boolean>(false);
   const [DeployModalOpen, setDeployModalOpen] = useState<boolean>(false);
   const [websiteName, setWebsiteName] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
@@ -76,8 +82,22 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  const handleAttemptClose = () => {
+    if (changeCount >= 10) {
+      setConfirmDiscardOpen(true);
+    } else {
+      onClose();
+    }
+  };
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setResponsiveEditMode(false);
+      setDevice("desktop");
+      setSelectedElement(null);
+      setMobilePanelOpen(false);
+      return;
+    }
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -164,7 +184,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
   };
 
   const handleChangeElementStyle = (elementId: string, patch: Partial<PreviewElementStyle>) => {
-    changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint);
+    changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint, responsiveEditMode);
     setChangeCount((c) => c + 1);
   };
 
@@ -191,9 +211,10 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   const handleRemoveSelectedElement = () => {
     removeSelectedElement(selectedElement, (elementId, patch) =>
-      changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint),
+      changeElementStyle(setSite, setSelectedElement, elementId, patch, editBreakpoint, responsiveEditMode),
     );
     setChangeCount((c) => c + 1);
+    setSelectedElement(null);
   };
 
   const handleResetSelectedElement = () => {
@@ -258,6 +279,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
         toast.success("Saved as draft!");
         navigate(`/dashboard/${portfolio.id}`);
       } else {
+        console.log('Final site data', site)
         const files = await buildViewerAppFiles(site);
         setDeployFiles(files);
 
@@ -284,7 +306,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 flex items-center justify-center"
-            onClick={onClose}
+            onClick={handleAttemptClose}
           >
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
@@ -319,7 +341,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 setIsMaximized={setIsMaximized}
                 dialogRef={dialogRef}
                 onToggleMaximize={toggleMaximize}
-                onClose={onClose}
+                onClose={handleAttemptClose}
                 onSave={handleSaveClick}
                 changeCount={changeCount}
                 contentRef={contentRef}
@@ -385,6 +407,42 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Discard Changes Confirmation Modal */}
+      <Dialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl text-white [&>button]:hidden">
+          <div className="mb-3.5">
+            <h3 className="text-base font-bold text-zinc-100">Discard unsaved changes?</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              You have made some changes to the template.
+            </p>
+          </div>
+
+          <p className="text-xs text-zinc-300 leading-relaxed mb-6">
+            Are you sure you want to exit the editor? Any unsaved edits will be permanently lost.
+          </p>
+
+          <div className="flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={() => setConfirmDiscardOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            >
+              Keep Editing
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmDiscardOpen(false);
+                onClose();
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer shadow-sm"
+            >
+              Exit
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <SaveDeployModal
         open={saveModalOpen}

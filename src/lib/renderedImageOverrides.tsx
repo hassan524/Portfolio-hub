@@ -8,10 +8,11 @@ export function RenderedImageOverrides({
   overrides?: ImageOverrides;
   children: ReactNode;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
-    const root = rootRef.current;
+    const anchor = anchorRef.current;
+    const root = anchor?.parentElement;
     if (!root) return;
 
     const apply = () => applyRenderedImageOverrides(root, overrides ?? {});
@@ -29,8 +30,9 @@ export function RenderedImageOverrides({
   }, [overrides]);
 
   return (
-    <div ref={rootRef} style={{ display: "contents" }}>
+    <>
+      <span ref={anchorRef} style={{ display: "none" }} data-preview-chrome />
       {children}
-    </div>
+    </>
   );
 }

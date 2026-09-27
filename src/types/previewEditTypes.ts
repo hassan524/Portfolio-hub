@@ -47,6 +47,7 @@ export type PreviewElementStyle = {
   display?: string | null;
   cursor?: string | null;
   overflow?: "visible" | "hidden" | "auto" | "scroll" | null;
+  visibility?: "visible" | "hidden" | "collapse" | null;
 
   // Position & Transform
   freePositioned?: boolean;
@@ -59,6 +60,7 @@ export type PreviewElementStyle = {
 
   // Meta
   removed?: boolean;
+  hidden?: boolean;
   textShadow?: string;
   hoverEffect?: "none" | "grow" | "lift" | "glow" | "darken";
   entrance?: "none" | "fade" | "slideUp" | "zoom";

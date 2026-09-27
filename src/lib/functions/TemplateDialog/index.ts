@@ -29,36 +29,72 @@ export function breakpointFromWidth(width: number): ResponsiveBreakpoint {
   return "mobile";
 }
 
+export function isPropControlled(style: PreviewElementStyle | undefined, key: keyof PreviewElementStyle): boolean {
+  if (!style) return false;
+  if ((style as any)[key] !== undefined) return true;
+  const resp = style.responsive;
+  if (!resp) return false;
+  return Boolean(
+    (resp.desktop && key in resp.desktop && (resp.desktop as any)[key] !== undefined) ||
+    (resp.tablet && key in resp.tablet && (resp.tablet as any)[key] !== undefined) ||
+    (resp.mobile && key in resp.mobile && (resp.mobile as any)[key] !== undefined)
+  );
+}
+
 export function resolveResponsiveValue<K extends keyof PreviewElementStyle>(
   style: PreviewElementStyle,
   key: K,
   breakpoint: ResponsiveBreakpoint,
 ): PreviewElementStyle[K] {
+  if (!style) return undefined as any;
+
   const responsive = style.responsive;
-  if (responsive?.[breakpoint] && key in responsive[breakpoint]!) {
-    const val = (responsive[breakpoint] as any)[key];
-    if (val !== undefined) return val;
+
+  if (responsive) {
+    // This breakpoint's own explicit override wins, if it has one.
+    if (responsive[breakpoint] && key in responsive[breakpoint]!) {
+      const val = (responsive[breakpoint] as any)[key];
+      if (val !== undefined) return val;
+    }
+
+    // No cross-breakpoint inheritance: desktop edits stay on desktop,
+    // tablet edits stay on tablet, mobile edits stay on mobile.
+    // (Previously this fell back mobile -> tablet -> desktop, and
+    // tablet -> desktop, which is what caused desktop edits to leak
+    // into tablet/mobile. That fallback has been removed.)
+
+    // Fall back to the flat/base style — whatever was set outside
+    // `responsive` (e.g. before Responsive Editing was ever turned on
+    // for this element).
+    if ((style as any)[key] !== undefined) {
+      return (style as any)[key];
+    }
+
+    // If another breakpoint has its own override but this one doesn't,
+    // don't inherit it — return undefined so the caller removes the
+    // property instead of showing another breakpoint's value.
+    const otherBps: ResponsiveBreakpoint[] = (["desktop", "tablet", "mobile"] as ResponsiveBreakpoint[]).filter(
+      (b) => b !== breakpoint
+    );
+    const hasOtherOverride = otherBps.some((b) => responsive[b] && key in responsive[b]!);
+    if (hasOtherOverride) {
+      return undefined as any;
+    }
   }
+
   return style[key];
 }
 
-// Switches the editor dialog in and out of true browser fullscreen.
+// Switches the editor dialog in and out of maximized full-screen view.
 export function toggleMaximize(
   isMaximized: boolean,
   setIsMaximized: Dispatch<SetStateAction<boolean>>,
-  dialogRef: RefObject<HTMLElement | null>,
+  _dialogRef: RefObject<HTMLElement | null>,
 ): void {
-  if (!isMaximized) {
-    if (dialogRef.current && !document.fullscreenElement) {
-      dialogRef.current.requestFullscreen?.().catch(() => { });
-    }
-    setIsMaximized(true);
-  } else {
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.().catch(() => { });
-    }
-    setIsMaximized(false);
+  if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(() => { });
   }
+  setIsMaximized((prev) => !prev);
 }
 
 // Applies a patch (height, label, name, style, or block props) to a single
@@ -88,9 +124,9 @@ export function updateBlockProps(
           ...restProps,
           ...(bgColor !== undefined
             ? {
-                backgroundColor: bgColor as string,
-                ...(isSpacer ? { backgroundImage: undefined, isBlended: false } : {}),
-              }
+              backgroundColor: bgColor as string,
+              ...(isSpacer ? { backgroundImage: undefined, isBlended: false } : {}),
+            }
             : {}),
         },
       };
@@ -106,23 +142,19 @@ export function updateBlockProps(
       const blockLabel = targetBlock?.label ?? targetBlock?.name ?? blockKind;
       const isSpacer = blockKind === "spacer" || targetBlock?.type === "spacer";
 
-      // If setting a solid bgColor on a spacer or block, clear any conflicting background-image
+      // If setting a solid bgColor on a spacer or block, update only the root element, not all child sub-elements
       if (bgColor !== undefined) {
-        Object.keys(prevElements).forEach((key) => {
-          if (key === targetElementId || key.startsWith(`${blockId}:`)) {
-            const existing = prevElements[key];
-            if (existing) {
-              prevElements[key] = {
-                ...existing,
-                style: {
-                  ...existing.style,
-                  backgroundColor: bgColor as string,
-                  ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
-                },
-              };
-            }
-          }
-        });
+        const rootExisting = prevElements[targetElementId];
+        if (rootExisting) {
+          prevElements[targetElementId] = {
+            ...rootExisting,
+            style: {
+              ...rootExisting.style,
+              backgroundColor: bgColor as string,
+              ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
+            },
+          };
+        }
       }
 
       const updatedElementEdit: PreviewElementEdit = {
@@ -135,9 +167,9 @@ export function updateBlockProps(
           ...(elementStyle as Partial<PreviewElementStyle>),
           ...(bgColor !== undefined
             ? {
-                backgroundColor: bgColor as string,
-                ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
-              }
+              backgroundColor: bgColor as string,
+              ...(isSpacer ? { backgroundImage: null, backgroundGradient: null } : {}),
+            }
             : {}),
         },
       };
@@ -209,6 +241,7 @@ export function changeElementStyle(
   elementId: string,
   patch: Partial<PreviewElementStyle>,
   editBreakpoint: ResponsiveBreakpoint = "desktop",
+  responsiveEditMode: boolean = false,
 ): void {
   setSite((prev): SiteData | null => {
     if (!prev) return prev;
@@ -216,15 +249,29 @@ export function changeElementStyle(
     const prevElements = prev.previewEdits?.elements ?? {};
     const prevStyle = prevElements[elementId]?.style ?? {};
 
-    const prevResponsive = prevStyle.responsive ?? {};
-    const prevBreakpointSlot = prevResponsive[editBreakpoint] ?? {};
-    const nextStyle: PreviewElementStyle = {
-      ...prevStyle,
-      responsive: {
-        ...prevResponsive,
-        [editBreakpoint]: { ...prevBreakpointSlot, ...patch },
-      },
-    };
+    let nextStyle: PreviewElementStyle;
+    if (responsiveEditMode) {
+      const prevResponsive = prevStyle.responsive ?? {};
+      const prevBreakpointSlot = prevResponsive[editBreakpoint] ?? {};
+      nextStyle = {
+        ...prevStyle,
+        responsive: {
+          ...prevResponsive,
+          [editBreakpoint]: { ...prevBreakpointSlot, ...patch },
+        },
+      };
+    } else {
+      nextStyle = {
+        ...prevStyle,
+        ...patch,
+      };
+      if (nextStyle.responsive?.[editBreakpoint]) {
+        nextStyle.responsive[editBreakpoint] = {
+          ...nextStyle.responsive[editBreakpoint],
+          ...patch,
+        };
+      }
+    }
 
     const blockId = elementId.split(":")[0] ?? "";
     const block = prev.blocks.find((candidate) => candidate.id === blockId);
@@ -259,8 +306,8 @@ export function changeElementStyle(
   });
 }
 
-// Marks the currently-selected element as "removed" (hidden) instead of
-// deleting it outright, by setting a `removed: true` style flag on it.
+// Marks the currently-selected element as "removed" (display: none / removing layout space)
+// by setting a `removed: true` style flag on it.
 export function removeSelectedElement(
   selectedElement: PreviewElementEdit | null,
   changeElementStyleFn: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
@@ -420,7 +467,14 @@ export function handleInteractivePreviewClick(
     ? (block.label ?? block.name ?? block.props.kind ?? "Section Container")
     : getElementLabel(element);
 
-  const rect = element.getBoundingClientRect();
+  const ownerDoc = element.ownerDocument || document;
+  const ownerWin = ownerDoc.defaultView || window;
+  const computed = ownerWin.getComputedStyle(element);
+  const parsedWidth = parseFloat(computed.width);
+  const parsedHeight = parseFloat(computed.height);
+  const safeW = !isNaN(parsedWidth) && parsedWidth > 0 ? Math.round(parsedWidth) : Math.round(element.offsetWidth || element.getBoundingClientRect().width);
+  const safeH = !isNaN(parsedHeight) && parsedHeight > 0 ? Math.round(parsedHeight) : Math.round(element.offsetHeight || element.getBoundingClientRect().height);
+
   const computedStyle = extractElementComputedStyles(element);
   const nextSelection: PreviewElementEdit = {
     id: elementId,
@@ -428,8 +482,8 @@ export function handleInteractivePreviewClick(
     blockKind: block.props.kind,
     label: fallbackLabel,
     style: site.previewEdits?.elements[elementId]?.style ?? {},
-    computedWidth: `${Math.round(rect.width)}px`,
-    computedHeight: `${Math.round(rect.height)}px`,
+    computedWidth: `${safeW}px`,
+    computedHeight: `${safeH}px`,
     computedStyle,
   };
 
@@ -477,7 +531,14 @@ export function selectFirstEditableElement(
 
   if (targetBlock && targetElement) {
     const elementId = targetElement.dataset.previewEditId ?? "";
-    const firstChildRect = targetElement.getBoundingClientRect();
+    const ownerDoc = targetElement.ownerDocument || document;
+    const ownerWin = ownerDoc.defaultView || window;
+    const firstChildComputedStyle = ownerWin.getComputedStyle(targetElement);
+    const parsedWidth = parseFloat(firstChildComputedStyle.width);
+    const parsedHeight = parseFloat(firstChildComputedStyle.height);
+    const safeW = !isNaN(parsedWidth) && parsedWidth > 0 ? Math.round(parsedWidth) : Math.round(targetElement.offsetWidth || targetElement.getBoundingClientRect().width);
+    const safeH = !isNaN(parsedHeight) && parsedHeight > 0 ? Math.round(parsedHeight) : Math.round(targetElement.offsetHeight || targetElement.getBoundingClientRect().height);
+
     const firstChildComputed = extractElementComputedStyles(targetElement);
     onSelectElement({
       id: elementId,
@@ -485,8 +546,8 @@ export function selectFirstEditableElement(
       blockKind: targetBlock.props.kind,
       label: getElementLabel(targetElement),
       style: site.previewEdits?.elements[elementId]?.style ?? {},
-      computedWidth: `${Math.round(firstChildRect.width)}px`,
-      computedHeight: `${Math.round(firstChildRect.height)}px`,
+      computedWidth: `${safeW}px`,
+      computedHeight: `${safeH}px`,
       computedStyle: firstChildComputed,
     });
   } else if (targetBlock) {
@@ -710,13 +771,14 @@ export function applyPreviewStyle(
   style: PreviewElementStyle | undefined,
   device: "desktop" | "responsive",
   breakpoint: ResponsiveBreakpoint = "desktop",
+  allElements?: Record<string, PreviewElementEdit>,
 ): void {
-  if (!style || Object.keys(style).length === 0) {
-    return;
-  }
+  if (!element || !style || Object.keys(style).length === 0) return;
 
   const resolve = <K extends keyof PreviewElementStyle>(key: K): PreviewElementStyle[K] =>
     resolveResponsiveValue(style, key, breakpoint);
+
+  const controlled = (key: keyof PreviewElementStyle): boolean => isPropControlled(style, key);
 
   const isImportant = resolve("isImportant");
   const imp = isImportant ? "important" : "";
@@ -729,203 +791,427 @@ export function applyPreviewStyle(
   };
 
   // Typography
-  const bold = resolve("bold");
-  const fontWeight = resolve("fontWeight");
-  if (bold !== undefined || fontWeight !== undefined) {
-    const weight = bold !== undefined ? (bold ? "700" : "400") : (fontWeight || "400");
-    setProp("font-weight", weight);
-  } else {
-    setProp("font-weight", null);
+  if (controlled("bold") || controlled("fontWeight")) {
+    const bold = resolve("bold");
+    const fontWeight = resolve("fontWeight");
+    if (bold !== undefined || fontWeight !== undefined) {
+      const weight = bold !== undefined ? (bold ? "700" : "400") : (fontWeight || "400");
+      setProp("font-weight", String(weight));
+    } else {
+      element.style.removeProperty("font-weight");
+    }
   }
 
-  const italic = resolve("italic");
-  setProp("font-style", italic !== undefined && italic !== null ? (italic ? "italic" : "normal") : null);
-
-  const underline = resolve("underline");
-  const strikethrough = resolve("strikethrough");
-  if (underline !== undefined || strikethrough !== undefined) {
-    const decorations: string[] = [];
-    if (underline) decorations.push("underline");
-    if (strikethrough) decorations.push("line-through");
-    setProp("text-decoration", decorations.length > 0 ? decorations.join(" ") : "none");
-  } else {
-    setProp("text-decoration", null);
+  if (controlled("italic")) {
+    const italic = resolve("italic");
+    if (italic !== undefined) {
+      setProp("font-style", italic ? "italic" : "normal");
+    } else {
+      element.style.removeProperty("font-style");
+    }
   }
 
-  const fontFamily = resolve("fontFamily");
-  setProp("font-family", fontFamily && fontFamily !== "inherit" ? fontFamily : null);
+  if (controlled("underline") || controlled("strikethrough")) {
+    const underline = resolve("underline");
+    const strikethrough = resolve("strikethrough");
+    if (underline || strikethrough) {
+      const decorations: string[] = [];
+      if (underline) decorations.push("underline");
+      if (strikethrough) decorations.push("line-through");
+      setProp("text-decoration", decorations.join(" "));
+    } else {
+      element.style.removeProperty("text-decoration");
+    }
+  }
 
-  const effectiveFontSize = resolve("fontSize");
-  setProp("font-size", effectiveFontSize !== undefined && effectiveFontSize !== null ? `${effectiveFontSize}px` : null);
+  if (controlled("fontFamily")) {
+    const fontFamily = resolve("fontFamily");
+    if (fontFamily && fontFamily !== "inherit") {
+      setProp("font-family", fontFamily);
+    } else {
+      element.style.removeProperty("font-family");
+    }
+  }
 
-  const lineHeight = resolve("lineHeight");
-  setProp("line-height", lineHeight !== undefined && lineHeight !== null ? `${lineHeight}` : null);
+  if (controlled("fontSize")) {
+    const fontSize = resolve("fontSize");
+    if (fontSize) {
+      setProp("font-size", `${fontSize}px`);
+    } else {
+      element.style.removeProperty("font-size");
+    }
+  }
 
-  const letterSpacing = resolve("letterSpacing");
-  setProp("letter-spacing", letterSpacing !== undefined && letterSpacing !== null ? `${letterSpacing}px` : null);
+  if (controlled("lineHeight")) {
+    const lineHeight = resolve("lineHeight");
+    if (lineHeight) {
+      setProp("line-height", `${lineHeight}`);
+    } else {
+      element.style.removeProperty("line-height");
+    }
+  }
 
-  const effectiveTextAlign = resolve("textAlign");
-  setProp("text-align", effectiveTextAlign || null);
+  if (controlled("letterSpacing")) {
+    const letterSpacing = resolve("letterSpacing");
+    if (letterSpacing !== undefined && letterSpacing !== null) {
+      setProp("letter-spacing", `${letterSpacing}px`);
+    } else {
+      element.style.removeProperty("letter-spacing");
+    }
+  }
 
-  const textTransform = resolve("textTransform");
-  setProp("text-transform", textTransform && textTransform !== "none" ? textTransform : null);
+  if (controlled("textAlign")) {
+    const textAlign = resolve("textAlign");
+    if (textAlign) {
+      setProp("text-align", textAlign);
+    } else {
+      element.style.removeProperty("text-align");
+    }
+  }
 
-  const color = resolve("color");
-  setProp("color", color || null);
+  if (controlled("textTransform")) {
+    const textTransform = resolve("textTransform");
+    if (textTransform && textTransform !== "none") {
+      setProp("text-transform", textTransform);
+    } else {
+      element.style.removeProperty("text-transform");
+    }
+  }
 
-  const textShadow = resolve("textShadow");
-  setProp("text-shadow", textShadow || null);
+  // Color & Descendant Cascading
+  if (controlled("color")) {
+    const color = resolve("color");
+    if (color) {
+      element.style.setProperty("color", color, "important");
+      element.style.setProperty("--ai-theme-ink", color);
+      element.style.setProperty("--theme-ink", color);
+      element.style.setProperty("--ink", color);
+    } else {
+      element.style.removeProperty("color");
+      element.style.removeProperty("--ai-theme-ink");
+      element.style.removeProperty("--theme-ink");
+      element.style.removeProperty("--ink");
+    }
+
+    const textDescendants = element.querySelectorAll<HTMLElement>("*");
+    textDescendants.forEach((child) => {
+      if (isChromeElement(child)) return;
+      const childEditId = child.dataset.previewEditId;
+      const childHasOwnColor = Boolean(
+        childEditId &&
+        allElements &&
+        allElements[childEditId]?.style &&
+        resolveResponsiveValue(allElements[childEditId].style, "color", breakpoint) !== undefined
+      );
+      if (!childHasOwnColor) {
+        if (color) {
+          child.style.setProperty("color", color, "important");
+          child.style.setProperty("--ai-theme-ink", color);
+          child.style.setProperty("--theme-ink", color);
+          child.style.setProperty("--ink", color);
+        } else {
+          child.style.removeProperty("color");
+          child.style.removeProperty("--ai-theme-ink");
+          child.style.removeProperty("--theme-ink");
+          child.style.removeProperty("--ink");
+        }
+      }
+    });
+  }
+
+  if (controlled("textShadow")) {
+    const textShadow = resolve("textShadow");
+    if (textShadow) {
+      setProp("text-shadow", textShadow);
+    } else {
+      element.style.removeProperty("text-shadow");
+    }
+  }
 
   // Gradient Text
-  const gradientText = resolve("gradientText");
-  const backgroundGradient = resolve("backgroundGradient");
-  if (gradientText) {
-    setProp("background-image", backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
-    setProp("-webkit-background-clip", "text");
-    setProp("background-clip", "text");
-    setProp("-webkit-text-fill-color", "transparent");
-  } else {
-    setProp("-webkit-background-clip", null);
-    setProp("background-clip", null);
-    setProp("-webkit-text-fill-color", null);
+  if (controlled("gradientText")) {
+    const gradientText = resolve("gradientText");
+    const backgroundGradient = resolve("backgroundGradient");
+    if (gradientText) {
+      setProp("background-image", backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
+      setProp("-webkit-background-clip", "text");
+      setProp("background-clip", "text");
+      setProp("-webkit-text-fill-color", "transparent");
+    } else {
+      setProp("-webkit-background-clip", null);
+      setProp("background-clip", null);
+      setProp("-webkit-text-fill-color", null);
+    }
   }
 
   // Background & Colors
-  const glassmorphism = resolve("glassmorphism");
-  const backgroundColor = resolve("backgroundColor");
-  const backgroundImage = resolve("backgroundImage");
-  if (glassmorphism) {
-    setProp("background-color", "rgba(255, 255, 255, 0.08)");
-    setProp("backdrop-filter", "blur(16px)");
-    setProp("-webkit-backdrop-filter", "blur(16px)");
-    setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
-    setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
-  } else {
-    setProp("background-color", backgroundColor || null);
-    setProp("background-image", backgroundGradient || backgroundImage || null);
+  if (controlled("glassmorphism") || controlled("backgroundColor") || controlled("backgroundImage") || controlled("backgroundGradient")) {
+    const glassmorphism = resolve("glassmorphism");
+    const backgroundColor = resolve("backgroundColor");
+    const backgroundImage = resolve("backgroundImage");
+    const backgroundGradient = resolve("backgroundGradient");
+
+    if (glassmorphism) {
+      setProp("background-color", "rgba(255, 255, 255, 0.08)");
+      setProp("backdrop-filter", "blur(16px)");
+      setProp("-webkit-backdrop-filter", "blur(16px)");
+      setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
+      setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
+    } else {
+      if (glassmorphism === false) {
+        setProp("backdrop-filter", null);
+        setProp("-webkit-backdrop-filter", null);
+      }
+      if (controlled("backgroundColor")) {
+        setProp("background-color", backgroundColor || null);
+      }
+      if (controlled("backgroundGradient") || controlled("backgroundImage")) {
+        setProp("background-image", backgroundGradient || backgroundImage || null);
+      }
+    }
   }
 
-  const opacity = resolve("opacity");
-  setProp("opacity", opacity !== undefined && opacity !== null ? `${opacity}` : null);
+  if (controlled("opacity")) {
+    const opacity = resolve("opacity");
+    if (opacity !== undefined && opacity !== null) {
+      setProp("opacity", `${opacity}`);
+    } else {
+      element.style.removeProperty("opacity");
+    }
+  }
 
   // Borders & Shadow
-  if (!glassmorphism) {
+  if (controlled("borderRadius")) {
     const borderRadius = resolve("borderRadius");
-    setProp("border-radius", borderRadius !== undefined && borderRadius !== null ? `${borderRadius}px` : null);
+    if (borderRadius !== undefined && borderRadius !== null) {
+      setProp("border-radius", `${borderRadius}px`);
+    } else {
+      element.style.removeProperty("border-radius");
+    }
+  }
 
+  if (controlled("borderWidth")) {
     const borderWidth = resolve("borderWidth");
-    setProp("border-width", borderWidth !== undefined && borderWidth !== null ? `${borderWidth}px` : null);
+    if (borderWidth !== undefined && borderWidth !== null) {
+      setProp("border-width", `${borderWidth}px`);
+    } else {
+      element.style.removeProperty("border-width");
+    }
+  }
 
+  if (controlled("borderStyle")) {
     const borderStyle = resolve("borderStyle");
-    setProp("border-style", borderStyle || null);
+    if (borderStyle) {
+      setProp("border-style", borderStyle);
+    } else {
+      element.style.removeProperty("border-style");
+    }
+  }
 
+  if (controlled("borderColor")) {
     const borderColor = resolve("borderColor");
-    setProp("border-color", borderColor || null);
+    if (borderColor) {
+      setProp("border-color", borderColor);
+    } else {
+      element.style.removeProperty("border-color");
+    }
+  }
 
+  if (controlled("glowAccent") || controlled("boxShadow")) {
     const glowAccent = resolve("glowAccent");
     const boxShadow = resolve("boxShadow");
     if (glowAccent) {
       setProp("box-shadow", "0 0 25px rgba(99, 102, 241, 0.6), 0 0 50px rgba(99, 102, 241, 0.3)");
+    } else if (boxShadow && boxShadow !== "none") {
+      setProp("box-shadow", boxShadow);
     } else {
-      setProp("box-shadow", boxShadow && boxShadow !== "none" ? boxShadow : null);
+      element.style.removeProperty("box-shadow");
     }
+  }
 
+  if (controlled("backdropBlur")) {
     const backdropBlur = resolve("backdropBlur");
-    setProp("backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? `blur(${backdropBlur}px)` : null);
-    setProp("-webkit-backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? `blur(${backdropBlur}px)` : null);
+    if (backdropBlur !== undefined && backdropBlur !== null) {
+      setProp("backdrop-filter", `blur(${backdropBlur}px)`);
+      setProp("-webkit-backdrop-filter", `blur(${backdropBlur}px)`);
+    } else {
+      element.style.removeProperty("backdrop-filter");
+      element.style.removeProperty("-webkit-backdrop-filter");
+    }
   }
 
   // Spacing & Dimensions
-  const effectivePadding = resolve("padding");
-  setProp("padding", effectivePadding !== undefined && effectivePadding !== null ? `${effectivePadding}px` : null);
-
-  const margin = resolve("margin");
-  setProp("margin", margin !== undefined && margin !== null ? `${margin}px` : null);
-
-  const width = resolve("width");
-  setProp("width", width ? (/^\d+(\.\d+)?$/.test(width.trim()) ? `${width.trim()}px` : width.trim()) : null);
-
-  const height = resolve("height");
-  setProp("height", height ? (/^\d+(\.\d+)?$/.test(height.trim()) ? `${height.trim()}px` : height.trim()) : null);
-
-  // Important SaaS Styles
-  const zIndex = resolve("zIndex");
-  setProp("z-index", zIndex !== undefined && zIndex !== null ? `${zIndex}` : null);
-
-  const effectiveRemoved = resolve("removed");
-  const display = resolve("display");
-  if (effectiveRemoved) {
-    setProp("display", "none");
-  } else {
-    setProp("display", display || null);
-  }
-
-  const cursor = resolve("cursor");
-  setProp("cursor", cursor || null);
-
-  const overflow = resolve("overflow");
-  setProp("overflow", overflow || null);
-
-  // Transforms
-  const rotate = resolve("rotate");
-  const scale = resolve("scale");
-  const transforms: string[] = [];
-  if (rotate) transforms.push(`rotate(${rotate}deg)`);
-  if (scale) transforms.push(`scale(${scale})`);
-  setProp("transform", transforms.length > 0 ? transforms.join(" ") : null);
-
-  // Free positioning & moving
-  const freePositioned = resolve("freePositioned");
-  if (freePositioned) {
-    const x = resolve("x");
-    const y = resolve("y");
-    const desktopCoords = resolve("desktop");
-    const mobileCoords = resolve("mobile");
-
-    let coords: { x: number; y: number } | undefined;
-    if (x !== undefined && y !== undefined && x !== null && y !== null) {
-      coords = { x, y };
-    } else if (breakpoint === "desktop") {
-      coords = desktopCoords;
+  if (controlled("padding")) {
+    const padding = resolve("padding");
+    if (padding !== undefined && padding !== null) {
+      setProp("padding", `${padding}px`);
     } else {
-      coords = mobileCoords;
+      element.style.removeProperty("padding");
     }
+  }
 
-    if (coords) {
-      setProp("position", "relative");
-      setProp("left", `${coords.x}px`);
-      setProp("top", `${coords.y}px`);
-      setProp("z-index", "20");
+  if (controlled("margin")) {
+    const margin = resolve("margin");
+    if (margin !== undefined && margin !== null) {
+      setProp("margin", `${margin}px`);
     } else {
-      setProp("position", null);
-      setProp("left", null);
-      setProp("top", null);
+      element.style.removeProperty("margin");
     }
-  } else {
-    setProp("position", null);
-    setProp("left", null);
-    setProp("top", null);
   }
 
-  // Hover Effect
-  const hoverEffect = resolve("hoverEffect");
-  if (hoverEffect && hoverEffect !== "none") {
-    element.setAttribute("data-hover-fx", hoverEffect);
-  } else {
-    element.removeAttribute("data-hover-fx");
+  if (controlled("width")) {
+    const width = resolve("width");
+    if (width) {
+      const formattedWidth = /^\d+(\.\d+)?$/.test(String(width).trim()) ? `${String(width).trim()}px` : String(width).trim();
+      setProp("width", formattedWidth);
+      element.style.setProperty("max-width", "none", "important");
+      element.style.setProperty("min-width", "0", "important");
+    } else {
+      element.style.removeProperty("width");
+      element.style.removeProperty("max-width");
+      element.style.removeProperty("min-width");
+    }
   }
 
-  // Entrance Animation
-  const entrance = resolve("entrance");
-  const entranceDuration = resolve("entranceDuration");
-  if (entrance && entrance !== "none") {
-    element.setAttribute("data-entrance-fx", entrance);
-    setProp("animation-duration", `${entranceDuration ?? 0.6}s`);
-  } else {
-    element.removeAttribute("data-entrance-fx");
-    setProp("animation-duration", null);
+  if (controlled("height")) {
+    const height = resolve("height");
+    if (height) {
+      const formattedHeight = /^\d+(\.\d+)?$/.test(String(height).trim()) ? `${String(height).trim()}px` : String(height).trim();
+      setProp("height", formattedHeight);
+      element.style.setProperty("max-height", "none", "important");
+      element.style.setProperty("min-height", "0", "important");
+    } else {
+      element.style.removeProperty("height");
+      element.style.removeProperty("max-height");
+      element.style.removeProperty("min-height");
+    }
+  }
+
+  if (controlled("zIndex")) {
+    const zIndex = resolve("zIndex");
+    if (zIndex !== undefined && zIndex !== null) {
+      setProp("z-index", `${zIndex}`);
+    } else {
+      element.style.removeProperty("z-index");
+    }
+  }
+
+  if (controlled("removed") || controlled("display")) {
+    const removed = resolve("removed");
+    const display = resolve("display");
+    if (removed) {
+      setProp("display", "none");
+    } else if (display) {
+      setProp("display", display);
+    } else {
+      element.style.removeProperty("display");
+    }
+  }
+
+  if (controlled("hidden") || controlled("visibility")) {
+    const hidden = resolve("hidden");
+    const visibility = resolve("visibility");
+    if (hidden) {
+      setProp("visibility", "hidden");
+    } else if (visibility && visibility !== "hidden") {
+      setProp("visibility", visibility);
+    } else {
+      element.style.removeProperty("visibility");
+    }
+  }
+
+  if (controlled("cursor")) {
+    const cursor = resolve("cursor");
+    if (cursor) {
+      setProp("cursor", cursor);
+    } else {
+      element.style.removeProperty("cursor");
+    }
+  }
+
+  if (controlled("overflow")) {
+    const overflow = resolve("overflow");
+    if (overflow) {
+      setProp("overflow", overflow);
+    } else {
+      element.style.removeProperty("overflow");
+    }
+  }
+
+  if (controlled("rotate") || controlled("scale")) {
+    const rotate = resolve("rotate");
+    const scale = resolve("scale");
+    if (rotate || scale) {
+      const transforms: string[] = [];
+      if (rotate) transforms.push(`rotate(${rotate}deg)`);
+      if (scale) transforms.push(`scale(${scale})`);
+      setProp("transform", transforms.join(" "));
+    } else {
+      element.style.removeProperty("transform");
+    }
+  }
+
+  if (controlled("freePositioned")) {
+    const freePositioned = resolve("freePositioned");
+    if (freePositioned) {
+      const x = resolve("x");
+      const y = resolve("y");
+      const desktopCoords = resolve("desktop");
+      const mobileCoords = resolve("mobile");
+      const tabletCoords = resolve("tablet" as any);
+
+      let coords: { x: number; y: number } | undefined;
+      if (breakpoint === "desktop") {
+        coords = desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      } else if (breakpoint === "tablet") {
+        coords = tabletCoords || desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      } else {
+        coords = mobileCoords || desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      }
+
+      if (coords) {
+        const isAbs = element.style.position === "absolute" || 
+          (typeof window !== "undefined" && window.getComputedStyle(element).position === "absolute");
+        element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
+        element.style.setProperty("left", `${coords.x}px`, "important");
+        element.style.setProperty("top", `${coords.y}px`, "important");
+        element.style.setProperty("z-index", "20", "important");
+      } else {
+        element.style.removeProperty("position");
+        element.style.removeProperty("left");
+        element.style.removeProperty("top");
+        element.style.removeProperty("z-index");
+      }
+    } else {
+      element.style.removeProperty("position");
+      element.style.removeProperty("left");
+      element.style.removeProperty("top");
+      element.style.removeProperty("z-index");
+    }
+  }
+
+  if (controlled("hoverEffect")) {
+    const hoverEffect = resolve("hoverEffect");
+    if (hoverEffect && hoverEffect !== "none") {
+      element.setAttribute("data-hover-fx", hoverEffect);
+    } else {
+      element.removeAttribute("data-hover-fx");
+    }
+  }
+
+  if (controlled("entrance")) {
+    const entrance = resolve("entrance");
+    const entranceDuration = resolve("entranceDuration");
+    if (entrance && entrance !== "none") {
+      element.setAttribute("data-entrance-fx", entrance);
+      setProp("animation-duration", `${entranceDuration !== undefined ? entranceDuration : 0.6}s`);
+    } else {
+      element.removeAttribute("data-entrance-fx");
+      element.style.removeProperty("animation-duration");
+    }
   }
 }
+
 
 const PREVIEW_EFFECTS_STYLE_ID = "preview-effects-styles";
 
@@ -997,32 +1283,46 @@ export function tagAndApplyPreviewStyles(
       blockRoot.removeAttribute("id");
     }
 
+    const isNavbarBlock = block?.props.kind === "navbar" || block?.type === "navbar";
     if (block?.bgColor) {
-      blockRoot.style.setProperty("background-color", block.bgColor, "important");
-      blockRoot.style.setProperty("--block-bg", block.bgColor);
-      const isSpacer = block.props.kind === "spacer" || block.type === "spacer";
-      if (isSpacer) {
-        blockRoot.style.setProperty("background-image", "none", "important");
-      }
-      const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-        "section, nav, header, footer, header > div, nav > div"
-      );
-      topContainers.forEach((tc) => {
-        if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
-          tc.style.setProperty("background-color", block.bgColor!, "important");
-          if (isSpacer) {
-            tc.style.setProperty("background-image", "none", "important");
+      if (isNavbarBlock) {
+        blockRoot.style.setProperty("background-color", "transparent", "important");
+        blockRoot.style.setProperty("--block-bg", block.bgColor);
+        const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
+        if (innerNav && !innerNav.hasAttribute("data-preview-chrome")) {
+          innerNav.style.setProperty("background-color", block.bgColor, "important");
+        } else {
+          const directHeader = blockRoot.querySelector<HTMLElement>("header, nav");
+          if (directHeader && !directHeader.hasAttribute("data-preview-chrome")) {
+            directHeader.style.setProperty("background-color", block.bgColor, "important");
           }
         }
-      });
+      } else {
+        blockRoot.style.setProperty("background-color", block.bgColor, "important");
+        blockRoot.style.setProperty("--block-bg", block.bgColor);
+        const isSpacer = block.props.kind === "spacer" || block.type === "spacer";
+        if (isSpacer) {
+          blockRoot.style.setProperty("background-image", "none", "important");
+        }
+        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
+          "section, nav, header, footer, header > div, nav > div"
+        );
+        topContainers.forEach((tc) => {
+          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+            tc.style.setProperty("background-color", block.bgColor!, "important");
+            if (isSpacer) {
+              tc.style.setProperty("background-image", "none", "important");
+            }
+          }
+        });
+      }
     }
 
-    const isNavbarBlock = block?.props.kind === "navbar";
     if (block?.height) {
       blockRoot.style.setProperty("height", `${block.height}px`, "important");
       blockRoot.style.setProperty("min-height", `${block.height}px`, "important");
       // Don't force height: 100% into navbar's nav/header — navbars should
-      // always be auto-height; forcing 100% stretches them to fill the iframe.
+      // have their container resized without stretching inner header/nav
       if (!isNavbarBlock) {
         const topContainers = blockRoot.querySelectorAll<HTMLElement>(
           "section, nav, header, footer"
@@ -1037,14 +1337,12 @@ export function tagAndApplyPreviewStyles(
     } else {
       blockRoot.style.removeProperty("height");
       blockRoot.style.removeProperty("min-height");
-      // Also clear any previously set 100% heights from nav/header children
-      // so they revert to natural auto height when no block.height is set.
-      if (!isNavbarBlock) {
+      if (isNavbarBlock) {
         const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-          "section, nav, header, footer"
+          "header, nav"
         );
         topContainers.forEach((tc) => {
-          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+          if (!tc.hasAttribute("data-preview-chrome")) {
             tc.style.removeProperty("height");
             tc.style.removeProperty("min-height");
           }
@@ -1073,7 +1371,31 @@ export function tagAndApplyPreviewStyles(
     element.classList.toggle("preview-edit-selected", isSelected);
 
     if (elements && editId && elements[editId]?.style) {
-      applyPreviewStyle(element, elements[editId].style, device, breakpoint);
+      applyPreviewStyle(element, elements[editId].style, device, breakpoint, elements);
+    }
+  });
+
+  // Re-enforce transparent on navbar block roots and outer headers — applyPreviewStyle may have
+  // overridden it with the root/header element's backgroundColor property.
+  root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
+    const blockId = blockRoot.dataset.blockId;
+    if (!blockId) return;
+    const block = blocks.find((b) => b.id === blockId);
+    const isNavbar = block?.props.kind === "navbar" || block?.type === "navbar";
+    if (isNavbar) {
+      blockRoot.style.setProperty("background-color", "transparent", "important");
+      const headerEl = blockRoot.querySelector<HTMLElement>("header, nav");
+      const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
+      if (innerNav && headerEl && !headerEl.hasAttribute("data-preview-chrome")) {
+        const headerBg = headerEl.style.backgroundColor;
+        if (headerBg && headerBg !== "transparent") {
+          innerNav.style.setProperty("background-color", headerBg, "important");
+        }
+        headerEl.style.setProperty("background-color", "transparent", "important");
+      }
+      if (block?.bgColor && innerNav && !innerNav.hasAttribute("data-preview-chrome")) {
+        innerNav.style.setProperty("background-color", block.bgColor, "important");
+      }
     }
   });
 }
@@ -1566,8 +1888,10 @@ export function startElementFreeDrag(
       hasMoved = true;
       moveEvent.preventDefault();
       setDraggingId(elementId);
-      draggedElement.style.position = "relative";
-      draggedElement.style.zIndex = "100";
+      const isAlreadyAbsolute = draggedElement.style.position === "absolute" || 
+        (ownerWin && ownerWin.getComputedStyle(draggedElement).position === "absolute");
+      draggedElement.style.setProperty("position", isAlreadyAbsolute ? "absolute" : "relative", "important");
+      draggedElement.style.setProperty("z-index", "100", "important");
     }
     const proposedOffsetX = startOffsetX + dxRaw;
     const proposedOffsetY = startOffsetY + dyRaw;
@@ -1630,8 +1954,8 @@ export function startElementFreeDrag(
     currentX = proposedOffsetX + dx;
     currentY = proposedOffsetY + dy;
 
-    draggedElement.style.left = `${currentX}px`;
-    draggedElement.style.top = `${currentY}px`;
+    draggedElement.style.setProperty("left", `${currentX}px`, "important");
+    draggedElement.style.setProperty("top", `${currentY}px`, "important");
 
     setGuidesIfChanged(guides);
   }
@@ -1674,9 +1998,8 @@ export function startElementFreeDrag(
       freePositioned: true,
       x: currentX,
       y: currentY,
-      ...(device === "desktop"
-        ? { desktop: { x: currentX, y: currentY } }
-        : { mobile: { x: currentX, y: currentY } }),
+      desktop: { x: currentX, y: currentY },
+      mobile: { x: currentX, y: currentY },
     };
 
     onChangeElementStyle(elementId, patch);
@@ -1711,35 +2034,105 @@ export function handleMeasuredBlockHeight(
 export type ResizingBlockState = { id: string; startY: number; startHeight: number } | null;
 
 // Starts a manual block-height resize when the user drags a block's bottom
-// handle — tracks the mouse, live-updates the block's height, and cleans up
-// once the mouse is released.
+// handle — measures actual rendered DOM height to prevent collapse, scales correctly,
+// tracks the mouse smoothly with requestAnimationFrame, and updates the block's height.
 export function handleStartBlockResize(
   blockId: string,
   currentHeight: number,
-  e: { stopPropagation: () => void; preventDefault: () => void; clientY: number },
+  e: { stopPropagation: () => void; preventDefault: () => void; clientY: number; target?: any },
   onUpdateBlock: (blockId: string, patch: Record<string, unknown>) => void,
   setResizingBlock: Dispatch<SetStateAction<ResizingBlockState>>,
+  scale: number = 1,
 ): void {
   e.stopPropagation();
   e.preventDefault();
+
+  const targetEl = (e as any).target as HTMLElement | null;
+  const blockRoot =
+    targetEl?.closest<HTMLElement>("[data-block-id]") ??
+    document.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`);
+
+  const safeScale = scale && scale > 0 ? scale : 1;
   const startY = e.clientY;
-  const startHeight = currentHeight || 200;
+
+  // Measure actual rendered height in DOM so it never jumps or collapses
+  let actualRenderedHeight = 0;
+  if (blockRoot) {
+    const rect = blockRoot.getBoundingClientRect();
+    actualRenderedHeight = Math.round(rect.height / safeScale);
+  }
+  const startHeight = actualRenderedHeight > 0 ? actualRenderedHeight : (currentHeight || 200);
+
+  let currentCalculatedHeight = startHeight;
+  let rafId: number | null = null;
+  let lastClientY = startY;
+
+  const prevBodyCursor = document.body.style.cursor;
+  const prevUserSelect = document.body.style.userSelect;
+  document.body.style.cursor = "ns-resize";
+  document.body.style.userSelect = "none";
+
+  const isNavbar =
+    blockRoot?.dataset.blockKind === "navbar" ||
+    Boolean(blockRoot?.querySelector("header, nav"));
+
+  const applyHeightDOM = (newHeight: number) => {
+    if (blockRoot) {
+      blockRoot.style.setProperty("height", `${newHeight}px`, "important");
+      blockRoot.style.setProperty("min-height", `${newHeight}px`, "important");
+      if (!isNavbar) {
+        const topContainers = blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer");
+        topContainers.forEach((tc) => {
+          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
+            tc.style.setProperty("height", "100%", "important");
+            tc.style.setProperty("min-height", "100%", "important");
+          }
+        });
+      }
+      const heightBadge =
+        blockRoot.querySelector<HTMLElement>("[data-block-resize-badge]") ??
+        blockRoot.querySelector<HTMLElement>(".font-mono");
+      if (heightBadge) {
+        heightBadge.textContent = `Height: ${newHeight}px`;
+      }
+    }
+  };
 
   const onMouseMove = (moveEvent: MouseEvent) => {
-    const deltaY = moveEvent.clientY - startY;
-    const newHeight = Math.max(60, Math.round(startHeight + deltaY));
-    onUpdateBlock(blockId, { height: newHeight });
+    lastClientY = moveEvent.clientY;
+    const deltaY = (lastClientY - startY) / safeScale;
+    currentCalculatedHeight = Math.max(60, Math.round(startHeight + deltaY));
+
+    if (rafId === null) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        applyHeightDOM(currentCalculatedHeight);
+      });
+    }
   };
 
   const onMouseUp = () => {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    window.removeEventListener("mousemove", onMouseMove, true);
+    window.removeEventListener("mouseup", onMouseUp, true);
+    window.removeEventListener("pointermove", onMouseMove, true);
+    window.removeEventListener("pointerup", onMouseUp, true);
+
+    document.body.style.cursor = prevBodyCursor;
+    document.body.style.userSelect = prevUserSelect;
+
     setResizingBlock(null);
+    onUpdateBlock(blockId, { height: currentCalculatedHeight });
   };
 
   setResizingBlock({ id: blockId, startY, startHeight });
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  window.addEventListener("mousemove", onMouseMove, true);
+  window.addEventListener("mouseup", onMouseUp, true);
+  window.addEventListener("pointermove", onMouseMove, true);
+  window.addEventListener("pointerup", onMouseUp, true);
 }
 
 // Older/simpler version of the preview-click handler (no root-section
@@ -1947,18 +2340,16 @@ export function findInsertIndex(blocks: Block[]): number {
 }
 
 // Builds an empty "spacer" block with a random id, ready to be inserted.
-export function createBlankBlock(theme: Theme): Block {
+export function createBlankBlock(_theme?: Theme): Block {
   return {
     id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     type: "spacer",
     order: 0,
     isCustom: true,
-    bgColor: theme.bg,
     sectionHref: "",
     props: {
       kind: "spacer",
       height: 240,
-      backgroundColor: theme.bg,
       isCustom: true,
     },
   } as Block;
@@ -2086,6 +2477,12 @@ export function extractElementComputedStyles(element: HTMLElement): Partial<Prev
     const op = parseFloat(computed.opacity);
     if (!isNaN(op) && op < 1) {
       result.opacity = op;
+    }
+
+    // 9. Visibility
+    if (computed.visibility === "hidden") {
+      result.hidden = true;
+      result.visibility = "hidden";
     }
 
     return result;

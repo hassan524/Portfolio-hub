@@ -62,31 +62,25 @@ import {
   type ConfirmationCopy,
   type ConfirmationType,
 } from "@/lib/functions/template";
+import {
+  BREAKPOINT_PRESETS,
+  DEFAULT_DESKTOP_WIDTH,
+  DEFAULT_RESPONSIVE_HEIGHT,
+  DEFAULT_RESPONSIVE_WIDTH,
+  MAX_FRAME_WIDTH,
+  MIN_FRAME_WIDTH,
+  VIEWPORT_PADDING,
+  buildResponsiveEditorStyles,
+  handlePreviewNavigationClick,
+} from "@/lib/functions/livePreview";
 import PreviewIframe from "./PreviewIframe";
 import { GuideOverlay } from "./GuideOverlay";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
+import { PreviewLoadingState, PreviewBlock } from "../live-preview/PreviewBlock";
 
 type Device = "desktop" | "responsive";
 
-const DEFAULT_RESPONSIVE_WIDTH = 390;
-const DEFAULT_RESPONSIVE_HEIGHT = 844;
-const DEFAULT_DESKTOP_WIDTH = 1440;
-const VIEWPORT_PADDING = 40;
-
-// Starting frame sizes when the user jumps to a breakpoint pill while
 // Responsive Editing is on. These are just convenient starting points —
-// the user can still drag-resize or use +/- from there, and whichever
-// bucket the CURRENT width falls into (via breakpointFromWidth) is what
-// actually gets edited/shown.
-const BREAKPOINT_PRESETS: Record<ResponsiveBreakpoint, { width: number; height: number }> = {
-  desktop: { width: 1280, height: 800 },
-  tablet: { width: 834, height: 1194 },
-  mobile: { width: 390, height: 844 },
-};
-
-const MIN_FRAME_WIDTH = 280;
-const MAX_FRAME_WIDTH = 1400;
-
 type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
 
 export function TemplateLivePreview({
@@ -239,9 +233,9 @@ export function TemplateLivePreview({
 
   const handleStartBlockResize = useCallback(
     (blockId: string, currentHeight: number, e: React.MouseEvent) => {
-      handleStartBlockResizeFn(blockId, currentHeight, e, onUpdateBlock, setResizingBlock);
+      handleStartBlockResizeFn(blockId, currentHeight, e, onUpdateBlock, setResizingBlock, scale);
     },
-    [onUpdateBlock],
+    [onUpdateBlock, scale],
   );
 
   useEffect(() => {
@@ -501,53 +495,13 @@ export function TemplateLivePreview({
   }, [isDesktop]);
 
   function handlePreviewClick(e: React.MouseEvent) {
-    const target = e.target as HTMLElement;
-    const anchor = target.closest("a");
-    const linkedElement = target.closest<HTMLElement>("[data-preview-link-href]");
-
-    if (anchor) {
-      e.preventDefault();
-      const href = anchor.getAttribute("href");
-      if (href?.startsWith("#")) {
-        const id = href.slice(1);
-
-        const scrollToTop = () => {
-          if (isDesktop) {
-            desktopScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-          } else {
-            responsiveFrameRef.current?.contentWindow?.scrollTo({ top: 0, behavior: "smooth" });
-          }
-        };
-
-        if (id) {
-          const targetEl = contentRef.current?.querySelector(`[id="${id}"]`);
-          if (targetEl) {
-            targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
-          } else if (id === "top" || id === "page-top") {
-            scrollToTop();
-          }
-        } else if (href === "#") {
-          scrollToTop();
-        }
-      } else if (href && href.startsWith("http")) {
-        window.open(href, "_blank", "noopener,noreferrer");
-      }
-    } else if (linkedElement?.dataset.previewLinkHref) {
-      e.preventDefault();
-      const href = linkedElement.dataset.previewLinkHref;
-      if (href.startsWith("#")) {
-        const id = href.slice(1);
-        const targetEl = contentRef.current?.querySelector(`[id="${id}"]`);
-        targetEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (/^https?:\/\//i.test(href)) {
-        window.open(href, linkedElement.dataset.previewLinkTarget === "_self" ? "_self" : "_blank", "noopener,noreferrer");
-      }
-    } else if (target.closest("button")) {
-      const btn = target.closest("button") as HTMLButtonElement;
-      if (btn.type === "submit") {
-        e.preventDefault();
-      }
-    }
+    handlePreviewNavigationClick({
+      event: e,
+      isDesktop,
+      contentRef,
+      desktopScrollRef,
+      responsiveFrameRef,
+    });
 
     if (!editMode) return;
     handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
@@ -584,40 +538,10 @@ export function TemplateLivePreview({
         doc.head.appendChild(styleEl);
       }
 
-      styleEl.textContent = `
-        .preview-edit-canvas.edit-active {
-          cursor: default;
-        }
-        .preview-edit-canvas.edit-active .preview-edit-hovered:not(.preview-edit-selected) {
-          outline: 2px dashed ${theme.accent}cc !important;
-          outline-offset: 3px !important;
-          cursor: pointer !important;
-          transform: scale(1.01);
-          transition: outline 0.12s ease, transform 0.12s ease;
-        }
-        .preview-edit-canvas.move-active .preview-edit-hovered:not(.preview-edit-selected) {
-          outline: 2px dashed ${theme.accent}dd !important;
-          outline-offset: 4px !important;
-          cursor: move !important;
-          transform: scale(1.01);
-          transition: outline 0.12s ease, transform 0.12s ease;
-        }
-        .preview-edit-canvas.edit-active .preview-edit-selected,
-        .preview-edit-selected {
-          outline: 2px solid ${theme.accent} !important;
-          outline-offset: 3px !important;
-          box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
-          transform: scale(1.02) !important;
-          z-index: 35 !important;
-          transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
-        }
-        .preview-hover-lift:hover {
-          transform: translateY(-4px) !important;
-          box-shadow: 0 12px 24px -6px rgba(0,0,0,0.2) !important;
-          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-        }
-      `;
+      styleEl.textContent = buildResponsiveEditorStyles(theme.accent);
 
+      body.style.backgroundColor = bg;
+      doc.documentElement.style.backgroundColor = bg;
       body.style.setProperty("--preview-editor-accent", theme.accent);
       doc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
       tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device, effectiveBreakpoint);
@@ -736,7 +660,8 @@ export function TemplateLivePreview({
   const previewContent = (
     <div
       ref={contentRef}
-      className={`relative min-h-full w-full preview-edit-canvas ${editMode ? "edit-active" : ""} ${moveMode ? "move-active" : ""}`}
+      className={`relative min-h-full w-full max-w-full overflow-x-hidden preview-edit-canvas ${editMode ? "edit-active" : ""
+        } ${moveMode ? "move-active" : ""}`}
       style={{ background: bg, color: ink }}
       onClick={handlePreviewClick}
       onMouseDown={handleContentMouseDown}
@@ -745,169 +670,30 @@ export function TemplateLivePreview({
     >
       <div key={previewKey} className="min-h-full w-full">
         {isRefreshing ? (
-          <div className="flex h-[80vh] w-full flex-col items-center justify-center gap-4 bg-background">
-            <Loader2 className="h-8 w-8 animate-spin text-foreground/40" />
-            <div className="text-sm font-medium text-foreground/50 animate-pulse">Loading preview...</div>
-          </div>
+          <PreviewLoadingState bg={bg} ink={ink} />
         ) : (
           <>
-            {sorted.map((block) => {
-              const variant = (block.props as { variant?: string }).variant;
-              const Cmp = getBlockComponent(block.props.kind, variant, site.category, site.id);
-              if (!Cmp) return null;
-
-              const isActive = !editMode && activeSection === block.props.kind && block.props.kind !== "navbar";
-              const isResizingThis = resizingBlock?.id === block.id;
-              const currentHeight = block.height ?? 200;
-              const displayName = block.label ?? block.name ?? block.props.kind;
-              const componentProps =
-                block.props.kind === "navbar" || block.props.kind === "footer"
-                  ? { ...block.props, logo: site.logo }
-                  : block.props.kind === "spacer"
-                  ? {
-                      ...block.props,
-                      backgroundColor: block.bgColor || (block.props as Record<string, unknown>).backgroundColor,
-                      backgroundImage: block.bgColor ? "none" : (block.props as Record<string, unknown>).backgroundImage,
-                      isBlended: block.bgColor ? false : Boolean((block.props as Record<string, unknown>).isBlended),
-                    }
-                  : block.props;
-              const isNewBlock = Boolean(
-                block.isCustom ||
-                (block as Record<string, unknown>).isNew ||
-                (block.props as { isCustom?: boolean })?.isCustom ||
-                block.props?.kind === "spacer",
-              );
-
-              const isNavbar = block.props.kind === "navbar";
-              const blockTheme = block.bgColor
-                ? { ...theme, bg: block.bgColor, "bg-second": block.bgColor, surface: block.bgColor }
-                : theme;
-
-              return (
-                <DraggableBlockWrapper
-                  key={block.id}
-                  block={block}
-                  blocks={blocks}
-                  onReorderBlocks={onReorderBlocks}
-                  ink={ink}
-                  moveMode={moveMode}
-                >
-                  <div
-                    data-block-id={block.id}
-                    data-block-kind={block.props.kind}
-                    data-has-custom-bg={block.bgColor ? "true" : undefined}
-                    data-ai-product-theme={site.category === "AI Product" ? "true" : undefined}
-                    className={`relative group/block ${isNavbar
-                      ? "[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 [&_nav]:!relative [&_nav]:!top-auto [&_nav]:!h-auto [&_nav]:!min-h-0"
-                      : ""
-                      } ${block.height && !isNavbar
-                        ? "[&_section]:!h-full [&_section]:!min-h-full [&_header]:!h-full [&_header]:!min-h-full [&_nav]:!h-full [&_nav]:!min-h-full [&_footer]:!h-full [&_footer]:!min-h-full"
-                        : ""
-                      } ${block.bgColor
-                        ? "[&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] [&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]"
-                        : ""
-                      } ${isActive ? "outline outline-2 outline-offset-[-2px]" : ""}`}
-                    style={{
-                      ...(isActive ? { outlineColor: theme.accent } : undefined),
-                      minHeight: block.height ? `${block.height}px` : undefined,
-                      height: block.height ? `${block.height}px` : undefined,
-                      backgroundColor: block.bgColor || undefined,
-                      ...(block.bgColor ? ({ "--block-bg": block.bgColor } as React.CSSProperties) : {}),
-                      ...(site.category === "AI Product"
-                        ? ({
-                          "--ai-theme-bg": block.bgColor || theme.bg,
-                          "--ai-theme-ink": theme.ink,
-                          "--ai-theme-accent": theme.accent,
-                          "--ai-theme-surface": block.bgColor || (theme.surface ?? theme.bg),
-                        } as React.CSSProperties)
-                        : {}),
-                    }}
-                  >
-                    {isActive && (
-                      <div
-                        data-preview-chrome
-                        data-blend-ignore
-                        onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
-                        className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
-                        title="Drag to resize block height smoothly"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <span className="truncate max-w-[140px] capitalize">{displayName}</span>
-                        {isNewBlock && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleBlendBlock(block.id, e)}
-                            className="flex items-center gap-1.5 rounded-full bg-background/20 hover:bg-background/30 px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer"
-                            title="Blend block style and colors dynamically with portfolio"
-                          >
-                            <PencilLine className="h-3 w-3 text-accent" />
-                            Blend
-                          </button>
-                        )}
-                        {isDesktop && block.height && (
-                          <span className="text-[10px] font-mono opacity-80">{block.height}px</span>
-                        )}
-                      </div>
-                    )}
-
-                    <div style={{ height: block.height ? "100%" : undefined }} className={block.height ? "h-full [&>*]:!h-full [&>*]:!min-h-full" : undefined}>
-                      <RenderedImageOverrides
-                        overrides={getImageOverrides(componentProps as Record<string, unknown>)}
-                      >
-                        <TextOverrideProvider
-                          overrides={
-                            ((block.props as Record<string, unknown>)._textOverrides ?? {}) as Record<
-                              string,
-                              string
-                            >
-                          }
-                        >
-                          <Cmp
-                            id={block.id}
-                            props={componentProps}
-                            theme={blockTheme}
-                            onChange={(patch: Record<string, unknown>) =>
-                              editMode ? onUpdateBlock(block.id, patch) : undefined
-                            }
-                          />
-                        </TextOverrideProvider>
-                      </RenderedImageOverrides>
-                    </div>
-
-                    {draggingElementId?.startsWith(`${block.id}:`) && (
-                      <div data-preview-chrome>
-                        <GuideOverlay guides={dragGuides} />
-                      </div>
-                    )}
-
-                    {isDesktop && (
-                      <div
-                        data-preview-chrome
-                        data-blend-ignore
-                        onMouseDown={(e) => handleStartBlockResize(block.id, currentHeight, e)}
-                        className="absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize z-30 flex items-center justify-center pointer-events-auto select-none group/resize"
-                        title="Drag to resize block height smoothly"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div
-                          className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
-                            ? "bg-foreground shadow-md scale-110 opacity-100"
-                            : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-                            }`}
-                        >
-                          <div className="h-0.5 w-6 rounded-full bg-background/80" />
-                        </div>
-                        {isResizingThis && (
-                          <div className="absolute bottom-5 bg-foreground text-background px-2.5 py-0.5 rounded text-[10px] font-mono shadow-md">
-                            Height: {block.height}px
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </DraggableBlockWrapper>
-              );
-            })}
+            {sorted.map((block) => (
+              <PreviewBlock
+                key={block.id}
+                block={block}
+                blocks={blocks}
+                site={site}
+                theme={theme}
+                ink={ink}
+                editMode={editMode}
+                moveMode={moveMode}
+                isDesktop={isDesktop}
+                isActive={!editMode && activeSection === block.props.kind && block.props.kind !== "navbar"}
+                isResizingThis={resizingBlock?.id === block.id}
+                draggingElementId={draggingElementId}
+                dragGuides={dragGuides}
+                onReorderBlocks={onReorderBlocks}
+                onUpdateBlock={onUpdateBlock}
+                onStartBlockResize={handleStartBlockResize}
+                onBlendBlock={handleBlendBlock}
+              />
+            ))}
 
             {!sorted.some((b) => b.props.kind === "footer") && (
               <div

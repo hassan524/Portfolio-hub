@@ -15,11 +15,41 @@ function breakpointFromWidth(width) {
   return "mobile";
 }
 
+function isPropControlled(style, key) {
+  if (!style) return false;
+  if (style[key] !== undefined) return true;
+  const resp = style.responsive;
+  if (!resp) return false;
+  return Boolean(
+    (resp.desktop && key in resp.desktop && resp.desktop[key] !== undefined) ||
+    (resp.tablet && key in resp.tablet && resp.tablet[key] !== undefined) ||
+    (resp.mobile && key in resp.mobile && resp.mobile[key] !== undefined)
+  );
+}
+
 function resolveResponsiveValue(style, key, breakpoint) {
+  if (!style) return undefined;
   const responsive = style.responsive;
-  if (responsive && responsive[breakpoint] && key in responsive[breakpoint]) {
-    const val = responsive[breakpoint][key];
-    if (val !== undefined) return val;
+
+  if (responsive) {
+    // This breakpoint's own explicit override wins, if it has one.
+    if (responsive[breakpoint] && key in responsive[breakpoint]) {
+      const val = responsive[breakpoint][key];
+      if (val !== undefined) return val;
+    }
+
+    // No cross-breakpoint inheritance: desktop edits stay on desktop,
+    // tablet edits stay on tablet, mobile edits stay on mobile.
+
+    if (style[key] !== undefined) {
+      return style[key];
+    }
+
+    const otherBps = ["desktop", "tablet", "mobile"].filter((b) => b !== breakpoint);
+    const hasOtherOverride = otherBps.some((b) => responsive[b] && key in responsive[b]);
+    if (hasOtherOverride) {
+      return undefined;
+    }
   }
   return style[key];
 }
@@ -56,13 +86,33 @@ function ensurePreviewEffectsStylesheet(doc) {
   doc.head.appendChild(styleEl);
 }
 
+function isChromeElement(el: Element | null | undefined): boolean {
+  if (!el || typeof (el as Element).getAttribute !== "function") return false;
+  return Boolean(
+    el.hasAttribute("data-preview-chrome") ||
+    el.closest?.("[data-preview-chrome]") ||
+    el.hasAttribute("data-blend-ignore") ||
+    el.closest?.("[data-blend-ignore]") ||
+    el.hasAttribute("data-block-drag-handle") ||
+    el.closest?.("[data-block-drag-handle]") ||
+    (el as HTMLElement).dataset?.previewLinkWrapper === "true" ||
+    el.closest?.("[data-preview-link-wrapper]")
+  );
+}
+
 export function getElementPath(root: HTMLElement, element: HTMLElement): string {
+  if (isChromeElement(element)) return "";
   const parts: number[] = [];
   let current: HTMLElement | null = element;
   while (current && current !== root) {
     const parent: HTMLElement | null = current.parentElement;
     if (!parent) return "";
-    parts.unshift(Array.from(parent.children).indexOf(current));
+    const siblings = Array.from(parent.children).filter(
+      (el) => !isChromeElement(el)
+    );
+    const idx = siblings.indexOf(current as Element);
+    if (idx === -1) return "";
+    parts.unshift(idx);
     current = parent;
   }
   return parts.length ? parts.join(".") : "";
@@ -72,10 +122,12 @@ export function applyPreviewStyle(
   element: HTMLElement,
   style: any,
   breakpoint: "desktop" | "tablet" | "mobile",
+  allElements?: Record<string, any>,
 ): void {
-  if (!style || Object.keys(style).length === 0) return;
+  if (!element || !style || Object.keys(style).length === 0) return;
 
   const resolve = (key) => resolveResponsiveValue(style, key, breakpoint);
+  const controlled = (key) => isPropControlled(style, key);
 
   const isImportant = resolve("isImportant");
   const imp = isImportant ? "important" : "";
@@ -92,202 +144,428 @@ export function applyPreviewStyle(
   applyElementLink(element, typeof linkHref === "string" ? linkHref : "", linkTarget || "_self");
 
   // Typography
-  const bold = resolve("bold");
-  const fontWeight = resolve("fontWeight");
-  if (bold !== undefined || fontWeight !== undefined) {
-    const weight = bold !== undefined ? (bold ? "700" : "400") : (fontWeight || "400");
-    setProp("font-weight", String(weight));
-  } else {
-    setProp("font-weight", null);
-  }
-  const italic = resolve("italic");
-  setProp("font-style", italic !== undefined && italic !== null ? (italic ? "italic" : "normal") : null);
-
-  const underline = resolve("underline");
-  const strikethrough = resolve("strikethrough");
-  if (underline !== undefined || strikethrough !== undefined) {
-    const decorations: string[] = [];
-    if (underline) decorations.push("underline");
-    if (strikethrough) decorations.push("line-through");
-    setProp("text-decoration", decorations.length > 0 ? decorations.join(" ") : "none");
-  } else {
-    setProp("text-decoration", null);
+  if (controlled("bold") || controlled("fontWeight")) {
+    const bold = resolve("bold");
+    const fontWeight = resolve("fontWeight");
+    if (bold !== undefined || fontWeight !== undefined) {
+      const weight = bold !== undefined ? (bold ? "700" : "400") : (fontWeight || "400");
+      setProp("font-weight", String(weight));
+    } else {
+      element.style.removeProperty("font-weight");
+    }
   }
 
-  const fontFamily = resolve("fontFamily");
-  setProp("font-family", fontFamily && fontFamily !== "inherit" ? fontFamily : null);
+  if (controlled("italic")) {
+    const italic = resolve("italic");
+    if (italic !== undefined) {
+      setProp("font-style", italic ? "italic" : "normal");
+    } else {
+      element.style.removeProperty("font-style");
+    }
+  }
 
-  const effectiveFontSize = resolve("fontSize");
-  setProp("font-size", effectiveFontSize !== undefined && effectiveFontSize !== null ? \`\${effectiveFontSize}px\` : null);
+  if (controlled("underline") || controlled("strikethrough")) {
+    const underline = resolve("underline");
+    const strikethrough = resolve("strikethrough");
+    if (underline || strikethrough) {
+      const decorations: string[] = [];
+      if (underline) decorations.push("underline");
+      if (strikethrough) decorations.push("line-through");
+      setProp("text-decoration", decorations.join(" "));
+    } else {
+      element.style.removeProperty("text-decoration");
+    }
+  }
 
-  const lineHeight = resolve("lineHeight");
-  setProp("line-height", lineHeight !== undefined && lineHeight !== null ? String(lineHeight) : null);
+  if (controlled("fontFamily")) {
+    const fontFamily = resolve("fontFamily");
+    if (fontFamily && fontFamily !== "inherit") {
+      setProp("font-family", fontFamily);
+    } else {
+      element.style.removeProperty("font-family");
+    }
+  }
 
-  const letterSpacing = resolve("letterSpacing");
-  setProp("letter-spacing", letterSpacing !== undefined && letterSpacing !== null ? \`\${letterSpacing}px\` : null);
+  if (controlled("fontSize")) {
+    const fontSize = resolve("fontSize");
+    if (fontSize) {
+      setProp("font-size", \`\${fontSize}px\`);
+    } else {
+      element.style.removeProperty("font-size");
+    }
+  }
 
-  const effectiveTextAlign = resolve("textAlign");
-  setProp("text-align", effectiveTextAlign || null);
+  if (controlled("lineHeight")) {
+    const lineHeight = resolve("lineHeight");
+    if (lineHeight) {
+      setProp("line-height", String(lineHeight));
+    } else {
+      element.style.removeProperty("line-height");
+    }
+  }
 
-  const textTransform = resolve("textTransform");
-  setProp("text-transform", textTransform && textTransform !== "none" ? textTransform : null);
+  if (controlled("letterSpacing")) {
+    const letterSpacing = resolve("letterSpacing");
+    if (letterSpacing !== undefined && letterSpacing !== null) {
+      setProp("letter-spacing", \`\${letterSpacing}px\`);
+    } else {
+      element.style.removeProperty("letter-spacing");
+    }
+  }
 
-  const color = resolve("color");
-  setProp("color", color || null);
+  if (controlled("textAlign")) {
+    const textAlign = resolve("textAlign");
+    if (textAlign) {
+      setProp("text-align", textAlign);
+    } else {
+      element.style.removeProperty("text-align");
+    }
+  }
 
-  const textShadow = resolve("textShadow");
-  setProp("text-shadow", textShadow || null);
+  if (controlled("textTransform")) {
+    const textTransform = resolve("textTransform");
+    if (textTransform && textTransform !== "none") {
+      setProp("text-transform", textTransform);
+    } else {
+      element.style.removeProperty("text-transform");
+    }
+  }
+
+  // Color & Descendants
+  if (controlled("color")) {
+    const color = resolve("color");
+    if (color) {
+      element.style.setProperty("color", color, "important");
+      element.style.setProperty("--ai-theme-ink", color);
+      element.style.setProperty("--theme-ink", color);
+      element.style.setProperty("--ink", color);
+    } else {
+      element.style.removeProperty("color");
+      element.style.removeProperty("--ai-theme-ink");
+      element.style.removeProperty("--theme-ink");
+      element.style.removeProperty("--ink");
+    }
+
+    const textDescendants = element.querySelectorAll<HTMLElement>("*");
+    textDescendants.forEach((child) => {
+      const childEditId = child.dataset.previewEditId;
+      const childHasOwnColor = Boolean(
+        childEditId &&
+        allElements &&
+        allElements[childEditId]?.style &&
+        resolveResponsiveValue(allElements[childEditId].style, "color", breakpoint) !== undefined
+      );
+      if (!childHasOwnColor) {
+        if (color) {
+          child.style.setProperty("color", color, "important");
+          child.style.setProperty("--ai-theme-ink", color);
+          child.style.setProperty("--theme-ink", color);
+          child.style.setProperty("--ink", color);
+        } else {
+          child.style.removeProperty("color");
+          child.style.removeProperty("--ai-theme-ink");
+          child.style.removeProperty("--theme-ink");
+          child.style.removeProperty("--ink");
+        }
+      }
+    });
+  }
+
+  if (controlled("textShadow")) {
+    const textShadow = resolve("textShadow");
+    if (textShadow) {
+      setProp("text-shadow", textShadow);
+    } else {
+      element.style.removeProperty("text-shadow");
+    }
+  }
 
   // Gradient Text
-  const gradientText = resolve("gradientText");
-  const backgroundGradient = resolve("backgroundGradient");
-  if (gradientText) {
-    setProp("background-image", backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
-    setProp("-webkit-background-clip", "text");
-    setProp("background-clip", "text");
-    setProp("-webkit-text-fill-color", "transparent");
-  } else {
-    setProp("-webkit-background-clip", null);
-    setProp("background-clip", null);
-    setProp("-webkit-text-fill-color", null);
+  if (controlled("gradientText")) {
+    const gradientText = resolve("gradientText");
+    const backgroundGradient = resolve("backgroundGradient");
+    if (gradientText) {
+      setProp("background-image", backgroundGradient || "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)");
+      setProp("-webkit-background-clip", "text");
+      setProp("background-clip", "text");
+      setProp("-webkit-text-fill-color", "transparent");
+    } else {
+      setProp("-webkit-background-clip", null);
+      setProp("background-clip", null);
+      setProp("-webkit-text-fill-color", null);
+    }
   }
 
   // Background & Colors
-  const glassmorphism = resolve("glassmorphism");
-  const backgroundColor = resolve("backgroundColor");
-  const backgroundImage = resolve("backgroundImage");
-  if (glassmorphism) {
-    setProp("background-color", "rgba(255, 255, 255, 0.08)");
-    setProp("backdrop-filter", "blur(16px)");
-    setProp("-webkit-backdrop-filter", "blur(16px)");
-    setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
-    setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
-  } else {
-    setProp("background-color", backgroundColor || null);
-    setProp("background-image", backgroundGradient || backgroundImage || null);
+  if (controlled("glassmorphism") || controlled("backgroundColor") || controlled("backgroundImage") || controlled("backgroundGradient")) {
+    const glassmorphism = resolve("glassmorphism");
+    const backgroundColor = resolve("backgroundColor");
+    const backgroundImage = resolve("backgroundImage");
+    const backgroundGradient = resolve("backgroundGradient");
+
+    if (glassmorphism) {
+      setProp("background-color", "rgba(255, 255, 255, 0.08)");
+      setProp("backdrop-filter", "blur(16px)");
+      setProp("-webkit-backdrop-filter", "blur(16px)");
+      setProp("border", "1px solid rgba(255, 255, 255, 0.18)");
+      setProp("box-shadow", "0 8px 32px 0 rgba(0, 0, 0, 0.25)");
+    } else {
+      if (glassmorphism === false) {
+        setProp("backdrop-filter", null);
+        setProp("-webkit-backdrop-filter", null);
+      }
+      if (controlled("backgroundColor")) {
+        setProp("background-color", backgroundColor || null);
+      }
+      if (controlled("backgroundGradient") || controlled("backgroundImage")) {
+        setProp("background-image", backgroundGradient || backgroundImage || null);
+      }
+    }
   }
 
-  const opacity = resolve("opacity");
-  setProp("opacity", opacity !== undefined && opacity !== null ? String(opacity) : null);
+  if (controlled("opacity")) {
+    const opacity = resolve("opacity");
+    if (opacity !== undefined && opacity !== null) {
+      setProp("opacity", String(opacity));
+    } else {
+      element.style.removeProperty("opacity");
+    }
+  }
 
   // Borders & Shadow
-  if (!glassmorphism) {
+  if (controlled("borderRadius")) {
     const borderRadius = resolve("borderRadius");
-    setProp("border-radius", borderRadius !== undefined && borderRadius !== null ? \`\${borderRadius}px\` : null);
+    if (borderRadius !== undefined && borderRadius !== null) {
+      setProp("border-radius", \`\${borderRadius}px\`);
+    } else {
+      element.style.removeProperty("border-radius");
+    }
+  }
 
+  if (controlled("borderWidth")) {
     const borderWidth = resolve("borderWidth");
-    setProp("border-width", borderWidth !== undefined && borderWidth !== null ? \`\${borderWidth}px\` : null);
+    if (borderWidth !== undefined && borderWidth !== null) {
+      setProp("border-width", \`\${borderWidth}px\`);
+    } else {
+      element.style.removeProperty("border-width");
+    }
+  }
 
+  if (controlled("borderStyle")) {
     const borderStyle = resolve("borderStyle");
-    setProp("border-style", borderStyle || null);
+    if (borderStyle) {
+      setProp("border-style", borderStyle);
+    } else {
+      element.style.removeProperty("border-style");
+    }
+  }
 
+  if (controlled("borderColor")) {
     const borderColor = resolve("borderColor");
-    setProp("border-color", borderColor || null);
+    if (borderColor) {
+      setProp("border-color", borderColor);
+    } else {
+      element.style.removeProperty("border-color");
+    }
+  }
 
+  if (controlled("glowAccent") || controlled("boxShadow")) {
     const glowAccent = resolve("glowAccent");
     const boxShadow = resolve("boxShadow");
     if (glowAccent) {
       setProp("box-shadow", "0 0 25px rgba(99, 102, 241, 0.6), 0 0 50px rgba(99, 102, 241, 0.3)");
+    } else if (boxShadow && boxShadow !== "none") {
+      setProp("box-shadow", boxShadow);
     } else {
-      setProp("box-shadow", boxShadow && boxShadow !== "none" ? boxShadow : null);
+      element.style.removeProperty("box-shadow");
     }
+  }
 
+  if (controlled("backdropBlur")) {
     const backdropBlur = resolve("backdropBlur");
-    setProp("backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? \`blur(\${backdropBlur}px)\` : null);
-    setProp("-webkit-backdrop-filter", backdropBlur !== undefined && backdropBlur !== null ? \`blur(\${backdropBlur}px)\` : null);
+    if (backdropBlur !== undefined && backdropBlur !== null) {
+      setProp("backdrop-filter", \`blur(\${backdropBlur}px)\`);
+      setProp("-webkit-backdrop-filter", \`blur(\${backdropBlur}px)\`);
+    } else {
+      element.style.removeProperty("backdrop-filter");
+      element.style.removeProperty("-webkit-backdrop-filter");
+    }
   }
 
   // Spacing & Dimensions
-  const effectivePadding = resolve("padding");
-  setProp("padding", effectivePadding !== undefined && effectivePadding !== null ? \`\${effectivePadding}px\` : null);
-
-  const margin = resolve("margin");
-  setProp("margin", margin !== undefined && margin !== null ? \`\${margin}px\` : null);
-
-  const width = resolve("width");
-  setProp("width", width ? (/^\\d+(\\.\\d+)?$/.test(String(width).trim()) ? \`\${String(width).trim()}px\` : String(width).trim()) : null);
-
-  const height = resolve("height");
-  setProp("height", height ? (/^\\d+(\\.\\d+)?$/.test(String(height).trim()) ? \`\${String(height).trim()}px\` : String(height).trim()) : null);
-
-  // Important SaaS Styles
-  const zIndex = resolve("zIndex");
-  setProp("z-index", zIndex !== undefined && zIndex !== null ? String(zIndex) : null);
-
-  const effectiveRemoved = resolve("removed");
-  const display = resolve("display");
-  if (effectiveRemoved) {
-    setProp("display", "none");
-  } else {
-    setProp("display", display || null);
+  if (controlled("padding")) {
+    const padding = resolve("padding");
+    if (padding !== undefined && padding !== null) {
+      setProp("padding", \`\${padding}px\`);
+    } else {
+      element.style.removeProperty("padding");
+    }
   }
 
-  const cursor = resolve("cursor");
-  setProp("cursor", cursor || null);
+  if (controlled("margin")) {
+    const margin = resolve("margin");
+    if (margin !== undefined && margin !== null) {
+      setProp("margin", \`\${margin}px\`);
+    } else {
+      element.style.removeProperty("margin");
+    }
+  }
 
-  const overflow = resolve("overflow");
-  setProp("overflow", overflow || null);
+  if (controlled("width")) {
+    const width = resolve("width");
+    if (width) {
+      const formattedWidth = /^\\d+(\\.\\d+)?$/.test(String(width).trim()) ? \`\${String(width).trim()}px\` : String(width).trim();
+      setProp("width", formattedWidth);
+      element.style.setProperty("max-width", "none", "important");
+      element.style.setProperty("min-width", "0", "important");
+    } else {
+      element.style.removeProperty("width");
+      element.style.removeProperty("max-width");
+      element.style.removeProperty("min-width");
+    }
+  }
+
+  if (controlled("height")) {
+    const height = resolve("height");
+    if (height) {
+      const formattedHeight = /^\\d+(\\.\\d+)?$/.test(String(height).trim()) ? \`\${String(height).trim()}px\` : String(height).trim();
+      setProp("height", formattedHeight);
+      element.style.setProperty("max-height", "none", "important");
+      element.style.setProperty("min-height", "0", "important");
+    } else {
+      element.style.removeProperty("height");
+      element.style.removeProperty("max-height");
+      element.style.removeProperty("min-height");
+    }
+  }
+
+  if (controlled("zIndex")) {
+    const zIndex = resolve("zIndex");
+    if (zIndex !== undefined && zIndex !== null) {
+      setProp("z-index", String(zIndex));
+    } else {
+      element.style.removeProperty("z-index");
+    }
+  }
+
+  if (controlled("removed") || controlled("display")) {
+    const removed = resolve("removed");
+    const display = resolve("display");
+    if (removed) {
+      setProp("display", "none");
+    } else if (display) {
+      setProp("display", display);
+    } else {
+      element.style.removeProperty("display");
+    }
+  }
+
+  if (controlled("hidden") || controlled("visibility")) {
+    const hidden = resolve("hidden");
+    const visibility = resolve("visibility");
+    if (hidden) {
+      setProp("visibility", "hidden");
+    } else if (visibility && visibility !== "hidden") {
+      setProp("visibility", visibility);
+    } else {
+      element.style.removeProperty("visibility");
+    }
+  }
+
+  if (controlled("cursor")) {
+    const cursor = resolve("cursor");
+    if (cursor) {
+      setProp("cursor", cursor);
+    } else {
+      element.style.removeProperty("cursor");
+    }
+  }
+
+  if (controlled("overflow")) {
+    const overflow = resolve("overflow");
+    if (overflow) {
+      setProp("overflow", overflow);
+    } else {
+      element.style.removeProperty("overflow");
+    }
+  }
 
   // Transforms
-  const rotate = resolve("rotate");
-  const scale = resolve("scale");
-  const transforms: string[] = [];
-  if (rotate) transforms.push(\`rotate(\${rotate}deg)\`);
-  if (scale) transforms.push(\`scale(\${scale})\`);
-  setProp("transform", transforms.length > 0 ? transforms.join(" ") : null);
+  if (controlled("rotate") || controlled("scale")) {
+    const rotate = resolve("rotate");
+    const scale = resolve("scale");
+    if (rotate || scale) {
+      const transforms: string[] = [];
+      if (rotate) transforms.push(\`rotate(\${rotate}deg)\`);
+      if (scale) transforms.push(\`scale(\${scale})\`);
+      setProp("transform", transforms.join(" "));
+    } else {
+      element.style.removeProperty("transform");
+    }
+  }
 
   // Free positioning & moving
-  const freePositioned = resolve("freePositioned");
-  if (freePositioned) {
-    const x = resolve("x");
-    const y = resolve("y");
-    const desktopCoords = resolve("desktop");
-    const mobileCoords = resolve("mobile");
+  if (controlled("freePositioned")) {
+    const freePositioned = resolve("freePositioned");
+    if (freePositioned) {
+      const x = resolve("x");
+      const y = resolve("y");
+      const desktopCoords = resolve("desktop");
+      const mobileCoords = resolve("mobile");
+      const tabletCoords = resolve("tablet");
 
-    let coords;
-    if (x !== undefined && y !== undefined && x !== null && y !== null) {
-      coords = { x, y };
-    } else if (breakpoint === "desktop") {
-      coords = desktopCoords;
-    } else {
-      coords = mobileCoords;
-    }
+      let coords;
+      if (breakpoint === "desktop") {
+        coords = desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      } else if (breakpoint === "tablet") {
+        coords = tabletCoords || desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      } else {
+        coords = mobileCoords || desktopCoords || (x !== undefined && y !== undefined && x !== null && y !== null ? { x, y } : undefined);
+      }
 
-    if (coords) {
-      setProp("position", "relative");
-      setProp("left", \`\${coords.x}px\`);
-      setProp("top", \`\${coords.y}px\`);
-      setProp("z-index", "20");
+      if (coords) {
+        const isAbs = element.style.position === "absolute" || 
+          (typeof window !== "undefined" && window.getComputedStyle(element).position === "absolute");
+        element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
+        element.style.setProperty("left", \`\${coords.x}px\`, "important");
+        element.style.setProperty("top", \`\${coords.y}px\`, "important");
+        element.style.setProperty("z-index", "20", "important");
+      } else {
+        element.style.removeProperty("position");
+        element.style.removeProperty("left");
+        element.style.removeProperty("top");
+        element.style.removeProperty("z-index");
+      }
     } else {
-      setProp("position", null);
-      setProp("left", null);
-      setProp("top", null);
+      element.style.removeProperty("position");
+      element.style.removeProperty("left");
+      element.style.removeProperty("top");
+      element.style.removeProperty("z-index");
     }
-  } else {
-    setProp("position", null);
-    setProp("left", null);
-    setProp("top", null);
   }
 
-  // Hover Effect
-  const hoverEffect = resolve("hoverEffect");
-  if (hoverEffect && hoverEffect !== "none") {
-    element.setAttribute("data-hover-fx", hoverEffect);
-  } else {
-    element.removeAttribute("data-hover-fx");
+  if (controlled("hoverEffect")) {
+    const hoverEffect = resolve("hoverEffect");
+    if (hoverEffect && hoverEffect !== "none") {
+      element.setAttribute("data-hover-fx", hoverEffect);
+    } else {
+      element.removeAttribute("data-hover-fx");
+    }
   }
 
-  // Entrance Animation
-  const entrance = resolve("entrance");
-  const entranceDuration = resolve("entranceDuration");
-  if (entrance && entrance !== "none") {
-    element.setAttribute("data-entrance-fx", entrance);
-    setProp("animation-duration", \`\${entranceDuration !== undefined ? entranceDuration : 0.6}s\`);
-  } else {
-    element.removeAttribute("data-entrance-fx");
-    setProp("animation-duration", null);
+  if (controlled("entrance")) {
+    const entrance = resolve("entrance");
+    const entranceDuration = resolve("entranceDuration");
+    if (entrance && entrance !== "none") {
+      element.setAttribute("data-entrance-fx", entrance);
+      setProp("animation-duration", \`\${entranceDuration !== undefined ? entranceDuration : 0.6}s\`);
+    } else {
+      element.removeAttribute("data-entrance-fx");
+      element.style.removeProperty("animation-duration");
+    }
   }
 }
+
 
 function applyElementLink(element: HTMLElement, href: string, target: string): void {
   const existingWrapper = element.parentElement?.dataset.previewLinkWrapper === "true"
@@ -344,6 +622,36 @@ function applyElementLink(element: HTMLElement, href: string, target: string): v
   wrapper.appendChild(element);
 }
 
+function findMatchingEdit(
+  elements: Record<string, any>,
+  blockId: string,
+  path: string,
+): { key: string; style: any } | null {
+  if (!elements || !path) return null;
+
+  const directKey = \`\${blockId}:\${path}\`;
+  if (elements[directKey]?.style) {
+    return { key: directKey, style: elements[directKey].style };
+  }
+
+  // Handle prefix variations between editor and deploy wrapper hierarchies (e.g. "0.0.0." vs "0.0." vs "0.")
+  const candidatePrefixes = ["0.0.0.", "0.0.", "0.", ""];
+  for (const p of ["0.0.0.", "0.0.", "0."]) {
+    if (path.startsWith(p)) {
+      const subpath = path.slice(p.length);
+      for (const targetPrefix of candidatePrefixes) {
+        const candidateKey = \`\${blockId}:\${targetPrefix}\${subpath}\`;
+        if (elements[candidateKey]?.style) {
+          return { key: candidateKey, style: elements[candidateKey].style };
+        }
+      }
+      break;
+    }
+  }
+
+  return null;
+}
+
 export function applyAllPreviewEdits(
   root: HTMLElement | null,
   previewEdits: any,
@@ -369,30 +677,100 @@ export function applyAllPreviewEdits(
       blockRoot.dataset.previewEditId = \`\${blockId}:root\`;
     }
 
-    if (elements[\`\${blockId}:root\`]?.style) {
-      applyPreviewStyle(blockRoot, elements[\`\${blockId}:root\`].style, breakpoint);
-      const rootBg = elements[\`\${blockId}:root\`].style.backgroundColor;
+    const isNavbar = block?.props?.kind === "navbar" || block?.kind === "navbar";
+    if (elements[\`\${blockId}:root\`]?.style || block?.bgColor) {
+      if (elements[\`\${blockId}:root\`]?.style) {
+        var rootStyle = elements[\`\${blockId}:root\`].style;
+        // For navbars, strip backgroundColor so applyPreviewStyle doesn't
+        // set it on the full-width wrapper — the navbar handler below
+        // applies it only on the inner pill element.
+        if (isNavbar) {
+          rootStyle = Object.assign({}, rootStyle);
+          delete rootStyle.backgroundColor;
+          if (rootStyle.responsive) {
+            rootStyle.responsive = Object.assign({}, rootStyle.responsive);
+            ["desktop", "tablet", "mobile"].forEach(function(bp) {
+              if (rootStyle.responsive[bp] && rootStyle.responsive[bp].backgroundColor !== undefined) {
+                rootStyle.responsive[bp] = Object.assign({}, rootStyle.responsive[bp]);
+                delete rootStyle.responsive[bp].backgroundColor;
+              }
+            });
+          }
+        }
+        applyPreviewStyle(blockRoot, rootStyle, breakpoint, elements);
+      }
+      const rootBg = resolveResponsiveValue(elements[\`\${blockId}:root\`]?.style, "backgroundColor", breakpoint) || block?.bgColor;
       if (rootBg) {
+        if (isNavbar) {
+          blockRoot.style.setProperty("background-color", "transparent", "important");
+          // Make header/nav itself transparent too
+          var navHeaderEl = blockRoot.querySelector<HTMLElement>("header, nav");
+          if (navHeaderEl && !isChromeElement(navHeaderEl)) {
+            navHeaderEl.style.setProperty("background-color", "transparent", "important");
+          }
+          // Only the inner pill (header > div / nav > div) gets the bg color
+          var innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
+          if (innerNav && !isChromeElement(innerNav)) {
+            innerNav.style.setProperty("background-color", rootBg, "important");
+          }
+        } else {
+          blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer, header > div, nav > div").forEach((el) => {
+            if (!isChromeElement(el)) {
+              el.style.setProperty("background-color", rootBg, "important");
+            }
+          });
+        }
+      } else {
         blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer, header > div, nav > div").forEach((el) => {
-          el.style.setProperty("background-color", rootBg, "important");
+          if (!isChromeElement(el)) {
+            el.style.removeProperty("background-color");
+          }
         });
       }
     }
 
     blockRoot.querySelectorAll<HTMLElement>("*").forEach((element) => {
-      if (!element.dataset.previewEditId) {
+      if (isChromeElement(element)) return;
+
+      let editId = element.dataset.previewEditId;
+      let matchedStyle = editId && elements[editId]?.style ? elements[editId].style : null;
+
+      if (!matchedStyle) {
         const path = getElementPath(blockRoot, element);
-        if (path) element.dataset.previewEditId = \`\${blockId}:\${path}\`;
+        if (path) {
+          const match = findMatchingEdit(elements, blockId, path);
+          if (match) {
+            element.dataset.previewEditId = match.key;
+            matchedStyle = match.style;
+          } else {
+            element.dataset.previewEditId = \`\${blockId}:\${path}\`;
+          }
+        }
       }
 
-      const editId = element.dataset.previewEditId;
-      if (editId && elements[editId]?.style) {
-        applyPreviewStyle(element, elements[editId].style, breakpoint);
+      if (matchedStyle) {
+        applyPreviewStyle(element, matchedStyle, breakpoint, elements);
       }
     });
+
+    if (isNavbar) {
+      blockRoot.style.setProperty("background-color", "transparent", "important");
+      const navHeaderEl = blockRoot.querySelector<HTMLElement>("header, nav");
+      const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
+      if (innerNav && navHeaderEl && !isChromeElement(navHeaderEl)) {
+        const headerBg = navHeaderEl.style.backgroundColor;
+        if (headerBg && headerBg !== "transparent") {
+          innerNav.style.setProperty("background-color", headerBg, "important");
+        }
+        navHeaderEl.style.setProperty("background-color", "transparent", "important");
+      }
+      const rootBg = resolveResponsiveValue(elements[\`\${blockId}:root\`]?.style, "backgroundColor", breakpoint) || block?.bgColor;
+      if (rootBg && innerNav && !isChromeElement(innerNav)) {
+        innerNav.style.setProperty("background-color", rootBg, "important");
+      }
+    }
   });
 }
-
 function getBlockSectionId(block) {
   if (block && block.sectionHref !== undefined) {
     const clean = String(block.sectionHref).replace(/^#+/, "").trim();

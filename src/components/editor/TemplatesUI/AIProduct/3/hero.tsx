@@ -17,24 +17,24 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
     <section className="relative w-full pt-14 pb-28 px-4 sm:px-6 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
 
       {/* Layered Luxury Ambient Glows */}
-      <div 
-        className="absolute top-20 left-1/2 -translate-x-1/2 w-[650px] sm:w-[900px] h-[350px] sm:h-[450px] opacity-35 rounded-full blur-[160px] pointer-events-none" 
-        style={{ background: `radial-gradient(ellipse at 50% 50%, ${accent} 0%, #7E183E 50%, transparent 75%)` }} 
+      <div
+        className="absolute top-20 left-1/2 -translate-x-1/2 w-[650px] sm:w-[900px] h-[350px] sm:h-[450px] opacity-35 rounded-full blur-[160px] pointer-events-none"
+        style={{ background: `radial-gradient(ellipse at 50% 50%, ${accent} 0%, #7E183E 50%, transparent 75%)` }}
       />
-      <div 
-        className="absolute top-64 right-10 w-[350px] h-[350px] opacity-20 rounded-full blur-[130px] pointer-events-none" 
-        style={{ background: accent }} 
+      <div
+        className="absolute top-64 right-10 w-[350px] h-[350px] opacity-20 rounded-full blur-[130px] pointer-events-none"
+        style={{ background: accent }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
+      <div className="relative z-10 max-w-6xl mx-auto text-center flex flex-col items-center">
 
         {/* Top Badge */}
         <div
           className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full mb-8 text-xs font-semibold backdrop-blur-xl transition-all duration-300 hover:scale-105 border shadow-sm"
-          style={{ 
-            backgroundColor: `${surface}CC`, 
-            borderColor: `${accent}35`, 
-            color: accent 
+          style={{
+            backgroundColor: `${surface}CC`,
+            borderColor: `${accent}35`,
+            color: accent
           }}
         >
           <Sparkles className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: "6s", color: accent }} />
@@ -68,10 +68,10 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
           <a
             href="#portfolio"
             className="px-8 py-4 rounded-xl font-bold text-sm shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 group cursor-pointer"
-            style={{ 
-              background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
+            style={{
+              background: `linear-gradient(135deg, ${accent}, #E0265F)`,
               color: ink,
-              boxShadow: `0 0 35px ${accent}60` 
+              boxShadow: `0 0 35px ${accent}60`
             }}
           >
             <span>Explore AI Portfolio</span>
@@ -80,10 +80,10 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
           <a
             href="#demo"
             className="px-8 py-4 rounded-xl font-bold text-sm border backdrop-blur-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-            style={{ 
-              backgroundColor: `${surface}B3`, 
-              borderColor: `${accent}30`, 
-              color: ink 
+            style={{
+              backgroundColor: `${surface}B3`,
+              borderColor: `${accent}30`,
+              color: ink
             }}
           >
             View Live Demos
@@ -91,20 +91,20 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
         </div>
 
         {/* Dynamic Interactive Mockups */}
-        <div className="relative w-full max-w-5xl min-h-[480px] sm:min-h-[520px] flex justify-center items-center mt-6">
+        <div className="relative w-full max-w-7xl min-h-[480px] sm:min-h-[520px] flex justify-center items-center mt-6">
 
-          <div 
-            className="absolute w-[380px] sm:w-[460px] h-[380px] sm:h-[460px] rounded-full border pointer-events-none animate-ping opacity-25" 
-            style={{ borderColor: accent, animationDuration: "9s" }} 
+          <div
+            className="absolute w-[380px] sm:w-[460px] h-[380px] sm:h-[460px] rounded-full border pointer-events-none animate-ping opacity-25"
+            style={{ borderColor: accent, animationDuration: "9s" }}
           />
 
           {/* Floating Metric Card (Left Top) */}
           <div
-            className="hidden lg:block absolute -left-2 top-4 w-60 p-5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-25 backdrop-blur-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1"
-            style={{ 
-              backgroundColor: `${surface}F2`, 
-              borderColor: `${accent}30`, 
-              color: ink 
+            className="hidden lg:block absolute left-4 xl:left-[4%] top-4 w-[240px] p-5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1"
+            style={{
+              backgroundColor: `${surface}F2`,
+              borderColor: `${accent}30`,
+              color: ink
             }}
           >
             <div className="text-3xl font-extrabold flex items-center gap-2" style={{ color: ink }}>
@@ -125,11 +125,11 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
 
           {/* Floating Chat Card (Left Bottom) */}
           <div
-            className="hidden lg:block absolute -left-10 bottom-4 w-84 p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-25 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-            style={{ 
-              backgroundColor: `${surface}F2`, 
-              borderColor: `${accent}30`, 
-              color: ink 
+            className="hidden lg:block absolute left-4 xl:left-[4%] bottom-4 w-[280px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
+            style={{
+              backgroundColor: `${surface}F2`,
+              borderColor: `${accent}30`,
+              color: ink
             }}
           >
             <div className="flex items-center gap-2.5 mb-3">
@@ -145,10 +145,10 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
             <div className="p-3 rounded-xl text-xs mb-2 leading-relaxed border" style={{ backgroundColor: `${bg}80`, borderColor: `${accent}20`, color: ink }}>
               Neural model training is complete across all cluster nodes.
             </div>
-            <div 
-              className="p-3 rounded-xl text-xs ml-auto max-w-[85%] font-medium shadow-md mb-3" 
-              style={{ 
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
+            <div
+              className="p-3 rounded-xl text-xs ml-auto max-w-[85%] font-medium shadow-md mb-3"
+              style={{
+                background: `linear-gradient(135deg, ${accent}, #E0265F)`,
                 color: ink,
                 boxShadow: `0 4px 15px ${accent}40`
               }}
@@ -169,11 +169,11 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
           </div>
 
           {/* Center Mobile Mockup with Responsive Neural Image */}
-          <div 
-            className="relative z-30 w-[275px] sm:w-[300px] rounded-[46px] p-3 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85),0_0_35px_rgba(255,59,118,0.18)] border-[5px] transition-all duration-500 hover:scale-[1.02]" 
-            style={{ 
-              backgroundColor: surface, 
-              borderColor: `${accent}35` 
+          <div
+            className="relative z-30 w-[275px] sm:w-[300px] rounded-[46px] p-3 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85),0_0_35px_rgba(255,59,118,0.18)] border-[5px] transition-all duration-500 hover:scale-[1.02]"
+            style={{
+              backgroundColor: surface,
+              borderColor: `${accent}35`
             }}
           >
             {/* Dynamic Island Speaker Notch */}
@@ -240,11 +240,11 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
 
           {/* Floating Agent Card (Right Top) */}
           <div
-            className="hidden lg:block absolute -right-4 top-4 w-76 p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-25 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-            style={{ 
-              backgroundColor: `${surface}F2`, 
-              borderColor: `${accent}30`, 
-              color: ink 
+            className="hidden lg:block absolute right-4 xl:right-[4%] top-4 w-[270px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
+            style={{
+              backgroundColor: `${surface}F2`,
+              borderColor: `${accent}30`,
+              color: ink
             }}
           >
             <div className="flex items-center gap-2 mb-2">
@@ -258,8 +258,8 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
             </div>
             <button
               className="w-full py-2.5 px-3 rounded-xl font-semibold text-xs text-center shadow-md transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-              style={{ 
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
+              style={{
+                background: `linear-gradient(135deg, ${accent}, #E0265F)`,
                 color: ink,
                 boxShadow: `0 4px 15px ${accent}40`
               }}
@@ -270,13 +270,13 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
           </div>
 
           {/* Floating Architect Card & Tools (Right Bottom) */}
-          <div className="hidden lg:flex absolute -right-12 bottom-6 items-center z-25">
+          <div className="hidden lg:flex absolute right-4 xl:right-[4%] bottom-6 items-center z-20">
             <div
-              className="w-68 p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-              style={{ 
-                backgroundColor: `${surface}F2`, 
-                borderColor: `${accent}30`, 
-                color: ink 
+              className="w-[260px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border backdrop-blur-2xl transition-all duration-500 hover:scale-105"
+              style={{
+                backgroundColor: `${surface}F2`,
+                borderColor: `${accent}30`,
+                color: ink
               }}
             >
               <div className="flex items-center gap-2 mb-2">
@@ -294,12 +294,12 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
               </p>
             </div>
 
-            <div 
-              className="ml-2 backdrop-blur-2xl p-1.5 rounded-xl flex flex-col gap-2 shadow-xl border" 
-              style={{ 
-                backgroundColor: `${surface}F2`, 
-                borderColor: `${accent}30`, 
-                color: ink 
+            <div
+              className="ml-2 backdrop-blur-2xl p-1.5 rounded-xl flex flex-col gap-2 shadow-xl border"
+              style={{
+                backgroundColor: `${surface}F2`,
+                borderColor: `${accent}30`,
+                color: ink
               }}
             >
               <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-sm" style={{ backgroundColor: accent, color: ink }}>
@@ -319,20 +319,20 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
       </div>
 
       {/* Partner Brand Bar */}
-      <div 
-        className="w-full mt-20 pt-8 pb-4 border-t backdrop-blur-md" 
-        style={{ 
-          borderColor: `${accent}20`, 
-          backgroundColor: `${surface}80` 
+      <div
+        className="w-full mt-20 pt-8 pb-4 border-t backdrop-blur-md"
+        style={{
+          borderColor: `${accent}20`,
+          backgroundColor: `${surface}80`
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-6">
-          <div 
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-bold tracking-wide" 
-            style={{ 
-              backgroundColor: `${bg}90`, 
-              borderColor: `${accent}30`, 
-              color: accent 
+          <div
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-bold tracking-wide"
+            style={{
+              backgroundColor: `${bg}90`,
+              borderColor: `${accent}30`,
+              color: accent
             }}
           >
             <span>INNOVATORS WE SERVE</span>
@@ -346,6 +346,6 @@ export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
           </div>
         </div>
       </div>
-    </section>
+    </section >
   );
 }

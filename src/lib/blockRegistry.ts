@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { BlockKind, BlockProps } from "@/types/builder.schema";
 import type { BlockComponentProps } from "@/components/blocks/types";
 import { templates } from "@/data/templates";
+import { SpacerBlock } from "@/components/blocks/spacer";
 
 // Eagerly glob import all template components from components/editor/TemplatesUI
 const templateModules = import.meta.glob("../components/editor/TemplatesUI/**/*.tsx", { eager: true }) as Record<
@@ -120,6 +121,11 @@ export function getBlockComponent(
     }
   }
 
-  // 3. Fallback to blank component if missing or empty
+  // 3. Fallback for spacer kind if no template-specific spacer exists
+  if (kind.toLowerCase() === "spacer") {
+    return SpacerBlock;
+  }
+
+  // 4. Fallback to blank component if missing or empty
   return () => null;
 }

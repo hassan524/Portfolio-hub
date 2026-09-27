@@ -17,14 +17,14 @@ export function AIProduct4Navbar({ props = {}, theme, onChange }: Props) {
 
   return (
     <header 
-      className="w-full px-4 sm:px-8 py-5 relative z-20 backdrop-blur-xl border-b transition-all duration-300 h-full min-h-full flex items-center"
+      className="w-full px-4 sm:px-8 py-5 relative z-20 backdrop-blur-xl border-b transition-all duration-300"
       style={{ 
         backgroundColor: `${bg}E6`, 
         borderColor: surface,
         color: ink 
       }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
         
         {/* Brand */}
         <div className="flex items-center gap-4 group cursor-pointer">

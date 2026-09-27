@@ -23,9 +23,9 @@ export function AIProduct2Navbar({ props = { links: [] }, theme, onChange }: Pro
   const links = props?.links || [];
 
   return (
-    <header className="w-full px-6 py-4 transition-colors relative z-20 h-full min-h-full flex items-center">
+    <header className="w-full px-6 py-4 transition-colors relative z-20">
       <div
-        className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5 rounded-2xl backdrop-blur-xl shadow-sm transition-all"
+        className="w-full max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5 rounded-2xl backdrop-blur-xl shadow-sm transition-all"
         style={{ backgroundColor: `${bg}E6`, border: `1px solid ${surface}`, color: ink }}
       >
         <div className="flex items-center gap-4">

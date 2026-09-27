@@ -22,5 +22,62 @@ export function buildHtml(rawHtml: string, site: SiteData): string {
         html = html.replace("</head>", `${GOOGLE_FONT_LINKS}</head>`);
     }
 
+    const themeBg = site.theme?.bg || "#0b0f19";
+    const themeInk = site.theme?.ink || "#ffffff";
+    const themeAccent = site.theme?.accent || "#3b82f6";
+    const themeSurface = site.theme?.surface || site.theme?.bg || "#111827";
+
+    const tailwindThemeScript = `  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            ink: 'var(--ink)',
+            'ink-soft': 'var(--ink-soft)',
+            surface: 'var(--surface)',
+            'surface-elevated': 'var(--surface-elevated)',
+            accent: 'var(--accent)',
+            border: 'var(--border)',
+            card: 'var(--card)',
+          },
+          fontFamily: {
+            sans: ['Poppins', 'Inter', 'sans-serif'],
+            display: ['Poppins', 'Inter', 'sans-serif'],
+            serif: ['Instrument Serif', 'serif'],
+          },
+          spacing: {
+            '68': '17rem',
+            '76': '19rem',
+            '84': '21rem',
+          },
+          zIndex: {
+            '25': '25',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --background: ${themeBg};
+      --foreground: ${themeInk};
+      --ink: ${themeInk};
+      --ink-soft: color-mix(in srgb, ${themeInk} 70%, transparent);
+      --surface: ${themeSurface};
+      --surface-elevated: #1f2937;
+      --accent: ${themeAccent};
+      --border: color-mix(in srgb, ${themeInk} 15%, transparent);
+      --card: ${themeSurface};
+    }
+  </style>
+`;
+
+    if (!html.includes("window.tailwind.config")) {
+        html = html.replace("</head>", `${tailwindThemeScript}</head>`);
+    }
+
     return html;
 }
