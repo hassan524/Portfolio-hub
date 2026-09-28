@@ -9,6 +9,7 @@ export function DraggableBlockWrapper({
   onReorderBlocks,
   ink,
   moveMode,
+  hasFreePositioned,
   children,
 }: {
   block: Block;
@@ -16,6 +17,7 @@ export function DraggableBlockWrapper({
   onReorderBlocks: (blocks: Block[]) => void;
   ink: string;
   moveMode?: boolean;
+  hasFreePositioned?: boolean;
   children: ReactNode;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -33,7 +35,7 @@ export function DraggableBlockWrapper({
 
   return (
     <div
-      className="relative group/dragblock"
+      className="relative group/dragblock overflow-visible"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -45,6 +47,7 @@ export function DraggableBlockWrapper({
         outlineOffset: -2,
         opacity: isDragging ? 0.4 : 1,
         transition: "opacity 0.15s",
+        zIndex: hasFreePositioned ? 35 : undefined,
       }}
     >
       <div

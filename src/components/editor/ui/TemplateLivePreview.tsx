@@ -710,6 +710,8 @@ export function TemplateLivePreview({
           </>
         )}
       </div>
+
+      <GuideOverlay guides={dragGuides} />
     </div>
   );
 
@@ -1047,7 +1049,8 @@ export function TemplateLivePreview({
       {isDesktop ? (
         <div
           ref={desktopScrollRef}
-          className="simple-scrollbar flex-1 min-h-0 overflow-auto p-2 sm:p-4 md:p-6"
+          data-lenis-prevent="true"
+          className="simple-scrollbar flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-4 md:p-6"
           style={{ overscrollBehavior: "contain" }}
         >
           <div
@@ -1064,17 +1067,16 @@ export function TemplateLivePreview({
       ) : (
         <div
           ref={viewportRef}
+          data-lenis-prevent="true"
           className="flex-1 min-h-0 overflow-hidden flex items-center justify-center select-none p-1 sm:p-3"
           onWheel={(e) => {
-            if (e.target === viewportRef.current) {
-              const win = responsiveFrameRef.current?.contentWindow;
-              if (win) {
-                win.scrollBy({
-                  top: e.deltaY,
-                  left: 0,
-                  behavior: "auto",
-                });
-              }
+            const win = responsiveFrameRef.current?.contentWindow;
+            if (win) {
+              win.scrollBy({
+                top: e.deltaY,
+                left: 0,
+                behavior: "auto",
+              });
             }
           }}
           style={{ overscrollBehavior: "contain" }}
@@ -1178,24 +1180,18 @@ export function TemplateLivePreview({
           outline: 2px dashed ${theme.accent}cc !important;
           outline-offset: 3px !important;
           cursor: pointer !important;
-          transform: scale(1.01);
-          transition: outline 0.12s ease, transform 0.12s ease;
         }
         .preview-edit-canvas.move-active .preview-edit-hovered:not(.preview-edit-selected) {
           outline: 2px dashed ${theme.accent}dd !important;
           outline-offset: 4px !important;
           cursor: move !important;
-          transform: scale(1.01);
-          transition: outline 0.12s ease, transform 0.12s ease;
         }
         .preview-edit-canvas.edit-active .preview-edit-selected,
         .preview-edit-selected {
           outline: 2px solid ${theme.accent} !important;
           outline-offset: 3px !important;
-          box-shadow: 0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
-          transform: scale(1.02) !important;
+          box-shadow: 0 0 0 4px ${theme.accent}33 !important;
           z-index: 35 !important;
-          transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
         }
         .preview-hover-lift:hover {
           transform: translateY(-4px) !important;

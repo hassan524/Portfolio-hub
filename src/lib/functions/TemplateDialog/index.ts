@@ -1170,12 +1170,31 @@ export function applyPreviewStyle(
       }
 
       if (coords) {
-        const isAbs = element.style.position === "absolute" || 
+        const isAbs = element.style.position === "absolute" ||
           (typeof window !== "undefined" && window.getComputedStyle(element).position === "absolute");
         element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
         element.style.setProperty("left", `${coords.x}px`, "important");
         element.style.setProperty("top", `${coords.y}px`, "important");
-        element.style.setProperty("z-index", "20", "important");
+        element.style.setProperty("right", "auto", "important");
+        element.style.setProperty("bottom", "auto", "important");
+        element.style.setProperty("z-index", "40", "important");
+
+        // Unclip parent containers up to canvas root and elevate z-index so cross-block drops are never hidden
+        let p = element.parentElement;
+        while (p && !p.hasAttribute("data-block-id") && p.tagName !== "BODY") {
+          p.style.setProperty("overflow", "visible", "important");
+          p = p.parentElement;
+        }
+        if (p && p.hasAttribute("data-block-id")) {
+          p.style.setProperty("overflow", "visible", "important");
+          p.style.setProperty("z-index", "35", "important");
+          let wrapper = p.parentElement;
+          while (wrapper && wrapper.tagName !== "BODY" && !wrapper.classList.contains("preview-edit-canvas")) {
+            wrapper.style.setProperty("overflow", "visible", "important");
+            wrapper.style.setProperty("z-index", "35", "important");
+            wrapper = wrapper.parentElement;
+          }
+        }
       } else {
         element.style.removeProperty("position");
         element.style.removeProperty("left");
@@ -1423,7 +1442,7 @@ export type GuideLine = {
   position: number;
   start?: number;
   end?: number;
-  emphasis?: "center" | "edge";
+  emphasis?: "center" | "edge" | "canvas";
 };
 
 // A ref-like object holding whatever HTML element is currently hovered.
@@ -1455,6 +1474,7 @@ export function updatePreviewHoverHighlight(
   altKey: boolean,
   hoveredElementRef: HoverRef,
 ): void {
+  if (elementDragActive) return;
   const target = getPreviewElementTarget(eventTarget);
   if (!target) {
     clearPreviewHoverHighlight(hoveredElementRef);
@@ -1482,8 +1502,7 @@ export function updatePreviewHoverHighlight(
     nextElement.style.setProperty("outline", `2px dashed ${HOVER_OUTLINE_COLOR}`, "important");
     nextElement.style.setProperty("outline-offset", "4px", "important");
     nextElement.style.setProperty("cursor", isMoveMode ? "move" : "pointer", "important");
-    nextElement.style.setProperty("transform", "scale(1.01)", "important");
-    nextElement.style.setProperty("transition", "outline 0.12s ease, transform 0.12s ease", "important");
+
   }
 }
 
@@ -1511,8 +1530,6 @@ export function clearPreviewHoverHighlight(hoveredElementRef: HoverRef): void {
     hoveredElementRef.current.style.removeProperty("outline");
     hoveredElementRef.current.style.removeProperty("outline-offset");
     hoveredElementRef.current.style.removeProperty("cursor");
-    hoveredElementRef.current.style.removeProperty("transform");
-    hoveredElementRef.current.style.removeProperty("transition");
     hoveredElementRef.current = null;
   }
 }
@@ -1600,10 +1617,9 @@ export function bindResponsivePreviewInteractions(
 }
 
 // ------------------------------------------------------------
-// Snapping / alignment guides for free-dragging elements
+// Snapping / alignment guides for free-dragging elements (Figma-style)
 // ------------------------------------------------------------
 
-// A rectangle's edges plus its center point, measured relative to a container.
 export type Rect = {
   left: number;
   right: number;
@@ -1611,21 +1627,19 @@ export type Rect = {
   bottom: number;
   centerX: number;
   centerY: number;
+  always?: boolean;
 };
 
-const CENTER_SNAP_THRESHOLD = 10;
-const EDGE_SNAP_THRESHOLD = 6;
-const RELATED_GAP_LIMIT = 72;
+const SNAP_SCREEN_PX = 6; // snap distance in on-screen pixels (zoom-independent)
+const DRAG_THRESHOLD = 5; // screen px before a drag starts
+const ALIGN_EPS = 0.5; // lines closer than this count as "aligned"
 
-// Measures an element's position relative to its container (rather than the
-// whole page), and returns its edges + center — used for snap calculations.
-export function rectOf(el: HTMLElement, containerRect: DOMRect, scale = 1): Rect {
-  const r = el.getBoundingClientRect();
-  const safeScale = scale || 1;
-  const left = (r.left - containerRect.left) / safeScale;
-  const top = (r.top - containerRect.top) / safeScale;
-  const width = r.width / safeScale;
-  const height = r.height / safeScale;
+function rectFromDom(r: DOMRect, containerRect: DOMRect, scale = 1): Rect {
+  const s = scale || 1;
+  const left = (r.left - containerRect.left) / s;
+  const top = (r.top - containerRect.top) / s;
+  const width = r.width / s;
+  const height = r.height / s;
   return {
     left,
     top,
@@ -1636,205 +1650,315 @@ export function rectOf(el: HTMLElement, containerRect: DOMRect, scale = 1): Rect
   };
 }
 
-type SnapCandidate = {
-  delta: number;
-  guide: GuideLine;
-  priority: number;
-};
-
-type SnapContainer = Rect & {
-  priority: number;
-};
-
-function betterSnapCandidate(
-  current: SnapCandidate | null,
-  candidate: SnapCandidate,
-): SnapCandidate {
-  if (!current) return candidate;
-
-  const currentDistance = Math.abs(current.delta);
-  const candidateDistance = Math.abs(candidate.delta);
-  if (candidateDistance !== currentDistance) {
-    return candidateDistance < currentDistance ? candidate : current;
-  }
-
-  return candidate.priority < current.priority ? candidate : current;
+export function rectOf(el: HTMLElement, containerRect: DOMRect, scale = 1): Rect {
+  return rectFromDom(el.getBoundingClientRect(), containerRect, scale);
 }
 
-function rangesOverlap(startA: number, endA: number, startB: number, endB: number): boolean {
-  return Math.min(endA, endB) - Math.max(startA, startB) > 0;
-}
+const xLines = (r: Rect) => [r.left, r.centerX, r.right];
+const yLines = (r: Rect) => [r.top, r.centerY, r.bottom];
 
-function rangesClose(startA: number, endA: number, startB: number, endB: number): boolean {
-  if (rangesOverlap(startA, endA, startB, endB)) return true;
-  const gap = startA > endB ? startA - endB : startB - endA;
-  return gap <= RELATED_GAP_LIMIT;
-}
+// 1) find the closest (edge|center) <-> (edge|center) match per axis and snap to it
+// 2) after snapping, draw EVERY line that now aligns (left + right + center together)
+const SNAP_PROXIMITY = 280; // ignore elements farther than this (canvas px)
 
-// Calculates snapping guides and adjustment deltas for dragged elements.
-// The guide set is intentionally small: one best X guide and one best Y guide.
+const gapY = (a: Rect, b: Rect) =>
+  Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
+const gapX = (a: Rect, b: Rect) =>
+  Math.max(0, Math.max(a.left, b.left) - Math.min(a.right, b.right));
+
+// One snap per axis, one guide line per axis (Figma-style).
+
+
+
+// One snap per axis, one guide line per axis (Figma-style).
+// Canvas centre guides are marked "canvas" and span the full canvas.
 export function computeSnap(
   dragged: Rect,
-  siblings: Rect[],
-  containerWidth: number,
-  containerHeight: number,
-  containers: SnapContainer[] = [],
+  targets: Rect[],
+  threshold: number,
 ): { dx: number; dy: number; guides: GuideLine[] } {
-  let bestX: SnapCandidate | null = null;
-  let bestY: SnapCandidate | null = null;
+  type Best = { score: number; delta: number; pos: number; center: boolean; canvas: boolean; target: Rect };
+  let bestX: Best | null = null;
+  let bestY: Best | null = null;
+  const dX = xLines(dragged);
+  const dY = yLines(dragged);
 
-  const containerCenterX = containerWidth / 2;
-  const centerDx = containerCenterX - dragged.centerX;
-  if (Math.abs(centerDx) <= CENTER_SNAP_THRESHOLD) {
-    bestX = betterSnapCandidate(bestX, {
-      delta: centerDx,
-      priority: 2,
-      guide: {
-        type: "v",
-        position: Math.round(containerCenterX),
-        emphasis: "center",
-      },
-    });
-  }
+  for (const t of targets) {
+    const nearY = t.always || gapY(dragged, t) <= SNAP_PROXIMITY;
+    const nearX = t.always || gapX(dragged, t) <= SNAP_PROXIMITY;
+    const tX = xLines(t);
+    const tY = yLines(t);
 
-  const containerCenterY = containerHeight / 2;
-  const centerDy = containerCenterY - dragged.centerY;
-  if (Math.abs(centerDy) <= CENTER_SNAP_THRESHOLD) {
-    bestY = betterSnapCandidate(bestY, {
-      delta: centerDy,
-      priority: 2,
-      guide: {
-        type: "h",
-        position: Math.round(containerCenterY),
-        emphasis: "center",
-      },
-    });
-  }
-
-  for (const container of containers) {
-    const cardCenterDx = container.centerX - dragged.centerX;
-    if (Math.abs(cardCenterDx) <= CENTER_SNAP_THRESHOLD) {
-      bestX = betterSnapCandidate(bestX, {
-        delta: cardCenterDx,
-        priority: container.priority,
-        guide: {
-          type: "v",
-          position: Math.round(container.centerX),
-          emphasis: "center",
-        },
-      });
-    }
-
-    const cardCenterDy = container.centerY - dragged.centerY;
-    if (Math.abs(cardCenterDy) <= CENTER_SNAP_THRESHOLD) {
-      bestY = betterSnapCandidate(bestY, {
-        delta: cardCenterDy,
-        priority: container.priority,
-        guide: {
-          type: "h",
-          position: Math.round(container.centerY),
-          emphasis: "center",
-        },
-      });
-    }
-  }
-
-  for (const sibling of siblings) {
-    const verticallyRelated = rangesClose(dragged.top, dragged.bottom, sibling.top, sibling.bottom);
-    const horizontallyRelated = rangesClose(dragged.left, dragged.right, sibling.left, sibling.right);
-
-    const xMatches = [
-      { source: dragged.centerX, target: sibling.centerX, priority: 0, threshold: CENTER_SNAP_THRESHOLD },
-      { source: dragged.left, target: sibling.left, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
-      { source: dragged.right, target: sibling.right, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
-    ];
-
-    if (verticallyRelated) {
-      for (const match of xMatches) {
-        const delta = match.target - match.source;
-        if (Math.abs(delta) > match.threshold) continue;
-        bestX = betterSnapCandidate(bestX, {
-          delta,
-          priority: match.priority,
-          guide: {
-            type: "v",
-            position: Math.round(match.target),
-            emphasis: match.priority === 0 ? "center" : "edge",
-          },
-        });
-      }
-    }
-
-    const yMatches = [
-      { source: dragged.centerY, target: sibling.centerY, priority: 0, threshold: CENTER_SNAP_THRESHOLD },
-      { source: dragged.top, target: sibling.top, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
-      { source: dragged.bottom, target: sibling.bottom, priority: 1, threshold: EDGE_SNAP_THRESHOLD },
-    ];
-
-    if (horizontallyRelated) {
-      for (const match of yMatches) {
-        const delta = match.target - match.source;
-        if (Math.abs(delta) > match.threshold) continue;
-        bestY = betterSnapCandidate(bestY, {
-          delta,
-          priority: match.priority,
-          guide: {
-            type: "h",
-            position: Math.round(match.target),
-            emphasis: match.priority === 0 ? "center" : "edge",
-          },
-        });
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (nearY) {
+          const d = tX[i] - dX[j];
+          const a = Math.abs(d);
+          if (a <= threshold) {
+            const canvas = Boolean(t.always) && i === 1;
+            const score = a - (canvas ? 3 : t.always ? 1 : 0);
+            if (!bestX || score < bestX.score) {
+              bestX = { score, delta: d, pos: tX[i], center: i === 1 || j === 1, canvas, target: t };
+            }
+          }
+        }
+        if (nearX) {
+          const d = tY[i] - dY[j];
+          const a = Math.abs(d);
+          if (a <= threshold) {
+            const canvas = Boolean(t.always) && i === 1;
+            const score = a - (canvas ? 3 : t.always ? 1 : 0);
+            if (!bestY || score < bestY.score) {
+              bestY = { score, delta: d, pos: tY[i], center: i === 1 || j === 1, canvas, target: t };
+            }
+          }
+        }
       }
     }
   }
 
-  return {
-    dx: bestX?.delta ?? 0,
-    dy: bestY?.delta ?? 0,
-    guides: [bestX?.guide, bestY?.guide].filter((guide): guide is GuideLine => Boolean(guide)),
+  const dx = bestX ? (bestX as Best).delta : 0;
+  const dy = bestY ? (bestY as Best).delta : 0;
+
+  const s: Rect = {
+    left: dragged.left + dx,
+    right: dragged.right + dx,
+    centerX: dragged.centerX + dx,
+    top: dragged.top + dy,
+    bottom: dragged.bottom + dy,
+    centerY: dragged.centerY + dy,
   };
+
+  const guides: GuideLine[] = [];
+
+  if (bestX) {
+    const bx = bestX as Best;
+    let start = s.top;
+    let end = s.bottom;
+    if (bx.canvas) {
+      start = bx.target.top;
+      end = bx.target.bottom;
+    } else {
+      let extended = false;
+      for (const t of targets) {
+        if (t.always || gapY(s, t) > SNAP_PROXIMITY) continue;
+        if (xLines(t).some((v) => Math.abs(v - bx.pos) <= ALIGN_EPS)) {
+          start = Math.min(start, t.top);
+          end = Math.max(end, t.bottom);
+          extended = true;
+        }
+      }
+      if (!extended) {
+        start = s.top - 120;
+        end = s.bottom + 120;
+      }
+    }
+    guides.push({
+      type: "v",
+      position: bx.pos,
+      start,
+      end,
+      emphasis: bx.canvas ? "canvas" : bx.center ? "center" : "edge",
+    });
+  }
+
+  if (bestY) {
+    const by = bestY as Best;
+    let start = s.left;
+    let end = s.right;
+    if (by.canvas) {
+      start = by.target.left;
+      end = by.target.right;
+    } else {
+      let extended = false;
+      for (const t of targets) {
+        if (t.always || gapX(s, t) > SNAP_PROXIMITY) continue;
+        if (yLines(t).some((v) => Math.abs(v - by.pos) <= ALIGN_EPS)) {
+          start = Math.min(start, t.left);
+          end = Math.max(end, t.right);
+          extended = true;
+        }
+      }
+      if (!extended) {
+        start = s.left - 120;
+        end = s.right + 120;
+      }
+    }
+    guides.push({
+      type: "h",
+      position: by.pos,
+      start,
+      end,
+      emphasis: by.canvas ? "canvas" : by.center ? "center" : "edge",
+    });
+  }
+
+  return { dx, dy, guides };
 }
 
-const DRAG_THRESHOLD = 4;
+// Collected ONCE per drag (not every frame): canvas, every block, every editable element.
+const NON_SNAP_TAGS = new Set([
+  "H1", "H2", "H3", "H4", "H5", "H6", "P", "SPAN", "LABEL", "LI",
+  "A", "BUTTON", "SMALL", "STRONG", "EM", "B", "I", "SVG", "PATH", "INPUT",
+]);
+const MIN_TARGET_W = 100;
+const MIN_TARGET_H = 48;
 
-// Handles free-dragging an individual element around inside its block (move
-// mode). Tracks the mouse, snaps to nearby edges/centers, updates the guide
-// lines live, and — once the drag ends — saves the final x/y position back
-// as a style patch (separately for desktop vs mobile coordinates).
+function collectSnapTargets(
+  canvasRoot: HTMLElement,
+  draggedElement: HTMLElement,
+  canvasRect: DOMRect,
+  scale: number,
+): Rect[] {
+  const out: Rect[] = [];
+  const seen = new Set<string>();
+  const push = (r: Rect) => {
+    const key = [r.left, r.top, r.right, r.bottom].map((n) => Math.round(n)).join(",");
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  };
+
+  const cw = canvasRect.width / scale;
+  const ch = canvasRect.height / scale;
+  push({ left: 0, top: 0, right: cw, bottom: ch, centerX: cw / 2, centerY: ch / 2, always: true });
+
+  canvasRoot.querySelectorAll<HTMLElement>("[data-block-id]").forEach((b) => {
+    if (isChromeElement(b)) return;
+    push(rectOf(b, canvasRect, scale));
+  });
+
+  canvasRoot.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((el) => {
+    if (el === draggedElement || draggedElement.contains(el) || el.contains(draggedElement)) return;
+    if (isChromeElement(el)) return;
+    if (el.dataset.previewEditId?.endsWith(":root")) return;
+    if (NON_SNAP_TAGS.has(el.tagName.toUpperCase())) return;
+    const r = el.getBoundingClientRect();
+    if (r.width / scale < MIN_TARGET_W || r.height / scale < MIN_TARGET_H) return;
+    push(rectFromDom(r, canvasRect, scale));
+  });
+
+  return out;
+}
+
+export function isDraggableElement(el: HTMLElement, blockRoot: HTMLElement): boolean {
+  if (!el || el === blockRoot || el === document.body) return false;
+  if (isChromeElement(el)) return false;
+
+  const editId = el.dataset.previewEditId;
+  if (!editId || editId.endsWith(":root")) return false;
+
+  const tag = el.tagName.toUpperCase();
+  if (["SECTION", "HEADER", "NAV", "FOOTER", "MAIN", "BODY"].includes(tag)) return false;
+
+  if (el.parentElement === blockRoot) return false;
+  if (el.classList.contains("group/block") || el.hasAttribute("data-block-id")) return false;
+
+  const blockRect = blockRoot.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+  if (
+    ["DIV", "ARTICLE"].includes(tag) &&
+    elRect.width >= blockRect.width * 0.88 &&
+    elRect.height >= blockRect.height * 0.75 &&
+    el.children.length > 1
+  ) {
+    return false;
+  }
+
+  return true;
+}
+// Guides live outside React state so dragging never re-renders the preview tree.
+let currentGuides: GuideLine[] = [];
+const guideListeners = new Set<() => void>();
+export const guideStore = {
+  get: (): GuideLine[] => currentGuides,
+  set(next: GuideLine[]) {
+    currentGuides = next;
+    guideListeners.forEach((l) => l());
+  },
+  subscribe(listener: () => void) {
+    guideListeners.add(listener);
+    return () => {
+      guideListeners.delete(listener);
+    };
+  },
+};
+
+let elementDragActive = false;
+
+// Free-drag an element in move mode. Hold Ctrl/Cmd to disable snapping.
 export function startElementFreeDrag(
   e: ReactMouseEvent,
   moveMode: boolean,
-  device: "desktop" | "responsive",
+  _device: "desktop" | "responsive",
   scale: number,
   onChangeElementStyle: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
-  setGuides: (guides: GuideLine[]) => void,
-  setDraggingId: (id: string | null) => void,
+  _setGuides: (guides: GuideLine[]) => void,
+  _setDraggingId: (id: string | null) => void,
 ): void {
-  if (!moveMode) return;
+  if (!moveMode || e.button !== 0) return;
 
   const target = e.target as HTMLElement;
   if (target.closest("[data-block-drag-handle]")) return;
-  const element = target.closest<HTMLElement>("[data-preview-edit-id]");
-  if (!element) return;
 
-  const draggedElement = element;
-  const elementId = element.dataset.previewEditId!;
-  if (elementId.endsWith(":root")) return;
+  const foundBlockRoot = target.closest<HTMLElement>("[data-block-id]");
+  if (!foundBlockRoot) return;
+  const blockRoot: HTMLElement = foundBlockRoot;
 
-  const blockRoot = target.closest<HTMLElement>("[data-block-id]");
-  if (!blockRoot) return;
+  let candidate: HTMLElement | null = target.closest<HTMLElement>("[data-preview-edit-id]");
+  while (candidate && candidate !== blockRoot && !isDraggableElement(candidate, blockRoot)) {
+    candidate = candidate.parentElement?.closest<HTMLElement>("[data-preview-edit-id]") ?? null;
+  }
+  if (!candidate || !isDraggableElement(candidate, blockRoot)) return;
 
-  const ownerDoc = element.ownerDocument || document;
+  const draggedElement: HTMLElement = candidate;
+  const elementId = draggedElement.dataset.previewEditId!;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const ownerDoc = draggedElement.ownerDocument || document;
   const ownerWin = ownerDoc.defaultView || window;
   const iframeEl = ownerWin !== window ? (ownerWin.frameElement as HTMLElement | null) : null;
 
+  const safeScale = scale && scale > 0 ? scale : 1;
+  const measurementScale = iframeEl ? 1 : safeScale;
+
+  const canvasRoot: HTMLElement =
+    blockRoot.closest<HTMLElement>(".preview-edit-canvas") || blockRoot.parentElement || ownerDoc.body;
+
+  // Freeze hover/selection growth so the element keeps its original size while dragging.
+  draggedElement.style.setProperty("transition", "none", "important");
+  draggedElement.style.setProperty("scale", "none", "important");
+  draggedElement.style.setProperty("--tw-scale-x", "1", "important");
+  draggedElement.style.setProperty("--tw-scale-y", "1", "important");
+  const releaseFrozen = () => {
+    draggedElement.style.removeProperty("transition");
+    draggedElement.style.removeProperty("scale");
+    draggedElement.style.removeProperty("--tw-scale-x");
+    draggedElement.style.removeProperty("--tw-scale-y");
+    draggedElement.style.removeProperty("pointer-events");
+  };
+
   const startClientX = e.clientX;
   const startClientY = e.clientY;
+  const elRectAtStart = draggedElement.getBoundingClientRect();
+  const canvasRectAtStart = canvasRoot.getBoundingClientRect();
 
-  const elRectAtStart = element.getBoundingClientRect();
-  const startOffsetX = Number.parseFloat(element.style.left || "0") || 0;
-  const startOffsetY = Number.parseFloat(element.style.top || "0") || 0;
-  const safeScale = scale || 1;
+  const cs = ownerWin.getComputedStyle(draggedElement);
+  const isAlreadyAbsolute = draggedElement.style.position === "absolute" || cs.position === "absolute";
+
+  const pxOf = (v: string | null | undefined): number => {
+    const t = (v ?? "").trim();
+    return t.endsWith("px") ? Number.parseFloat(t) : NaN;
+  };
+
+  let startOffsetX = pxOf(draggedElement.style.left);
+  let startOffsetY = pxOf(draggedElement.style.top);
+  if (Number.isNaN(startOffsetX)) startOffsetX = cs.position !== "static" ? pxOf(cs.left) : NaN;
+  if (Number.isNaN(startOffsetY)) startOffsetY = cs.position !== "static" ? pxOf(cs.top) : NaN;
+  if (Number.isNaN(startOffsetX)) startOffsetX = 0;
+  if (Number.isNaN(startOffsetY)) startOffsetY = 0;
 
   let hasMoved = false;
   let currentX = startOffsetX;
@@ -1842,117 +1966,108 @@ export function startElementFreeDrag(
   let rafId: number | null = null;
   let pendingEvent: MouseEvent | null = null;
   let lastGuideKey = "";
+  let targets: Rect[] = [];
 
-  // Only tells React about new guide lines when they've actually changed,
-  // instead of re-rendering on every single mouse-move tick.
+  const onDragStart = (ev: Event) => ev.preventDefault();
+
   function setGuidesIfChanged(guides: GuideLine[]) {
     const key = guides
-      .map((guide) => `${guide.type}:${guide.position}:${guide.start ?? ""}:${guide.end ?? ""}:${guide.emphasis ?? ""}`)
+      .map((g) => `${g.type}:${g.position}:${g.start ?? ""}:${g.end ?? ""}:${g.emphasis ?? ""}`)
       .join("|");
     if (key === lastGuideKey) return;
     lastGuideKey = key;
-    setGuides(guides);
+    guideStore.set(guides);
   }
 
-  // Runs on each animation frame while dragging — computes the element's
-  // proposed new position, snaps it if it's close to another edge, and
-  // moves the element on screen immediately (for instant visual feedback).
+  function beginDrag() {
+    hasMoved = true;
+    elementDragActive = true;
+    ownerDoc.body.style.cursor = "grabbing";
+    ownerDoc.body.style.userSelect = "none";
+
+    // Kill CSS transitions FIRST — they made the element trail the cursor.
+    draggedElement.style.setProperty("transition", "none", "important");
+    draggedElement.style.setProperty("pointer-events", "none", "important");
+    draggedElement.style.setProperty("will-change", "left, top");
+    draggedElement.style.setProperty("cursor", "grabbing", "important");
+    draggedElement.style.setProperty("position", isAlreadyAbsolute ? "absolute" : "relative", "important");
+    draggedElement.style.setProperty("z-index", "1000", "important");
+    draggedElement.style.setProperty("right", "auto", "important");
+    draggedElement.style.setProperty("bottom", "auto", "important");
+
+    let p = draggedElement.parentElement;
+    while (p && p !== canvasRoot && p.tagName !== "BODY") {
+      p.style.setProperty("overflow", "visible", "important");
+      p = p.parentElement;
+    }
+    blockRoot.style.setProperty("overflow", "visible", "important");
+    blockRoot.style.setProperty("z-index", "100", "important");
+    if (blockRoot.parentElement && blockRoot.parentElement !== canvasRoot) {
+      blockRoot.parentElement.style.setProperty("overflow", "visible", "important");
+      blockRoot.parentElement.style.setProperty("z-index", "100", "important");
+    }
+
+    // Calibrate against the real rect so transformed / centered elements don't jump.
+    draggedElement.style.setProperty("left", `${startOffsetX}px`, "important");
+    draggedElement.style.setProperty("top", `${startOffsetY}px`, "important");
+    const now = draggedElement.getBoundingClientRect();
+    startOffsetX += (elRectAtStart.left - now.left) / measurementScale;
+    startOffsetY += (elRectAtStart.top - now.top) / measurementScale;
+    currentX = startOffsetX;
+    currentY = startOffsetY;
+
+    targets = collectSnapTargets(canvasRoot, draggedElement, canvasRectAtStart, measurementScale);
+  }
+
   function applyMove(moveEvent: MouseEvent) {
-    let dxRaw = 0;
-    let dyRaw = 0;
+    if (moveEvent.buttons === 0) {
+      onMouseUp();
+      return;
+    }
+
+    let dxRaw: number;
+    let dyRaw: number;
 
     if (iframeEl) {
-      // If event originated inside the iframe
-      if (
-        moveEvent.view === ownerWin ||
-        (moveEvent.target && ownerDoc.contains(moveEvent.target as Node))
-      ) {
+      if (moveEvent.view === ownerWin || (moveEvent.target && ownerDoc.contains(moveEvent.target as Node))) {
         dxRaw = moveEvent.clientX - startClientX;
         dyRaw = moveEvent.clientY - startClientY;
       } else {
-        // Event came from the parent window (mouse dragged outside iframe viewport)
         const iframeRect = iframeEl.getBoundingClientRect();
-        const curIframeX = (moveEvent.clientX - iframeRect.left) / safeScale;
-        const curIframeY = (moveEvent.clientY - iframeRect.top) / safeScale;
-        dxRaw = curIframeX - startClientX;
-        dyRaw = curIframeY - startClientY;
+        dxRaw = (moveEvent.clientX - iframeRect.left) / safeScale - startClientX;
+        dyRaw = (moveEvent.clientY - iframeRect.top) / safeScale - startClientY;
       }
     } else {
       dxRaw = (moveEvent.clientX - startClientX) / safeScale;
       dyRaw = (moveEvent.clientY - startClientY) / safeScale;
     }
 
-    if (!hasMoved && Math.hypot(dxRaw, dyRaw) < DRAG_THRESHOLD) return;
-
     if (!hasMoved) {
-      hasMoved = true;
+      if (Math.hypot(dxRaw, dyRaw) * safeScale < DRAG_THRESHOLD) return;
       moveEvent.preventDefault();
-      setDraggingId(elementId);
-      const isAlreadyAbsolute = draggedElement.style.position === "absolute" || 
-        (ownerWin && ownerWin.getComputedStyle(draggedElement).position === "absolute");
-      draggedElement.style.setProperty("position", isAlreadyAbsolute ? "absolute" : "relative", "important");
-      draggedElement.style.setProperty("z-index", "100", "important");
-    }
-    const proposedOffsetX = startOffsetX + dxRaw;
-    const proposedOffsetY = startOffsetY + dyRaw;
-
-    const containerRect = blockRoot!.getBoundingClientRect();
-    const measurementScale = iframeEl ? 1 : safeScale;
-    const containerWidth = containerRect.width / measurementScale;
-    const containerHeight = containerRect.height / measurementScale;
-    const elWidth = elRectAtStart.width / measurementScale;
-    const elHeight = elRectAtStart.height / measurementScale;
-    const proposedVisualX = (elRectAtStart.left - containerRect.left) / measurementScale + dxRaw;
-    const proposedVisualY = (elRectAtStart.top - containerRect.top) / measurementScale + dyRaw;
-    const draggedRect = {
-      left: proposedVisualX,
-      top: proposedVisualY,
-      right: proposedVisualX + elWidth,
-      bottom: proposedVisualY + elHeight,
-      centerX: proposedVisualX + elWidth / 2,
-      centerY: proposedVisualY + elHeight / 2,
-    };
-
-    const siblings = Array.from(blockRoot!.querySelectorAll<HTMLElement>("[data-preview-edit-id]"))
-      .filter(
-        (s) =>
-          s !== draggedElement &&
-          !s.dataset.previewEditId?.endsWith(":root") &&
-          !draggedElement.contains(s) &&
-          !s.contains(draggedElement),
-      )
-      .map((s) => rectOf(s, containerRect, measurementScale));
-
-    const parentContainers: SnapContainer[] = [];
-    let parent = draggedElement.parentElement;
-    while (parent && parent !== blockRoot) {
-      const editId = parent.dataset.previewEditId;
-      const isEditableContainer = editId && editId !== elementId && !editId.endsWith(":root");
-      if (isEditableContainer) {
-        const parentRect = rectOf(parent, containerRect, measurementScale);
-        const isMeaningfullyLarger =
-          parentRect.right - parentRect.left > elWidth + 16 ||
-          parentRect.bottom - parentRect.top > elHeight + 16;
-        if (isMeaningfullyLarger) {
-          parentContainers.push({
-            ...parentRect,
-            priority: parentContainers.length === 0 ? -1 : 0,
-          });
-        }
-      }
-      parent = parent.parentElement;
+      beginDrag();
     }
 
-    const { dx, dy, guides } = computeSnap(
-      draggedRect,
-      siblings,
-      containerWidth,
-      containerHeight,
-      parentContainers,
+    // Place at the raw (unsnapped) position, then measure where the element REALLY is
+    // (includes hover lift, scale, transforms), and snap using that real rect.
+    const rawX = startOffsetX + dxRaw;
+    const rawY = startOffsetY + dyRaw;
+    draggedElement.style.setProperty("left", `${rawX}px`, "important");
+    draggedElement.style.setProperty("top", `${rawY}px`, "important");
+
+    const liveRect = rectFromDom(
+      draggedElement.getBoundingClientRect(),
+      canvasRectAtStart,
+      measurementScale,
     );
 
-    currentX = proposedOffsetX + dx;
-    currentY = proposedOffsetY + dy;
+    const snapOff = moveEvent.ctrlKey || moveEvent.metaKey;
+    const { dx, dy, guides } = snapOff
+      ? { dx: 0, dy: 0, guides: [] as GuideLine[] }
+      : computeSnap(liveRect, targets, SNAP_SCREEN_PX / safeScale);
+
+    currentX = rawX + dx;
+    currentY = rawY + dy;
 
     draggedElement.style.setProperty("left", `${currentX}px`, "important");
     draggedElement.style.setProperty("top", `${currentY}px`, "important");
@@ -1960,8 +2075,11 @@ export function startElementFreeDrag(
     setGuidesIfChanged(guides);
   }
 
-  // Throttles mouse-move handling to once per animation frame.
   function onMouseMove(moveEvent: MouseEvent) {
+    if (moveEvent.buttons === 0) {
+      onMouseUp();
+      return;
+    }
     pendingEvent = moveEvent;
     if (rafId !== null) return;
     rafId = requestAnimationFrame(() => {
@@ -1970,52 +2088,70 @@ export function startElementFreeDrag(
     });
   }
 
-  // Finishes the drag: cleans up listeners/guides, and — if the element
-  // actually moved — saves its final position as a style patch.
-  function onMouseUp() {
+  const scopes: Array<Window | Document> = ownerDoc === document ? [window] : [ownerDoc, window];
 
-    ownerDoc.removeEventListener("mousemove", onMouseMove, true);
-
-    ownerDoc.removeEventListener("mouseup", onMouseUp, true);
-
-    window.removeEventListener("mousemove", onMouseMove, true);
-
-    window.removeEventListener("mouseup", onMouseUp, true);
-
+  function cleanup() {
+    for (const s of scopes) {
+      s.removeEventListener("mousemove", onMouseMove as EventListener, true);
+      s.removeEventListener("mouseup", onMouseUp as EventListener, true);
+      s.removeEventListener("dragstart", onDragStart, true);
+    }
     window.removeEventListener("blur", onMouseUp);
+  }
+
+  function onMouseUp() {
+    cleanup();
 
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
-      if (pendingEvent) applyMove(pendingEvent);
+      if (pendingEvent && pendingEvent.buttons !== 0) applyMove(pendingEvent);
     }
-    setGuides([]);
-    setDraggingId(null);
+
+    elementDragActive = false;
+    guideStore.set([]);
+
+    ownerDoc.body.style.removeProperty("cursor");
+    ownerDoc.body.style.removeProperty("user-select");
+    draggedElement.style.removeProperty("cursor");
+    draggedElement.style.removeProperty("will-change");
+    releaseFrozen();
 
     if (!hasMoved) return;
 
-    const patch: Partial<PreviewElementStyle> = {
-      freePositioned: true,
-      x: currentX,
-      y: currentY,
-      desktop: { x: currentX, y: currentY },
-      mobile: { x: currentX, y: currentY },
+    const cancelTrailingClick = (clickEv: MouseEvent) => {
+      clickEv.stopPropagation();
+      clickEv.preventDefault();
+      window.removeEventListener("click", cancelTrailingClick, true);
+      ownerDoc.removeEventListener("click", cancelTrailingClick, true);
     };
+    ownerDoc.addEventListener("click", cancelTrailingClick, true);
+    window.addEventListener("click", cancelTrailingClick, true);
+    setTimeout(() => {
+      ownerDoc.removeEventListener("click", cancelTrailingClick, true);
+      window.removeEventListener("click", cancelTrailingClick, true);
+    }, 100);
 
-    onChangeElementStyle(elementId, patch);
+    const roundedX = Math.round(currentX * 100) / 100;
+    const roundedY = Math.round(currentY * 100) / 100;
+
+    onChangeElementStyle(elementId, {
+      freePositioned: true,
+      x: roundedX,
+      y: roundedY,
+      desktop: { x: roundedX, y: roundedY },
+      mobile: { x: roundedX, y: roundedY },
+    });
   }
 
-  ownerDoc.addEventListener("mousemove", onMouseMove, true);
-
-  ownerDoc.addEventListener("mouseup", onMouseUp, true);
-
-  window.addEventListener("mousemove", onMouseMove, true);
-
-  window.addEventListener("mouseup", onMouseUp, true);
-
+  for (const s of scopes) {
+    s.addEventListener("dragstart", onDragStart, true);
+    s.addEventListener("mousemove", onMouseMove as EventListener, true);
+    s.addEventListener("mouseup", onMouseUp as EventListener, true);
+  }
   window.addEventListener("blur", onMouseUp);
-
 }
+
 // After a block's real rendered height changes (measured via ResizeObserver),
 // this saves that measured height back into state — but only if it's
 // actually different, to avoid triggering pointless re-renders.

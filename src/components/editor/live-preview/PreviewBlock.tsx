@@ -4,7 +4,6 @@ import { TextOverrideProvider } from "../ui/Editable";
 import { DraggableBlockWrapper } from "../ui/DraggableBlockWrapper";
 import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { getImageOverrides } from "@/lib/imageOverrideUtils";
-import { GuideOverlay } from "../ui/GuideOverlay";
 
 export function PreviewLoadingState({ bg, ink }: { bg: string; ink: string }) {
   return (
@@ -77,7 +76,7 @@ export function PreviewBlock({
     : theme;
 
   const wrapperClassName = [
-    "relative group/block",
+    "relative group/block [&_section]:!overflow-visible [&_header]:!overflow-visible [&_nav]:!overflow-visible [&_footer]:!overflow-visible",
 
     isNavbar &&
     "[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 " +
@@ -102,11 +101,20 @@ export function PreviewBlock({
     .filter(Boolean)
     .join(" ");
 
+  const hasFreePositioned = Boolean(
+    site.previewEdits?.elements &&
+    Object.values(site.previewEdits.elements).some(
+      (el: any) => el.blockId === block.id && el.style?.freePositioned
+    )
+  );
+
   const wrapperStyle: React.CSSProperties = {
     ...(isActive ? { outlineColor: theme.accent } : undefined),
     minHeight: block.height ? `${block.height}px` : undefined,
     height: block.height ? `${block.height}px` : undefined,
     backgroundColor: isNavbar ? "transparent" : (block.bgColor || undefined),
+    zIndex: hasFreePositioned ? 35 : undefined,
+    overflow: hasFreePositioned ? "visible" : undefined,
     ...(hasCustomBg ? ({ "--block-bg": block.bgColor } as React.CSSProperties) : {}),
   };
 
@@ -117,6 +125,7 @@ export function PreviewBlock({
       onReorderBlocks={onReorderBlocks}
       ink={theme.ink}
       moveMode={moveMode}
+      hasFreePositioned={hasFreePositioned}
     >
       <div
         data-block-id={block.id}
@@ -155,12 +164,6 @@ export function PreviewBlock({
             </TextOverrideProvider>
           </RenderedImageOverrides>
         </div>
-
-        {draggingElementId?.startsWith(`${block.id}:`) && (
-          <div data-preview-chrome>
-            <GuideOverlay guides={dragGuides} />
-          </div>
-        )}
       </div>
     </DraggableBlockWrapper>
   );

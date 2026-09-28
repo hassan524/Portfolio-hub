@@ -529,7 +529,26 @@ export function applyPreviewStyle(
         element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
         element.style.setProperty("left", \`\${coords.x}px\`, "important");
         element.style.setProperty("top", \`\${coords.y}px\`, "important");
-        element.style.setProperty("z-index", "20", "important");
+        element.style.setProperty("right", "auto", "important");
+        element.style.setProperty("bottom", "auto", "important");
+        element.style.setProperty("z-index", "40", "important");
+
+        // Unclip parent containers up to canvas root and elevate z-index so cross-block drops are never hidden
+        let p = element.parentElement;
+        while (p && !p.hasAttribute("data-block-id") && p.tagName !== "BODY") {
+          p.style.setProperty("overflow", "visible", "important");
+          p = p.parentElement;
+        }
+        if (p && p.hasAttribute("data-block-id")) {
+          p.style.setProperty("overflow", "visible", "important");
+          p.style.setProperty("z-index", "35", "important");
+          let wrapper = p.parentElement;
+          while (wrapper && wrapper.tagName !== "BODY" && !wrapper.classList.contains("preview-edit-canvas")) {
+            wrapper.style.setProperty("overflow", "visible", "important");
+            wrapper.style.setProperty("z-index", "35", "important");
+            wrapper = wrapper.parentElement;
+          }
+        }
       } else {
         element.style.removeProperty("position");
         element.style.removeProperty("left");

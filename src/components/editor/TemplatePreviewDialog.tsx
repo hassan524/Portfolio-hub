@@ -317,7 +317,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              onWheel={(e) => e.stopPropagation()}
+              data-lenis-prevent="true"
               className={`relative border border-border bg-background shadow-lift overflow-hidden flex flex-col lg:flex-row ${isMaximized
                 ? "h-screen w-screen rounded-none gap-0 lg:gap-2"
                 : "h-full w-full sm:h-[94vh] sm:w-[98vw] max-w-[1800px] rounded-none sm:rounded-3xl gap-0 lg:gap-3"

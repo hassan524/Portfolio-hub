@@ -1,26 +1,51 @@
-import type { GuideLine } from "@/lib/functions/template";
+import { useSyncExternalStore } from "react";
+import { guideStore, type GuideLine } from "@/lib/functions/template";
 
-export function GuideOverlay({ guides }: { guides: GuideLine[] }) {
+export function GuideOverlay(_props: { guides?: GuideLine[] }) {
+  const guides = useSyncExternalStore(guideStore.subscribe, guideStore.get, guideStore.get);
+  if (!guides || guides.length === 0) return null;
+
   return (
-    <>
+    <div
+      data-preview-chrome
+      className="pointer-events-none absolute inset-0 z-[9999] overflow-visible"
+      style={{ pointerEvents: "none" }}
+    >
       {guides.map((g, i) => {
-        const lineClass =
-          g.emphasis === "center" ? "bg-sky-500" : "bg-sky-400/95";
+        const color = g.emphasis === "center" ? "#f43f5e" : "#ff4d8d";
+        const hasSpan = g.start !== undefined && g.end !== undefined;
 
-        return g.type === "v" ? (
+        if (g.type === "v") {
+          return (
+            <div
+              key={`v-${i}-${g.position}`}
+              className="absolute pointer-events-none"
+              style={{
+                left: g.position,
+                top: hasSpan ? g.start : 0,
+                height: hasSpan ? (g.end as number) - (g.start as number) : "100%",
+                width: 1,
+                transform: "translateX(-0.5px)",
+                background: color,
+              }}
+            />
+          );
+        }
+        return (
           <div
-            key={`v-${i}`}
-            className={`pointer-events-none absolute top-0 bottom-0 z-[999] w-[2px] ${lineClass}`}
-            style={{ left: g.position }}
-          />
-        ) : (
-          <div
-            key={`h-${i}`}
-            className={`pointer-events-none absolute left-0 right-0 z-[999] h-[2px] ${lineClass}`}
-            style={{ top: g.position }}
+            key={`h-${i}-${g.position}`}
+            className="absolute pointer-events-none"
+            style={{
+              top: g.position,
+              left: hasSpan ? g.start : 0,
+              width: hasSpan ? (g.end as number) - (g.start as number) : "100%",
+              height: 1,
+              transform: "translateY(-0.5px)",
+              background: color,
+            }}
           />
         );
       })}
-    </>
+    </div>
   );
 }
