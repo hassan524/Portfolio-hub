@@ -365,6 +365,9 @@ export function TemplateLivePreview({
       onChangeElementStyle,
       setDragGuides,
       setDraggingElementId,
+      blocks,
+      site,
+      onSelectElement,
     );
   }
 
@@ -568,6 +571,9 @@ export function TemplateLivePreview({
             onChangeElementStyle,
             setDragGuides,
             setDraggingElementId,
+            blocks,
+            site,
+            onSelectElement,
           );
         },
       });

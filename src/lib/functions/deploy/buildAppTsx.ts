@@ -77,6 +77,7 @@ export function buildAppTsx(
         )
       : "";
 
+    const wrapperBg = isNavbar ? "transparent" : (block.bgColor || "");
     const overflowClass = ` [&_section]:!overflow-visible [&_header]:!overflow-visible [&_nav]:!overflow-visible [&_footer]:!overflow-visible`;
     renderLines.push(
       `<div data-block-id="${block.id}" data-block-kind="${block.props.kind}" data-has-custom-bg={${block.bgColor ? '"true"' : "undefined"}} className="${navbarClass}${heightClass}${customBgClass}${overflowClass}" style={{ position: "relative",${block.height ? ` minHeight: "${block.height}px", height: "${block.height}px",` : ""}${block.bgColor ? ` backgroundColor: "${wrapperBg}", "--block-bg": "${block.bgColor}",` : ""} }}>

@@ -639,6 +639,9 @@ export function handleContentFreeDragStart(
   onChangeElementStyle?: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
   setDragGuides?: (guides: GuideLine[]) => void,
   setDraggingElementId?: (id: string | null) => void,
+  blocks?: Block[],
+  site?: PreviewEditableSite,
+  onSelectElement?: (edit: PreviewElementEdit | null) => void,
 ): void {
   startElementFreeDrag(
     e,
@@ -648,9 +651,11 @@ export function handleContentFreeDragStart(
     (elementId, patch) => onChangeElementStyle?.(elementId, patch),
     setDragGuides ?? (() => { }),
     setDraggingElementId ?? (() => { }),
+    blocks,
+    site,
+    onSelectElement,
   );
 }
-
 // ============================================================
 // TemplateLivePreview
 // ============================================================
@@ -1628,6 +1633,7 @@ export type Rect = {
   centerX: number;
   centerY: number;
   always?: boolean;
+  strong?: boolean;
 };
 
 const SNAP_SCREEN_PX = 6; // snap distance in on-screen pixels (zoom-independent)
@@ -1691,12 +1697,19 @@ export function computeSnap(
 
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
+        // Only snap center↔center or edge↔edge, never edge↔center.
+        // Otherwise a bar's edge grabs the center line and the bar can't be centered.
+        if ((i === 1) !== (j === 1)) continue;
+
         if (nearY) {
           const d = tX[i] - dX[j];
           const a = Math.abs(d);
           if (a <= threshold) {
             const canvas = Boolean(t.always) && i === 1;
-            const score = a - (canvas ? 3 : t.always ? 1 : 0);
+            const centerPair = i === 1 && j === 1;
+            const score =
+              a -
+              (canvas ? 8 : centerPair && t.strong ? 8 : centerPair ? 5 : t.always ? 1 : 0);
             if (!bestX || score < bestX.score) {
               bestX = { score, delta: d, pos: tX[i], center: i === 1 || j === 1, canvas, target: t };
             }
@@ -1707,7 +1720,10 @@ export function computeSnap(
           const a = Math.abs(d);
           if (a <= threshold) {
             const canvas = Boolean(t.always) && i === 1;
-            const score = a - (canvas ? 3 : t.always ? 1 : 0);
+            const centerPair = i === 1 && j === 1;
+            const score =
+              a -
+              (canvas ? 8 : centerPair && t.strong ? 8 : centerPair ? 5 : t.always ? 1 : 0);
             if (!bestY || score < bestY.score) {
               bestY = { score, delta: d, pos: tY[i], center: i === 1 || j === 1, canvas, target: t };
             }
@@ -1809,6 +1825,7 @@ function collectSnapTargets(
   draggedElement: HTMLElement,
   canvasRect: DOMRect,
   scale: number,
+  blockRoot: HTMLElement,
 ): Rect[] {
   const out: Rect[] = [];
   const seen = new Set<string>();
@@ -1819,6 +1836,7 @@ function collectSnapTargets(
     out.push(r);
   };
 
+  // ---- global landmarks (unchanged): canvas, blocks, large containers ----
   const cw = canvasRect.width / scale;
   const ch = canvasRect.height / scale;
   push({ left: 0, top: 0, right: cw, bottom: ch, centerX: cw / 2, centerY: ch / 2, always: true });
@@ -1837,6 +1855,67 @@ function collectSnapTargets(
     if (r.width / scale < MIN_TARGET_W || r.height / scale < MIN_TARGET_H) return;
     push(rectFromDom(r, canvasRect, scale));
   });
+
+  // ---- scoped targets: siblings + parent containers (shapes/boxes only) ----
+  const draggedIsText = NON_SNAP_TAGS.has(draggedElement.tagName.toUpperCase());
+  if (draggedIsText) return out;
+
+  const ownerWin = draggedElement.ownerDocument.defaultView || window;
+  const SVG_INNER = new Set(["SVG", "PATH", "CIRCLE", "LINE", "RECT", "G", "DEFS", "POLYLINE", "POLYGON"]);
+
+  const isUsable = (el: HTMLElement) =>
+    el !== draggedElement &&
+    !isChromeElement(el) &&
+    !SVG_INNER.has(el.tagName.toUpperCase()) &&
+    !NON_SNAP_TAGS.has(el.tagName.toUpperCase());
+
+  const pushEl = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    if (r.width / scale < 2 || r.height / scale < 2) return;
+    push(rectFromDom(r, canvasRect, scale));
+  };
+
+  // Parent's content box (inside border + padding), like Figma's parent-frame snapping.
+  const pushContentBox = (el: HTMLElement) => {
+    const base = rectFromDom(el.getBoundingClientRect(), canvasRect, scale);
+    const cs = ownerWin.getComputedStyle(el);
+    const n = (v: string) => Number.parseFloat(v) || 0;
+    const left = base.left + n(cs.borderLeftWidth) + n(cs.paddingLeft);
+    const right = base.right - n(cs.borderRightWidth) - n(cs.paddingRight);
+    const top = base.top + n(cs.borderTopWidth) + n(cs.paddingTop);
+    const bottom = base.bottom - n(cs.borderBottomWidth) - n(cs.paddingBottom);
+    if (right - left < 4 || bottom - top < 4) return;
+    push({
+      left,
+      right,
+      top,
+      bottom,
+      centerX: (left + right) / 2,
+      centerY: (top + bottom) / 2,
+      strong: true,
+    });
+  };
+
+  let chain: HTMLElement = draggedElement;
+  let parent: HTMLElement | null = draggedElement.parentElement;
+
+  for (let level = 0; parent && parent !== blockRoot && parent !== canvasRoot && level < 3; level++) {
+    if (level < 2) pushContentBox(parent);
+
+    const kids = Array.from(parent.children) as HTMLElement[];
+    for (const child of kids) {
+      if (child === chain || !isUsable(child)) continue;
+      pushEl(child);
+      if (level <= 1) {
+        for (const grandChild of Array.from(child.children) as HTMLElement[]) {
+          if (isUsable(grandChild)) pushEl(grandChild);
+        }
+      }
+    }
+
+    chain = parent;
+    parent = parent.parentElement;
+  }
 
   return out;
 }
@@ -1886,7 +1965,44 @@ export const guideStore = {
 
 let elementDragActive = false;
 
+// Same selection shape handleInteractivePreviewClick builds, for an element
+// already found by drag hit-testing — keeps the highlight/style panel in
+// sync with whatever a drag is about to move.
+function buildElementSelection(
+  element: HTMLElement,
+  block: Block,
+  site: PreviewEditableSite,
+): PreviewElementEdit {
+  const elementId = element.dataset.previewEditId ?? "";
+  const isRoot = elementId.endsWith(":root");
+  const label = isRoot
+    ? (block.label ?? block.name ?? block.props.kind ?? "Section Container")
+    : getElementLabel(element);
+
+  const ownerDoc = element.ownerDocument || document;
+  const ownerWin = ownerDoc.defaultView || window;
+  const computed = ownerWin.getComputedStyle(element);
+  const parsedWidth = parseFloat(computed.width);
+  const parsedHeight = parseFloat(computed.height);
+  const safeW = !isNaN(parsedWidth) && parsedWidth > 0 ? Math.round(parsedWidth) : Math.round(element.offsetWidth || element.getBoundingClientRect().width);
+  const safeH = !isNaN(parsedHeight) && parsedHeight > 0 ? Math.round(parsedHeight) : Math.round(element.offsetHeight || element.getBoundingClientRect().height);
+
+  return {
+    id: elementId,
+    blockId: block.id,
+    blockKind: block.props.kind,
+    label,
+    style: site.previewEdits?.elements[elementId]?.style ?? {},
+    computedWidth: `${safeW}px`,
+    computedHeight: `${safeH}px`,
+    computedStyle: extractElementComputedStyles(element),
+  };
+}
+
 // Free-drag an element in move mode. Hold Ctrl/Cmd to disable snapping.
+// The drag target is ALWAYS found geometrically from the cursor position —
+// never from a previously-selected element (that caused big wrapping
+// elements to get dragged when the cursor was actually over a small child).
 export function startElementFreeDrag(
   e: ReactMouseEvent,
   moveMode: boolean,
@@ -1895,6 +2011,9 @@ export function startElementFreeDrag(
   onChangeElementStyle: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
   _setGuides: (guides: GuideLine[]) => void,
   _setDraggingId: (id: string | null) => void,
+  blocks?: Block[],
+  site?: PreviewEditableSite,
+  onSelectElement?: (edit: PreviewElementEdit | null) => void,
 ): void {
   if (!moveMode || e.button !== 0) return;
 
@@ -1916,6 +2035,12 @@ export function startElementFreeDrag(
 
   e.preventDefault();
   e.stopPropagation();
+
+  // Sync the selection/highlight to whatever is actually about to move.
+  if (onSelectElement && blocks && site) {
+    const block = blocks.find((b) => b.id === blockRoot.dataset.blockId);
+    if (block) onSelectElement(buildElementSelection(draggedElement, block, site));
+  }
 
   const ownerDoc = draggedElement.ownerDocument || document;
   const ownerWin = ownerDoc.defaultView || window;
@@ -2016,7 +2141,7 @@ export function startElementFreeDrag(
     currentX = startOffsetX;
     currentY = startOffsetY;
 
-    targets = collectSnapTargets(canvasRoot, draggedElement, canvasRectAtStart, measurementScale);
+    targets = collectSnapTargets(canvasRoot, draggedElement, canvasRectAtStart, measurementScale, blockRoot);
   }
 
   function applyMove(moveEvent: MouseEvent) {
