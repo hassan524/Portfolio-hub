@@ -36,6 +36,7 @@ export function DraggableBlockWrapper({
   return (
     <div
       className="relative group/dragblock overflow-visible"
+      data-has-free-positioned={hasFreePositioned ? "true" : undefined}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -47,7 +48,8 @@ export function DraggableBlockWrapper({
         outlineOffset: -2,
         opacity: isDragging ? 0.4 : 1,
         transition: "opacity 0.15s",
-        zIndex: hasFreePositioned ? 35 : undefined,
+        zIndex: hasFreePositioned ? 200 : 1,
+        position: "relative",
       }}
     >
       <div

@@ -18,6 +18,17 @@ function getTemplateIndex(category: string, siteId: string): number {
     return idx !== -1 ? idx + 1 : 1;
 }
 
+function isExportEmpty(fn: any): boolean {
+    if (typeof fn !== "function") return true;
+    try {
+        const res = fn({});
+        if (res === null || res === undefined || res === false) return true;
+    } catch {
+        return false;
+    }
+    return false;
+}
+
 function resolveModuleAndExport(
     folder: string,
     templateIndex: number,
@@ -30,9 +41,13 @@ function resolveModuleAndExport(
     const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
     const componentName = `${folder}${templateIndex}${capitalizedKind}`;
 
-    if (mod[componentName]) return { path, exportName: componentName, isDefault: false };
-    if (mod.default) return { path, exportName: null, isDefault: true };
-    const fnKey = Object.keys(mod).find((k) => typeof mod[k] === "function");
+    if (mod[componentName] && !isExportEmpty(mod[componentName])) {
+        return { path, exportName: componentName, isDefault: false };
+    }
+    if (mod.default && !isExportEmpty(mod.default)) {
+        return { path, exportName: null, isDefault: true };
+    }
+    const fnKey = Object.keys(mod).find((k) => typeof mod[k] === "function" && !isExportEmpty(mod[k]));
     if (fnKey) return { path, exportName: fnKey, isDefault: false };
     return null;
 }

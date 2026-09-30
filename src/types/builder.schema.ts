@@ -3,6 +3,7 @@ export type BlockKind =
   | "hero"
   | "projects"
   | "about"
+  | "services"
   | "testimonials"
   | "contact"
   | "footer"
@@ -193,6 +194,27 @@ export type SpacerProps = {
 };
 
 /* =========================
+   Services
+========================= */
+
+export type ServiceItem = {
+  title: string;
+  desc?: string;
+  icon?: string;
+  tags?: string[];
+  [key: string]: any;
+};
+
+export type ServicesProps = {
+  kind: "services";
+  variant?: string;
+  eyebrow?: string;
+  heading?: string;
+  items?: ServiceItem[];
+  [key: string]: any;
+};
+
+/* =========================
    Block Union
 ========================= */
 
@@ -201,6 +223,7 @@ export type BlockProps =
   | HeroProps
   | ProjectsProps
   | AboutProps
+  | ServicesProps
   | TestimonialsProps
   | ContactProps
   | FooterProps

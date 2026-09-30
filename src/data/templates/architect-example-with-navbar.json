@@ -1,98 +1,100 @@
 {
   "id": "architect-example-with-navbar",
+  "name": "Cúbiq Architecture",
   "category": "Architecture Studio",
   "theme": {
-    "bg": "#faf8f4",
-    "bg-second": "#ffffff",
-    "ink": "#1a1a1a",
-    "ink-second": "#000000",
-    "accent": "#a3673a",
-    "surface": "#dcdad7",
-    "fontHeading": "inherit",
-    "fontBody": "inherit",
+    "bg": "#F8F5EF",
+    "bg-second": "#302319",
+    "surface": "#E8DCD1",
+    "ink": "#2F2019",
+    "ink-second": "#6C5A4F",
+    "accent": "#EB5837",
+    "fontHeading": "Cormorant Garamond",
+    "fontBody": "DM Sans",
     "corners": "soft",
     "spacing": "cozy"
   },
   "blocks": [
     {
-      "id": "nav-zachc",
+      "id": "nav-2",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "ArchitectureStudio2Navbar",
         "links": [],
         "sticky": true
       }
     },
     {
-      "id": "hero-1",
+      "id": "hero-2",
       "type": "hero",
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-13"
+        "variant": "ArchitectureStudio2Hero"
       }
     },
     {
-      "id": "stats-1",
-      "type": "stats",
+      "id": "projects-2",
+      "type": "projects",
       "order": 2,
       "props": {
-        "kind": "stats",
-        "variant": "counter-row",
+        "kind": "projects",
+        "variant": "ArchitectureStudio2Projects",
         "items": []
       }
     },
     {
-      "id": "projects-1",
-      "type": "projects",
+      "id": "about-2",
+      "type": "about",
       "order": 3,
       "props": {
-        "kind": "projects",
-        "variant": "projects-6",
-        "items": []
-      }
-    },
-    {
-      "id": "testimonials-1",
-      "type": "testimonials",
-      "order": 4,
-      "props": {
-        "kind": "testimonials",
-        "variant": "testimonials-13",
-        "items": []
-      }
-    },
-    {
-      "id": "about-1",
-      "type": "about",
-      "order": 5,
-      "props": {
         "kind": "about",
-        "variant": "about-13",
+        "variant": "ArchitectureStudio2About",
         "paragraphs": [],
         "skills": [],
         "experience": []
       }
     },
     {
-      "id": "contact-1",
+      "id": "services-2",
+      "type": "services",
+      "order": 4,
+      "props": {
+        "kind": "services",
+        "variant": "ArchitectureStudio2Services",
+        "items": []
+      }
+    },
+    {
+      "id": "testimonials-2",
+      "type": "testimonials",
+      "order": 5,
+      "props": {
+        "kind": "testimonials",
+        "variant": "ArchitectureStudio2Testimonials",
+        "items": []
+      }
+    },
+    {
+      "id": "contact-2",
       "type": "contact",
       "order": 6,
       "props": {
         "kind": "contact",
-        "variant": "contact-13",
+        "variant": "ArchitectureStudio2Contact",
         "socials": []
       }
     },
     {
-      "id": "footer-1",
+      "id": "footer-2",
       "type": "footer",
       "order": 7,
       "props": {
         "kind": "footer",
-        "variant": "footer-13"
+        "variant": "ArchitectureStudio2Footer",
+        "socials": []
       }
     }
   ],

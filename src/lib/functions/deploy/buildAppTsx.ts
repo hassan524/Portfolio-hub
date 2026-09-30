@@ -1,5 +1,9 @@
 import type { SiteData } from "@/types/builder.schema";
 import { getImageOverrides } from "@/lib/imageOverrideUtils";
+import {
+  getPreviewBlockInnerClasses,
+  getPreviewBlockWrapperClasses,
+} from "@/lib/functions/livePreview/blockWrapper";
 import { resolveComponentInfo } from "./resolveComponent";
 
 type BuildResult = {
@@ -14,12 +18,19 @@ export function buildAppTsx(
   const aiThemeStyles = `
     html, body { margin: 0; padding: 0; width: 100%; max-width: 100vw; overflow-x: hidden !important; }
     * { box-sizing: border-box; }
+    [data-free-positioned="true"] { z-index: 250 !important; }
+    [data-has-free-positioned="true"],
+    [data-has-free-positioned="true"] [data-block-id],
+    [data-has-free-positioned="true"] > [data-block-id] > section,
+    [data-has-free-positioned="true"] > [data-block-id] > header,
+    [data-has-free-positioned="true"] > [data-block-id] > nav,
+    [data-has-free-positioned="true"] > [data-block-id] > footer,
+    [data-has-free-positioned="true"] section { overflow: visible !important; }
   `.trim();
   const sorted = [...site.blocks].sort((a, b) => a.order - b.order);
   const importLines: string[] = [];
   const renderLines: string[] = [];
   const patchedBlockSource: Record<string, string> = { ...blockSource };
-
 
   sorted.forEach((block, i) => {
     const variant = (block.props as { variant?: string }).variant;
@@ -52,35 +63,28 @@ export function buildAppTsx(
         : `siteData.blocks[${i}].props`;
 
     const blockThemeExpr = block.bgColor
-      ? (isNavbar
-          ? `{ ...siteData.theme, "bg-second": "${block.bgColor}" }`
-          : `{ ...siteData.theme, bg: "${block.bgColor}", "bg-second": "${block.bgColor}" }`)
+      ? `{ ...siteData.theme, bg: "${block.bgColor}", "bg-second": "${block.bgColor}" }`
       : `siteData.theme`;
 
     const componentTag = `<TextOverrideProvider overrides={(siteData.blocks[${i}].props as any)._textOverrides}><${alias} key="${block.id}" id="${block.id}" props={${propsExpr}} theme={${blockThemeExpr}} onChange={() => {}} /></TextOverrideProvider>`;
 
-    // Matches TemplateLivePreview wrapper hierarchy exactly so DOM paths line up with saved previewEdits
-    const innerJsx = `<div style={{ height: ${!isNavbar && block.height ? '"100%"' : "undefined"} }} className="${!isNavbar && block.height ? "h-full min-h-full [&>*]:!h-full [&>*]:!min-h-full" : ""}">
+    const innerClasses = getPreviewBlockInnerClasses(block) ?? "";
+    const innerJsx = `<div style={{ height: ${block.height ? '"100%"' : "undefined"} }} className="${innerClasses}">
     ${componentTag}
   </div>`;
 
-    const navbarClass = isNavbar
-      ? `[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 [&_nav]:!relative [&_nav]:!top-auto [&_nav]:!h-auto [&_nav]:!min-h-0`
-      : "";
-    const heightClass = block.height && !isNavbar
-      ? ` [&_section]:!h-full [&_section]:!min-h-full [&_header]:!h-full [&_header]:!min-h-full [&_nav]:!h-full [&_nav]:!min-h-full [&_footer]:!h-full [&_footer]:!min-h-full`
-      : "";
-    const customBgClass = block.bgColor
-      ? (isNavbar
-          ? ` [&_header]:!bg-transparent [&_nav]:!bg-transparent [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]`
-          : ` [&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] [&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]`
-        )
-      : "";
+    const wrapperClasses = getPreviewBlockWrapperClasses(block);
+    const hasFreePositioned = Boolean(
+      site.previewEdits?.elements &&
+      Object.entries(site.previewEdits.elements).some(
+        ([key, el]: [string, any]) =>
+          (el?.blockId === block.id || key.startsWith(`${block.id}:`)) &&
+          el?.style?.freePositioned
+      )
+    );
 
-    const wrapperBg = isNavbar ? "transparent" : (block.bgColor || "");
-    const overflowClass = ` [&_section]:!overflow-visible [&_header]:!overflow-visible [&_nav]:!overflow-visible [&_footer]:!overflow-visible`;
     renderLines.push(
-      `<div data-block-id="${block.id}" data-block-kind="${block.props.kind}" data-has-custom-bg={${block.bgColor ? '"true"' : "undefined"}} className="${navbarClass}${heightClass}${customBgClass}${overflowClass}" style={{ position: "relative",${block.height ? ` minHeight: "${block.height}px", height: "${block.height}px",` : ""}${block.bgColor ? ` backgroundColor: "${wrapperBg}", "--block-bg": "${block.bgColor}",` : ""} }}>
+      `<div data-block-id="${block.id}" data-block-kind="${block.props.kind}" data-has-custom-bg={${block.bgColor ? '"true"' : "undefined"}} data-has-free-positioned={${hasFreePositioned ? '"true"' : "undefined"}} className="${wrapperClasses}" style={{ position: "relative", zIndex: ${hasFreePositioned ? 200 : 1}, ${hasFreePositioned ? 'overflow: "visible", ' : ""}${block.height ? `minHeight: "${block.height}px", height: "${block.height}px", ` : ""}${block.bgColor ? `backgroundColor: "${block.bgColor}", "--block-bg": "${block.bgColor}", ` : ""} }}>
         ${innerJsx}
       </div>`,
     );

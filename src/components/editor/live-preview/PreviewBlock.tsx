@@ -4,6 +4,13 @@ import { TextOverrideProvider } from "../ui/Editable";
 import { DraggableBlockWrapper } from "../ui/DraggableBlockWrapper";
 import { RenderedImageOverrides } from "@/lib/renderedImageOverrides";
 import { getImageOverrides } from "@/lib/imageOverrideUtils";
+import {
+  getPreviewBlockComponentProps,
+  getPreviewBlockInnerClasses,
+  getPreviewBlockTheme,
+  getPreviewBlockWrapperClasses,
+  getPreviewBlockWrapperStyle,
+} from "@/lib/functions/livePreview/blockWrapper";
 
 export function PreviewLoadingState({ bg, ink }: { bg: string; ink: string }) {
   return (
@@ -42,10 +49,15 @@ export function PreviewBlock({
 
   if (!Cmp) return null;
 
-  const isNavbar = block.props.kind === "navbar";
-  const isFooter = block.props.kind === "footer";
-  const isSpacer = block.props.kind === "spacer";
+  try {
+    const probe = Cmp({ ...block.props, theme });
+    if (probe === null || probe === undefined || probe === false) return null;
+  } catch {
+    // If component uses hooks, it will throw outside render which indicates real component logic
+  }
+
   const hasCustomBg = Boolean(block.bgColor);
+  const isSpacer = block.props.kind === "spacer";
 
   const currentHeight = block.height ?? 200;
   const displayName = block.label ?? block.name ?? block.props.kind;
@@ -57,66 +69,24 @@ export function PreviewBlock({
     isSpacer
   );
 
-  const componentProps =
-    isNavbar || isFooter
-      ? { ...block.props, logo: site.logo }
-      : isSpacer
-        ? {
-          ...block.props,
-          backgroundColor: block.bgColor || block.props.backgroundColor,
-          backgroundImage: block.bgColor ? "none" : block.props.backgroundImage,
-          isBlended: block.bgColor ? false : Boolean(block.props.isBlended),
-        }
-        : block.props;
-
-  const blockTheme = hasCustomBg
-    ? (isNavbar
-        ? { ...theme, "bg-second": block.bgColor }
-        : { ...theme, bg: block.bgColor, "bg-second": block.bgColor })
-    : theme;
-
-  const wrapperClassName = [
-    "relative group/block [&_section]:!overflow-visible [&_header]:!overflow-visible [&_nav]:!overflow-visible [&_footer]:!overflow-visible",
-
-    isNavbar &&
-    "[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 " +
-    "[&_nav]:!relative [&_nav]:!top-auto [&_nav]:!h-auto [&_nav]:!min-h-0",
-
-    block.height && !isNavbar &&
-    "[&_section]:!h-full [&_section]:!min-h-full " +
-    "[&_header]:!h-full [&_header]:!min-h-full " +
-    "[&_nav]:!h-full [&_nav]:!min-h-full " +
-    "[&_footer]:!h-full [&_footer]:!min-h-full",
-
-    hasCustomBg && (
-      isNavbar
-        ? "[&_header]:!bg-transparent [&_nav]:!bg-transparent [&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]"
-        : "[&_section]:!bg-[var(--block-bg)] [&_header]:!bg-[var(--block-bg)] " +
-          "[&_nav]:!bg-[var(--block-bg)] [&_footer]:!bg-[var(--block-bg)] " +
-          "[&_header>div]:!bg-[var(--block-bg)] [&_nav>div]:!bg-[var(--block-bg)]"
-    ),
-
-    isActive && "outline outline-2 outline-offset-[-2px]",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const componentProps = getPreviewBlockComponentProps(block, site);
+  const blockTheme = getPreviewBlockTheme(theme, block);
+  const wrapperClassName = getPreviewBlockWrapperClasses(block, { isActive });
+  const innerClassName = getPreviewBlockInnerClasses(block);
 
   const hasFreePositioned = Boolean(
     site.previewEdits?.elements &&
-    Object.values(site.previewEdits.elements).some(
-      (el: any) => el.blockId === block.id && el.style?.freePositioned
+    Object.entries(site.previewEdits.elements).some(
+      ([key, el]: [string, any]) =>
+        (el?.blockId === block.id || key.startsWith(`${block.id}:`)) &&
+        el?.style?.freePositioned
     )
   );
 
-  const wrapperStyle: React.CSSProperties = {
-    ...(isActive ? { outlineColor: theme.accent } : undefined),
-    minHeight: block.height ? `${block.height}px` : undefined,
-    height: block.height ? `${block.height}px` : undefined,
-    backgroundColor: isNavbar ? "transparent" : (block.bgColor || undefined),
-    zIndex: hasFreePositioned ? 35 : undefined,
-    overflow: hasFreePositioned ? "visible" : undefined,
-    ...(hasCustomBg ? ({ "--block-bg": block.bgColor } as React.CSSProperties) : {}),
-  };
+  const wrapperStyle = getPreviewBlockWrapperStyle(block, theme, {
+    isActive,
+    hasFreePositioned,
+  });
 
   return (
     <DraggableBlockWrapper
@@ -131,6 +101,7 @@ export function PreviewBlock({
         data-block-id={block.id}
         data-block-kind={block.props.kind}
         data-has-custom-bg={hasCustomBg ? "true" : undefined}
+        data-has-free-positioned={hasFreePositioned ? "true" : undefined}
         className={wrapperClassName}
         style={wrapperStyle}
       >
@@ -148,8 +119,8 @@ export function PreviewBlock({
         />
 
         <div
-          style={{ height: !isNavbar && block.height ? "100%" : undefined }}
-          className={!isNavbar && block.height ? "h-full [&>*]:!h-full [&>*]:!min-h-full" : undefined}
+          style={block.height ? { height: "100%" } : undefined}
+          className={innerClassName}
         >
           <RenderedImageOverrides overrides={getImageOverrides(componentProps)}>
             <TextOverrideProvider overrides={block.props._textOverrides ?? {}}>

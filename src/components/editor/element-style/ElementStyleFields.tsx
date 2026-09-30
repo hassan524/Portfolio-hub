@@ -140,11 +140,15 @@ export function ColorPicker({
     window.addEventListener("pointerup", onUp);
   };
 
+  const isTransparent = (value ?? "").toLowerCase() === "transparent";
+
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <Label className={labelClass}>{label}</Label>
-        <span className="font-mono text-[9px] text-muted-foreground/50">{value.toUpperCase()}</span>
+        <span className="font-mono text-[9px] text-muted-foreground/50">
+          {isTransparent ? "TRANSPARENT" : value ? value.toUpperCase() : "DEFAULT"}
+        </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-1 mt-2">
@@ -161,7 +165,14 @@ export function ColorPicker({
             >
               <div
                 className="absolute inset-[2px] rounded-full border border-black/10 bg-background"
-                style={{ backgroundColor: hexInput }}
+                style={{
+                  backgroundColor: isTransparent ? "transparent" : hexInput,
+                  backgroundImage: isTransparent
+                    ? "linear-gradient(45deg, #71717a 25%, transparent 25%), linear-gradient(-45deg, #71717a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #71717a 75%), linear-gradient(-45deg, transparent 75%, #71717a 75%)"
+                    : undefined,
+                  backgroundSize: "5px 5px",
+                  backgroundPosition: "0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px",
+                }}
               />
             </button>
           </PopoverTrigger>
@@ -202,7 +213,17 @@ export function ColorPicker({
             </div>
 
             <div className="flex items-center gap-1.5">
-              <div className="h-6 w-6 shrink-0 rounded border border-input" style={{ backgroundColor: hexInput }} />
+              <div
+                className="h-6 w-6 shrink-0 rounded border border-input relative overflow-hidden"
+                style={{
+                  backgroundColor: isTransparent ? "transparent" : hexInput,
+                  backgroundImage: isTransparent
+                    ? "linear-gradient(45deg, #71717a 25%, transparent 25%), linear-gradient(-45deg, #71717a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #71717a 75%), linear-gradient(-45deg, transparent 75%, #71717a 75%)"
+                    : undefined,
+                  backgroundSize: "4px 4px",
+                  backgroundPosition: "0 0, 0 2px, 2px -2px, -2px 0px",
+                }}
+              />
               <Input
                 value={hexInput}
                 onChange={(event) => {
@@ -213,8 +234,52 @@ export function ColorPicker({
                 className="h-6 px-1.5 border-input bg-secondary font-mono text-[10px] uppercase text-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30"
               />
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                onChange("transparent");
+                onOpenChange?.(false);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded-md border border-border bg-secondary hover:bg-secondary/80 text-[10px] font-semibold text-foreground transition-colors cursor-pointer"
+            >
+              <div
+                className="h-3.5 w-3.5 rounded-full relative overflow-hidden border border-border flex items-center justify-center shrink-0"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(45deg, #71717a 25%, transparent 25%), linear-gradient(-45deg, #71717a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #71717a 75%), linear-gradient(-45deg, transparent 75%, #71717a 75%)",
+                  backgroundSize: "4px 4px",
+                  backgroundPosition: "0 0, 0 2px, 2px -2px, -2px 0px",
+                  backgroundColor: "#222",
+                }}
+              >
+                <div className="w-full h-[1px] bg-red-500 rotate-45" />
+              </div>
+              Transparent
+            </button>
           </PopoverContent>
         </Popover>
+
+        {/* Quick Transparent Swatch */}
+        <button
+          type="button"
+          onClick={() => onChange("transparent")}
+          className={`h-4.5 w-4.5 rounded-full cursor-pointer transition-all hover:scale-110 relative overflow-hidden flex items-center justify-center ${
+            isTransparent
+              ? "ring-1.5 ring-foreground ring-offset-1 ring-offset-background"
+              : "border border-border/80"
+          }`}
+          style={{
+            backgroundImage:
+              "linear-gradient(45deg, #71717a 25%, transparent 25%), linear-gradient(-45deg, #71717a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #71717a 75%), linear-gradient(-45deg, transparent 75%, #71717a 75%)",
+            backgroundSize: "5px 5px",
+            backgroundPosition: "0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px",
+            backgroundColor: "#18181b",
+          }}
+          title="Transparent"
+        >
+          <div className="w-full h-[1.5px] bg-red-500 rotate-45" />
+        </button>
 
         {SWATCHES.map((swatch) => {
           const isSelected = swatch.toLowerCase() === value.toLowerCase();

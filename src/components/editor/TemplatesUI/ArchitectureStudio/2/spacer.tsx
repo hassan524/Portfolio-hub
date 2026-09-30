@@ -1,7 +1,8 @@
+// @ts-nocheck
 import type { SpacerProps } from "@/types/builder.schema";
 
-export function SpacerBlock({ props, theme }: any) {
-  const bg = props.backgroundColor || theme.bg;
+export function ArchitectureStudio2Spacer({ props = {}, theme }: any) {
+  const bg = props.backgroundColor || theme?.bg || "#0A0A0C";
   const bgImage = (props as Record<string, unknown>).backgroundImage as string | undefined;
   const bgSize = (props as Record<string, unknown>).backgroundSize as string | undefined;
   const bgPosition = (props as Record<string, unknown>).backgroundPosition as string | undefined;
@@ -10,8 +11,9 @@ export function SpacerBlock({ props, theme }: any) {
 
   return (
     <section
-      className={`w-full relative flex items-center justify-center p-8 transition-all min-h-[140px] ${isBlended ? "" : "border border-dashed border-border/40 rounded-lg"
-        }`}
+      className={`w-full relative flex items-center justify-center p-8 transition-all min-h-[140px] ${
+        isBlended ? "" : "border border-dashed border-border/40 rounded-lg"
+      }`}
       style={{
         backgroundColor: bg,
         backgroundImage: bgImage && bgImage !== "none" ? bgImage : undefined,
@@ -33,3 +35,7 @@ export function SpacerBlock({ props, theme }: any) {
     </section>
   );
 }
+
+export const SpacerBlock = ArchitectureStudio2Spacer;
+export const Spacer = ArchitectureStudio2Spacer;
+export default ArchitectureStudio2Spacer;

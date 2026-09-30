@@ -82,6 +82,98 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // ── Undo / Redo History Stack ───────────────────────────────────────
+  const historyRef = useRef<SiteData[]>([]);
+  const historyIndexRef = useRef<number>(-1);
+  const isUndoRedoRef = useRef<boolean>(false);
+
+  // Synchronize history when site changes
+  useEffect(() => {
+    if (!site) return;
+    if (isUndoRedoRef.current) {
+      isUndoRedoRef.current = false;
+      return;
+    }
+    const serialized = JSON.stringify(site);
+    const lastSerialized =
+      historyRef.current.length > 0 && historyIndexRef.current >= 0
+        ? JSON.stringify(historyRef.current[historyIndexRef.current])
+        : null;
+    if (serialized === lastSerialized) return;
+
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(JSON.parse(serialized));
+    if (newHistory.length > 50) newHistory.shift();
+    historyRef.current = newHistory;
+    historyIndexRef.current = newHistory.length - 1;
+  }, [site]);
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current > 0) {
+      historyIndexRef.current -= 1;
+      isUndoRedoRef.current = true;
+      const targetSite = JSON.parse(JSON.stringify(historyRef.current[historyIndexRef.current]));
+      setSite(targetSite);
+      setSelectedElement((prev) => {
+        if (!prev) return null;
+        const nextElem = targetSite.previewEdits?.elements?.[prev.id];
+        return nextElem ? { ...prev, style: nextElem.style ?? {} } : prev;
+      });
+      setChangeCount(Math.max(0, historyIndexRef.current));
+    }
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current < historyRef.current.length - 1) {
+      historyIndexRef.current += 1;
+      isUndoRedoRef.current = true;
+      const targetSite = JSON.parse(JSON.stringify(historyRef.current[historyIndexRef.current]));
+      setSite(targetSite);
+      setSelectedElement((prev) => {
+        if (!prev) return null;
+        const nextElem = targetSite.previewEdits?.elements?.[prev.id];
+        return nextElem ? { ...prev, style: nextElem.style ?? {} } : prev;
+      });
+      setChangeCount(historyIndexRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        (active as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!isCtrlOrCmd) return;
+
+      if (e.key === "z" || e.key === "Z") {
+        if (e.shiftKey) {
+          e.preventDefault();
+          handleRedo();
+        } else {
+          e.preventDefault();
+          handleUndo();
+        }
+      } else if (e.key === "y" || e.key === "Y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, handleUndo, handleRedo]);
+
   const handleAttemptClose = () => {
     if (changeCount >= 10) {
       setConfirmDiscardOpen(true);
@@ -123,6 +215,9 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
     }
     setChangeCount(0);
     setDeployFiles(null);
+    historyRef.current = [];
+    historyIndexRef.current = -1;
+    isUndoRedoRef.current = false;
   }, [template]);
 
   // On mobile, default to responsive mode and show desktop hint toast
@@ -332,6 +427,7 @@ export function TemplatePreviewDialog({ template, open, onClose }: Props) {
                 onBreakpointChange={setEditBreakpoint}
                 activeSection={activeSection}
                 selectedElementId={selectedElement?.id ?? null}
+                selectedElement={selectedElement}
                 onSelectElement={handleSelectElement}
                 onChangeElementStyle={handleChangeElementStyle}
                 onDeviceChange={setDevice}

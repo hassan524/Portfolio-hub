@@ -71,61 +71,60 @@ function getTemplateIndex(category: string, siteId: string): number {
   return idx !== -1 ? idx + 1 : 1;
 }
 
+export function isExportEmpty(fn: any): boolean {
+  if (typeof fn !== "function") return true;
+  try {
+    const res = fn({});
+    if (res === null || res === undefined || res === false) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+const FOLDERS = Object.values(CATEGORY_TO_FOLDER).sort((a, b) => b.length - a.length);
+
+function loadTemplateComponent(folder: string, index: number, kind: string) {
+  const cap = kind.charAt(0).toUpperCase() + kind.slice(1);
+  const path = `../components/editor/TemplatesUI/${folder}/${index}/${kind.toLowerCase()}.tsx`;
+  const mod = templateModules[path];
+  if (!mod) return null;
+  const Cmp =
+    mod[`${folder}${index}${cap}`] ||
+    mod.default ||
+    Object.values(mod).find((v) => typeof v === "function");
+  return Cmp && !isExportEmpty(Cmp) ? Cmp : null;
+}
+
 export function getBlockComponent(
   kind: string,
   variant?: string,
   category?: string,
   siteId?: string
 ): any {
-  // 1. Try to find the component dynamically based on category and siteId
-  if (category && siteId) {
-    const folderName = getFolderName(category);
-    const templateIndex = getTemplateIndex(category, siteId);
-    
-    // Capitalize kind (e.g. "about" -> "About")
-    const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
-    
-    // Target component name: e.g. "AIProduct1About"
-    const componentName = `${folderName}${templateIndex}${capitalizedKind}`;
-    
-    // Check module path
-    const path = `../components/editor/TemplatesUI/${folderName}/${templateIndex}/${kind.toLowerCase()}.tsx`;
-    
-    const mod = templateModules[path];
-    if (mod) {
-      const Cmp = mod[componentName] || mod.default || Object.values(mod).find((val) => typeof val === "function");
+  // 1. variant is the source of truth: "ArchitectureStudio3Hero" -> folder + 3
+  if (variant) {
+    for (const folder of FOLDERS) {
+      if (!variant.startsWith(folder)) continue;
+      const m = variant.slice(folder.length).match(/^(\d+)/);
+      if (!m) continue;
+      const Cmp = loadTemplateComponent(folder, parseInt(m[1], 10), kind);
       if (Cmp) return Cmp;
     }
   }
 
-  // 2. Try parsing the variant if it contains the directory name and number pattern,
-  // e.g. variant = "AIProduct1About" or "AIProduct1"
-  if (variant) {
-    for (const folder of Object.values(CATEGORY_TO_FOLDER)) {
-      if (variant.startsWith(folder)) {
-        const rest = variant.slice(folder.length);
-        const match = rest.match(/^(\d+)/);
-        if (match) {
-          const templateIndex = parseInt(match[1], 10);
-          const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
-          const componentName = `${folder}${templateIndex}${capitalizedKind}`;
-          const path = `../components/editor/TemplatesUI/${folder}/${templateIndex}/${kind.toLowerCase()}.tsx`;
-          
-          const mod = templateModules[path];
-          if (mod) {
-            const Cmp = mod[componentName] || mod.default || Object.values(mod).find((val) => typeof val === "function");
-            if (Cmp) return Cmp;
-          }
-        }
-      }
-    }
+  // 2. fallback: category + position in templates array
+  if (category && siteId) {
+    const Cmp = loadTemplateComponent(
+      getFolderName(category),
+      getTemplateIndex(category, siteId),
+      kind,
+    );
+    if (Cmp) return Cmp;
   }
 
-  // 3. Fallback for spacer kind if no template-specific spacer exists
-  if (kind.toLowerCase() === "spacer") {
-    return SpacerBlock;
-  }
+  // 3. spacer fallback
+  if (kind.toLowerCase() === "spacer") return SpacerBlock;
 
-  // 4. Fallback to blank component if missing or empty
-  return () => null;
+  return null;
 }

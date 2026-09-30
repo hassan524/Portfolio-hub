@@ -12,6 +12,7 @@ import type {
   PreviewElementStyle,
 } from "@/types/previewEditTypes";
 import { ResponsiveBreakpoint } from "@/types/previewEditTypes";
+import { applyPreviewBlockSurfaceStyles } from "@/lib/functions/livePreview/blockWrapper";
 
 // ============================================================
 // TemplatePreviewDialog
@@ -642,6 +643,7 @@ export function handleContentFreeDragStart(
   blocks?: Block[],
   site?: PreviewEditableSite,
   onSelectElement?: (edit: PreviewElementEdit | null) => void,
+  selectedElement?: PreviewElementEdit | null,
 ): void {
   startElementFreeDrag(
     e,
@@ -654,6 +656,7 @@ export function handleContentFreeDragStart(
     blocks,
     site,
     onSelectElement,
+    selectedElement,
   );
 }
 // ============================================================
@@ -1175,28 +1178,34 @@ export function applyPreviewStyle(
       }
 
       if (coords) {
-        const isAbs = element.style.position === "absolute" ||
+        const isAbs =
+          element.style.position === "absolute" ||
+          ((element.getAttribute("class") || "").includes("absolute")) ||
           (typeof window !== "undefined" && window.getComputedStyle(element).position === "absolute");
         element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
         element.style.setProperty("left", `${coords.x}px`, "important");
         element.style.setProperty("top", `${coords.y}px`, "important");
         element.style.setProperty("right", "auto", "important");
         element.style.setProperty("bottom", "auto", "important");
-        element.style.setProperty("z-index", "40", "important");
+        element.style.setProperty("z-index", "250", "important");
+        element.setAttribute("data-free-positioned", "true");
 
-        // Unclip parent containers up to canvas root and elevate z-index so cross-block drops are never hidden
+        // Elevate blockRoot and canvas wrapper so cross-block drops are never hidden
         let p = element.parentElement;
         while (p && !p.hasAttribute("data-block-id") && p.tagName !== "BODY") {
-          p.style.setProperty("overflow", "visible", "important");
           p = p.parentElement;
         }
         if (p && p.hasAttribute("data-block-id")) {
+          p.setAttribute("data-has-free-positioned", "true");
           p.style.setProperty("overflow", "visible", "important");
-          p.style.setProperty("z-index", "35", "important");
+          p.style.setProperty("position", "relative", "important");
+          p.style.setProperty("z-index", "200", "important");
           let wrapper = p.parentElement;
           while (wrapper && wrapper.tagName !== "BODY" && !wrapper.classList.contains("preview-edit-canvas")) {
+            wrapper.setAttribute("data-has-free-positioned", "true");
             wrapper.style.setProperty("overflow", "visible", "important");
-            wrapper.style.setProperty("z-index", "35", "important");
+            wrapper.style.setProperty("position", "relative", "important");
+            wrapper.style.setProperty("z-index", "200", "important");
             wrapper = wrapper.parentElement;
           }
         }
@@ -1205,12 +1214,14 @@ export function applyPreviewStyle(
         element.style.removeProperty("left");
         element.style.removeProperty("top");
         element.style.removeProperty("z-index");
+        element.removeAttribute("data-free-positioned");
       }
     } else {
       element.style.removeProperty("position");
       element.style.removeProperty("left");
       element.style.removeProperty("top");
       element.style.removeProperty("z-index");
+      element.removeAttribute("data-free-positioned");
     }
   }
 
@@ -1236,6 +1247,64 @@ export function applyPreviewStyle(
   }
 }
 
+export function clearPreviewStyle(element: HTMLElement): void {
+  element.style.removeProperty("position");
+  element.style.removeProperty("left");
+  element.style.removeProperty("top");
+  element.style.removeProperty("right");
+  element.style.removeProperty("bottom");
+  element.style.removeProperty("z-index");
+  element.removeAttribute("data-free-positioned");
+
+  element.style.removeProperty("color");
+  element.style.removeProperty("--ai-theme-ink");
+  element.style.removeProperty("--theme-ink");
+  element.style.removeProperty("--ink");
+
+  element.style.removeProperty("background-color");
+  element.style.removeProperty("border-radius");
+  element.style.removeProperty("font-size");
+  element.style.removeProperty("font-weight");
+  element.style.removeProperty("font-style");
+  element.style.removeProperty("text-decoration");
+  element.style.removeProperty("text-align");
+  element.style.removeProperty("text-transform");
+
+  element.style.removeProperty("border-width");
+  element.style.removeProperty("border-style");
+  element.style.removeProperty("border-color");
+  element.style.removeProperty("box-shadow");
+  element.style.removeProperty("backdrop-filter");
+  element.style.removeProperty("-webkit-backdrop-filter");
+
+  element.style.removeProperty("padding");
+  element.style.removeProperty("margin");
+  element.style.removeProperty("width");
+  element.style.removeProperty("max-width");
+  element.style.removeProperty("min-width");
+  element.style.removeProperty("height");
+  element.style.removeProperty("max-height");
+  element.style.removeProperty("min-height");
+
+  element.style.removeProperty("display");
+  element.style.removeProperty("visibility");
+  element.style.removeProperty("cursor");
+  element.style.removeProperty("overflow");
+  element.style.removeProperty("transform");
+  element.style.removeProperty("animation-duration");
+
+  element.removeAttribute("data-hover-fx");
+  element.removeAttribute("data-entrance-fx");
+
+  element.querySelectorAll<HTMLElement>("*").forEach((child) => {
+    if (!child.dataset.previewEditId) {
+      child.style.removeProperty("color");
+      child.style.removeProperty("--ai-theme-ink");
+      child.style.removeProperty("--theme-ink");
+      child.style.removeProperty("--ink");
+    }
+  });
+}
 
 const PREVIEW_EFFECTS_STYLE_ID = "preview-effects-styles";
 
@@ -1273,8 +1342,29 @@ export function ensurePreviewEffectsStylesheet(doc: Document | null | undefined)
     [data-block-kind="navbar"] nav {
       position: relative !important;
       top: auto !important;
-      height: auto !important;
-      min-height: 0 !important;
+    }
+
+    [data-free-positioned="true"] {
+      z-index: 250 !important;
+    }
+
+    [data-has-free-positioned="true"],
+    [data-has-free-positioned="true"] [data-block-id],
+    [data-has-free-positioned="true"] > [data-block-id] > section,
+    [data-has-free-positioned="true"] > [data-block-id] > header,
+    [data-has-free-positioned="true"] > [data-block-id] > nav,
+    [data-has-free-positioned="true"] > [data-block-id] > footer,
+    [data-has-free-positioned="true"] section,
+    [data-has-free-positioned="true"] .group\\/block,
+    [data-has-free-positioned="true"] .group\\/dragblock {
+      overflow: visible !important;
+    }
+
+    .preview-edit-canvas.move-active section,
+    .preview-edit-canvas.move-active [data-block-id],
+    .preview-edit-canvas.move-active .group\\/block,
+    .preview-edit-canvas.move-active .group\\/dragblock {
+      overflow: visible !important;
     }
   `;
   doc.head.appendChild(styleEl);
@@ -1295,6 +1385,19 @@ export function tagAndApplyPreviewStyles(
 
   ensurePreviewEffectsStylesheet(root.ownerDocument);
 
+  const elements = previewEdits?.elements;
+
+  // Track which blocks contain free-positioned elements
+  const blocksWithFreePos = new Set<string>();
+  if (elements) {
+    for (const [editKey, editData] of Object.entries(elements)) {
+      if (editData?.style?.freePositioned) {
+        const bId = editData.blockId || editKey.split(":")[0];
+        if (bId) blocksWithFreePos.add(bId);
+      }
+    }
+  }
+
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
@@ -1307,71 +1410,33 @@ export function tagAndApplyPreviewStyles(
       blockRoot.removeAttribute("id");
     }
 
-    const isNavbarBlock = block?.props.kind === "navbar" || block?.type === "navbar";
-    if (block?.bgColor) {
-      if (isNavbarBlock) {
-        blockRoot.style.setProperty("background-color", "transparent", "important");
-        blockRoot.style.setProperty("--block-bg", block.bgColor);
-        const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
-        if (innerNav && !innerNav.hasAttribute("data-preview-chrome")) {
-          innerNav.style.setProperty("background-color", block.bgColor, "important");
-        } else {
-          const directHeader = blockRoot.querySelector<HTMLElement>("header, nav");
-          if (directHeader && !directHeader.hasAttribute("data-preview-chrome")) {
-            directHeader.style.setProperty("background-color", block.bgColor, "important");
-          }
-        }
-      } else {
-        blockRoot.style.setProperty("background-color", block.bgColor, "important");
-        blockRoot.style.setProperty("--block-bg", block.bgColor);
-        const isSpacer = block.props.kind === "spacer" || block.type === "spacer";
-        if (isSpacer) {
-          blockRoot.style.setProperty("background-image", "none", "important");
-        }
-        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-          "section, nav, header, footer, header > div, nav > div"
-        );
-        topContainers.forEach((tc) => {
-          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
-            tc.style.setProperty("background-color", block.bgColor!, "important");
-            if (isSpacer) {
-              tc.style.setProperty("background-image", "none", "important");
-            }
-          }
-        });
+    const hasFree = blocksWithFreePos.has(blockId);
+    const wrapper = blockRoot.parentElement;
+
+    if (hasFree) {
+      blockRoot.setAttribute("data-has-free-positioned", "true");
+      blockRoot.style.setProperty("overflow", "visible", "important");
+      blockRoot.style.setProperty("position", "relative", "important");
+      blockRoot.style.setProperty("z-index", "200", "important");
+      if (wrapper && !wrapper.classList.contains("preview-edit-canvas")) {
+        wrapper.setAttribute("data-has-free-positioned", "true");
+        wrapper.style.setProperty("overflow", "visible", "important");
+        wrapper.style.setProperty("position", "relative", "important");
+        wrapper.style.setProperty("z-index", "200", "important");
+      }
+    } else {
+      blockRoot.removeAttribute("data-has-free-positioned");
+      blockRoot.style.setProperty("position", "relative", "important");
+      blockRoot.style.setProperty("z-index", "1", "important");
+      if (wrapper && !wrapper.classList.contains("preview-edit-canvas")) {
+        wrapper.removeAttribute("data-has-free-positioned");
+        wrapper.style.setProperty("position", "relative", "important");
+        wrapper.style.setProperty("z-index", "1", "important");
       }
     }
 
-    if (block?.height) {
-      blockRoot.style.setProperty("height", `${block.height}px`, "important");
-      blockRoot.style.setProperty("min-height", `${block.height}px`, "important");
-      // Don't force height: 100% into navbar's nav/header — navbars should
-      // have their container resized without stretching inner header/nav
-      if (!isNavbarBlock) {
-        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-          "section, nav, header, footer"
-        );
-        topContainers.forEach((tc) => {
-          if (!tc.hasAttribute("data-preview-chrome") && !tc.hasAttribute("data-block-drag-handle")) {
-            tc.style.setProperty("height", "100%", "important");
-            tc.style.setProperty("min-height", "100%", "important");
-          }
-        });
-      }
-    } else {
-      blockRoot.style.removeProperty("height");
-      blockRoot.style.removeProperty("min-height");
-      if (isNavbarBlock) {
-        const topContainers = blockRoot.querySelectorAll<HTMLElement>(
-          "header, nav"
-        );
-        topContainers.forEach((tc) => {
-          if (!tc.hasAttribute("data-preview-chrome")) {
-            tc.style.removeProperty("height");
-            tc.style.removeProperty("min-height");
-          }
-        });
-      }
+    if (block) {
+      applyPreviewBlockSurfaceStyles(blockRoot, block);
     }
 
     if (!blockRoot.dataset.previewEditId) {
@@ -1386,8 +1451,6 @@ export function tagAndApplyPreviewStyles(
     });
   });
 
-  const elements = previewEdits?.elements;
-
   root.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((element) => {
     const editId = element.dataset.previewEditId;
     const isSelected = Boolean(editId && editId === selectedElementId);
@@ -1396,31 +1459,28 @@ export function tagAndApplyPreviewStyles(
 
     if (elements && editId && elements[editId]?.style) {
       applyPreviewStyle(element, elements[editId].style, device, breakpoint, elements);
+    } else {
+      clearPreviewStyle(element);
     }
   });
 
-  // Re-enforce transparent on navbar block roots and outer headers — applyPreviewStyle may have
-  // overridden it with the root/header element's backgroundColor property.
+  // Re-apply block-level bg/height after per-element preview styles.
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
     const block = blocks.find((b) => b.id === blockId);
-    const isNavbar = block?.props.kind === "navbar" || block?.type === "navbar";
-    if (isNavbar) {
-      blockRoot.style.setProperty("background-color", "transparent", "important");
-      const headerEl = blockRoot.querySelector<HTMLElement>("header, nav");
-      const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
-      if (innerNav && headerEl && !headerEl.hasAttribute("data-preview-chrome")) {
-        const headerBg = headerEl.style.backgroundColor;
-        if (headerBg && headerBg !== "transparent") {
-          innerNav.style.setProperty("background-color", headerBg, "important");
-        }
-        headerEl.style.setProperty("background-color", "transparent", "important");
-      }
-      if (block?.bgColor && innerNav && !innerNav.hasAttribute("data-preview-chrome")) {
-        innerNav.style.setProperty("background-color", block.bgColor, "important");
-      }
-    }
+    if (!block) return;
+
+    const rootBg =
+      (elements?.[`${blockId}:root`]?.style &&
+        resolveResponsiveValue(
+          elements[`${blockId}:root`].style,
+          "backgroundColor",
+          breakpoint,
+        )) ||
+      block.bgColor;
+
+    applyPreviewBlockSurfaceStyles(blockRoot, block, { backgroundColor: rootBg });
   });
 }
 
@@ -1524,6 +1584,18 @@ function findHoverableElement(
   );
   if (!candidate || isChromeElement(candidate)) return null;
   if (blockRoot && candidate.parentElement === blockRoot) return null;
+
+  const isNavbar =
+    blockRoot?.dataset.blockKind === "navbar" ||
+    Boolean(blockRoot?.querySelector("header, nav"));
+
+  if (isNavbar) {
+    const tag = candidate.tagName.toUpperCase();
+    if (tag === "HEADER" || candidate.querySelector("nav") || candidate.querySelector("header")) {
+      return null;
+    }
+  }
+
   return candidate;
 }
 
@@ -1599,8 +1671,36 @@ export function bindResponsivePreviewInteractions(
   body.addEventListener("mouseleave", handleMouseLeave);
 
   const doc = body.ownerDocument;
-  if (doc && doc !== document) {
-    doc.addEventListener("mouseleave", handleMouseLeave);
+  function handleIframeKeyDown(e: KeyboardEvent) {
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+    if (isCtrlOrCmd && (e.key === "z" || e.key === "Z" || e.key === "y" || e.key === "Y")) {
+      const active = (body.ownerDocument || document).activeElement;
+      if (
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        (active as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: e.key,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          bubbles: true,
+        }),
+      );
+    }
+  }
+
+  if (doc) {
+    doc.addEventListener("keydown", handleIframeKeyDown);
+    if (doc !== document) {
+      doc.addEventListener("mouseleave", handleMouseLeave);
+    }
   }
 
   // Cleanup — call this (e.g. in a useEffect return) to unbind everything.
@@ -1615,8 +1715,11 @@ export function bindResponsivePreviewInteractions(
     }
     body.removeEventListener("mousemove", handleMouseMove, true);
     body.removeEventListener("mouseleave", handleMouseLeave);
-    if (doc && doc !== document) {
-      doc.removeEventListener("mouseleave", handleMouseLeave);
+    if (doc) {
+      doc.removeEventListener("keydown", handleIframeKeyDown);
+      if (doc !== document) {
+        doc.removeEventListener("mouseleave", handleMouseLeave);
+      }
     }
   };
 }
@@ -1697,9 +1800,9 @@ export function computeSnap(
 
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        // Only snap center↔center or edge↔edge, never edge↔center.
-        // Otherwise a bar's edge grabs the center line and the bar can't be centered.
-        if ((i === 1) !== (j === 1)) continue;
+        // Only snap matching alignments: center↔center (1↔1), left↔left (0↔0), right↔right (2↔2).
+        // Never opposite edges (e.g. 0↔2 or 2↔0), which causes elements to instantly attach/stick to neighbors!
+        if (i !== j) continue;
 
         if (nearY) {
           const d = tX[i] - dX[j];
@@ -1815,7 +1918,7 @@ export function computeSnap(
 // Collected ONCE per drag (not every frame): canvas, every block, every editable element.
 const NON_SNAP_TAGS = new Set([
   "H1", "H2", "H3", "H4", "H5", "H6", "P", "SPAN", "LABEL", "LI",
-  "A", "BUTTON", "SMALL", "STRONG", "EM", "B", "I", "SVG", "PATH", "INPUT",
+  "SMALL", "STRONG", "EM", "B", "I", "SVG", "PATH", "INPUT",
 ]);
 const MIN_TARGET_W = 100;
 const MIN_TARGET_H = 48;
@@ -1826,6 +1929,7 @@ function collectSnapTargets(
   canvasRect: DOMRect,
   scale: number,
   blockRoot: HTMLElement,
+  startRectDom?: DOMRect,
 ): Rect[] {
   const out: Rect[] = [];
   const seen = new Set<string>();
@@ -1835,6 +1939,19 @@ function collectSnapTargets(
     seen.add(key);
     out.push(r);
   };
+
+  if (startRectDom) {
+    const sr = rectFromDom(startRectDom, canvasRect, scale);
+    push({
+      left: sr.left,
+      right: sr.right,
+      top: sr.top,
+      bottom: sr.bottom,
+      centerX: sr.centerX,
+      centerY: sr.centerY,
+      strong: true,
+    });
+  }
 
   // ---- global landmarks (unchanged): canvas, blocks, large containers ----
   const cw = canvasRect.width / scale;
@@ -1903,12 +2020,62 @@ function collectSnapTargets(
     if (level < 2) pushContentBox(parent);
 
     const kids = Array.from(parent.children) as HTMLElement[];
+    const siblingRects: Rect[] = [];
     for (const child of kids) {
       if (child === chain || !isUsable(child)) continue;
-      pushEl(child);
+      const r = child.getBoundingClientRect();
+      if (r.width / scale < 2 || r.height / scale < 2) continue;
+      const rect = rectFromDom(r, canvasRect, scale);
+      push(rect);
+      siblingRects.push(rect);
       if (level <= 1) {
         for (const grandChild of Array.from(child.children) as HTMLElement[]) {
           if (isUsable(grandChild)) pushEl(grandChild);
+        }
+      }
+    }
+
+    // Gap centers between adjacent siblings (Figma equidistant distribution center snapping)
+    if (siblingRects.length >= 2) {
+      // Horizontal gaps (e.g. chart bars, navbar items)
+      const sortedByX = [...siblingRects].sort((a, b) => a.left - b.left);
+      for (let sIdx = 0; sIdx < sortedByX.length - 1; sIdx++) {
+        const a = sortedByX[sIdx];
+        const b = sortedByX[sIdx + 1];
+        if (b.left > a.right) {
+          const midX = (a.right + b.left) / 2;
+          const top = Math.min(a.top, b.top);
+          const bottom = Math.max(a.bottom, b.bottom);
+          push({
+            left: midX,
+            right: midX,
+            top,
+            bottom,
+            centerX: midX,
+            centerY: (top + bottom) / 2,
+            strong: true,
+          });
+        }
+      }
+
+      // Vertical gaps (e.g. stacked cards, list items)
+      const sortedByY = [...siblingRects].sort((a, b) => a.top - b.top);
+      for (let sIdx = 0; sIdx < sortedByY.length - 1; sIdx++) {
+        const a = sortedByY[sIdx];
+        const b = sortedByY[sIdx + 1];
+        if (b.top > a.bottom) {
+          const midY = (a.bottom + b.top) / 2;
+          const left = Math.min(a.left, b.left);
+          const right = Math.max(a.right, b.right);
+          push({
+            left,
+            right,
+            top: midY,
+            bottom: midY,
+            centerX: (left + right) / 2,
+            centerY: midY,
+            strong: true,
+          });
         }
       }
     }
@@ -1928,15 +2095,35 @@ export function isDraggableElement(el: HTMLElement, blockRoot: HTMLElement): boo
   if (!editId || editId.endsWith(":root")) return false;
 
   const tag = el.tagName.toUpperCase();
-  if (["SECTION", "HEADER", "NAV", "FOOTER", "MAIN", "BODY"].includes(tag)) return false;
+  if (["SECTION", "HEADER", "FOOTER", "MAIN", "BODY"].includes(tag)) return false;
 
   if (el.parentElement === blockRoot) return false;
   if (el.classList.contains("group/block") || el.hasAttribute("data-block-id")) return false;
 
   const blockRect = blockRoot.getBoundingClientRect();
   const elRect = el.getBoundingClientRect();
+
+  // If this is a navbar block or contains navbar elements:
+  const isNavbar =
+    blockRoot.dataset.blockKind === "navbar" ||
+    Boolean(blockRoot.querySelector("header, nav"));
+
+  if (isNavbar) {
+    // The nav element itself (links group) is draggable so all links can be moved at once
+    if (tag === "NAV") return true;
+
+    // The top-level bar/container of the navbar should not be dragged as a single unit
+    if (el.querySelector("nav") || el.closest("header") === el || el.querySelector("header")) {
+      return false;
+    }
+    // Any container wrapping the entire navbar layout
+    if (elRect.width >= blockRect.width * 0.7 && el.children.length > 1) {
+      return false;
+    }
+  }
+
   if (
-    ["DIV", "ARTICLE"].includes(tag) &&
+    ["DIV", "ARTICLE", "MAIN", "SECTION"].includes(tag) &&
     elRect.width >= blockRect.width * 0.88 &&
     elRect.height >= blockRect.height * 0.75 &&
     el.children.length > 1
@@ -1946,6 +2133,53 @@ export function isDraggableElement(el: HTMLElement, blockRoot: HTMLElement): boo
 
   return true;
 }
+export function findCardOrCompositeElement(
+  target: HTMLElement,
+  blockRoot: HTMLElement,
+): HTMLElement | null {
+  if (!target || target === blockRoot || target === target.ownerDocument?.body) return null;
+
+  let curr: HTMLElement | null = target;
+  let matchedCard: HTMLElement | null = null;
+
+  while (curr && curr !== blockRoot && curr !== curr.ownerDocument?.body) {
+    if (curr.parentElement === blockRoot) {
+      const tag = curr.tagName.toUpperCase();
+      if (["SECTION", "HEADER", "FOOTER", "MAIN"].includes(tag)) break;
+    }
+
+    const tag = curr.tagName.toUpperCase();
+    if (["SECTION", "HEADER", "FOOTER", "MAIN", "BODY"].includes(tag)) break;
+    if (curr.dataset.previewEditId?.endsWith(":root")) break;
+
+    const win = curr.ownerDocument?.defaultView || window;
+    const cs = win.getComputedStyle(curr);
+
+    const isAbs = curr.style.position === "absolute" || cs.position === "absolute";
+    const isFree = curr.hasAttribute("data-free-positioned");
+
+    const cls = typeof curr.className === "string" ? curr.className : "";
+    const hasCardShape =
+      /rounded-(?:[23]?xl|lg|md|\[\d+px\])/.test(cls) &&
+      (cls.includes("shadow-") || cls.includes("border") || cls.includes("backdrop-blur")) &&
+      /(?:^|\s)p[xy]?-/.test(cls);
+
+    if (isAbs && curr.children.length > 0 && isDraggableElement(curr, blockRoot)) {
+      matchedCard = curr;
+    } else if (isFree && isDraggableElement(curr, blockRoot)) {
+      matchedCard = curr;
+    } else if (hasCardShape && curr.children.length > 0 && isDraggableElement(curr, blockRoot)) {
+      if (!matchedCard) {
+        matchedCard = curr;
+      }
+    }
+
+    curr = curr.parentElement;
+  }
+
+  return matchedCard;
+}
+
 // Guides live outside React state so dragging never re-renders the preview tree.
 let currentGuides: GuideLine[] = [];
 const guideListeners = new Set<() => void>();
@@ -2000,9 +2234,6 @@ function buildElementSelection(
 }
 
 // Free-drag an element in move mode. Hold Ctrl/Cmd to disable snapping.
-// The drag target is ALWAYS found geometrically from the cursor position —
-// never from a previously-selected element (that caused big wrapping
-// elements to get dragged when the cursor was actually over a small child).
 export function startElementFreeDrag(
   e: ReactMouseEvent,
   moveMode: boolean,
@@ -2014,6 +2245,7 @@ export function startElementFreeDrag(
   blocks?: Block[],
   site?: PreviewEditableSite,
   onSelectElement?: (edit: PreviewElementEdit | null) => void,
+  selectedElement?: PreviewElementEdit | null,
 ): void {
   if (!moveMode || e.button !== 0) return;
 
@@ -2024,10 +2256,69 @@ export function startElementFreeDrag(
   if (!foundBlockRoot) return;
   const blockRoot: HTMLElement = foundBlockRoot;
 
-  let candidate: HTMLElement | null = target.closest<HTMLElement>("[data-preview-edit-id]");
-  while (candidate && candidate !== blockRoot && !isDraggableElement(candidate, blockRoot)) {
-    candidate = candidate.parentElement?.closest<HTMLElement>("[data-preview-edit-id]") ?? null;
+  // Check currently selected element:
+  let selectedEl: HTMLElement | null = null;
+  const targetId = selectedElement?.id;
+  if (targetId) {
+    const ownerDoc = blockRoot.ownerDocument || document;
+    selectedEl =
+      blockRoot.querySelector<HTMLElement>(`[data-preview-edit-id="${CSS.escape(targetId)}"]`) ||
+      ownerDoc.querySelector<HTMLElement>(`[data-preview-edit-id="${CSS.escape(targetId)}"]`);
   }
+
+  let candidate: HTMLElement | null = null;
+
+  // 1. If user already selected <nav> (the navbar links container) and drags on/within it,
+  // move the whole <nav> so all navbar links move at once!
+  if (
+    selectedEl &&
+    selectedEl.tagName.toUpperCase() === "NAV" &&
+    (selectedEl === target || selectedEl.contains(target) || Boolean(target.closest("nav")))
+  ) {
+    candidate = selectedEl;
+  }
+  // 2. If user already has an element selected (e.g. Card, button, chart bar, etc.)
+  // and drags on/inside that selected element, DRAG THE SELECTED ELEMENT!
+  // Don't rip its inner children out!
+  else if (selectedEl && (selectedEl === target || selectedEl.contains(target))) {
+    candidate = selectedEl;
+  }
+  // 3. If target is inside an enclosing Card or Floating Widget, move the whole Card
+  // so touching a card's text/avatar/elements smoothly moves the entire card!
+  else {
+    const enclosingCard = findCardOrCompositeElement(target, blockRoot);
+    if (enclosingCard && isDraggableElement(enclosingCard, blockRoot)) {
+      candidate = enclosingCard;
+    } else {
+      // Find the most specific draggable element directly under cursor (button, link, chart bar):
+      const clickedEditEl = target.closest<HTMLElement>("[data-preview-edit-id]");
+      const nearestLinkOrBtn = target.closest<HTMLElement>("a, button");
+
+      if (
+        nearestLinkOrBtn &&
+        nearestLinkOrBtn.hasAttribute("data-preview-edit-id") &&
+        isDraggableElement(nearestLinkOrBtn, blockRoot)
+      ) {
+        candidate = nearestLinkOrBtn;
+      } else if (
+        clickedEditEl &&
+        clickedEditEl !== blockRoot &&
+        isDraggableElement(clickedEditEl, blockRoot)
+      ) {
+        candidate = clickedEditEl;
+      } else if (clickedEditEl) {
+        let p: HTMLElement | null = clickedEditEl;
+        while (p && p !== blockRoot && !isDraggableElement(p, blockRoot)) {
+          if (p.tagName.toUpperCase() === "NAV") break;
+          p = p.parentElement?.closest<HTMLElement>("[data-preview-edit-id]") ?? null;
+        }
+        if (p && isDraggableElement(p, blockRoot)) {
+          candidate = p;
+        }
+      }
+    }
+  }
+
   if (!candidate || !isDraggableElement(candidate, blockRoot)) return;
 
   const draggedElement: HTMLElement = candidate;
@@ -2080,10 +2371,17 @@ export function startElementFreeDrag(
 
   let startOffsetX = pxOf(draggedElement.style.left);
   let startOffsetY = pxOf(draggedElement.style.top);
-  if (Number.isNaN(startOffsetX)) startOffsetX = cs.position !== "static" ? pxOf(cs.left) : NaN;
-  if (Number.isNaN(startOffsetY)) startOffsetY = cs.position !== "static" ? pxOf(cs.top) : NaN;
-  if (Number.isNaN(startOffsetX)) startOffsetX = 0;
-  if (Number.isNaN(startOffsetY)) startOffsetY = 0;
+  if (Number.isNaN(startOffsetX) || Number.isNaN(startOffsetY)) {
+    if (isAlreadyAbsolute) {
+      startOffsetX = draggedElement.offsetLeft;
+      startOffsetY = draggedElement.offsetTop;
+    } else {
+      if (Number.isNaN(startOffsetX)) startOffsetX = cs.position !== "static" ? pxOf(cs.left) : NaN;
+      if (Number.isNaN(startOffsetY)) startOffsetY = cs.position !== "static" ? pxOf(cs.top) : NaN;
+      if (Number.isNaN(startOffsetX)) startOffsetX = 0;
+      if (Number.isNaN(startOffsetY)) startOffsetY = 0;
+    }
+  }
 
   let hasMoved = false;
   let currentX = startOffsetX;
@@ -2116,20 +2414,20 @@ export function startElementFreeDrag(
     draggedElement.style.setProperty("will-change", "left, top");
     draggedElement.style.setProperty("cursor", "grabbing", "important");
     draggedElement.style.setProperty("position", isAlreadyAbsolute ? "absolute" : "relative", "important");
-    draggedElement.style.setProperty("z-index", "1000", "important");
+    draggedElement.style.setProperty("z-index", "10000", "important");
     draggedElement.style.setProperty("right", "auto", "important");
     draggedElement.style.setProperty("bottom", "auto", "important");
 
-    let p = draggedElement.parentElement;
-    while (p && p !== canvasRoot && p.tagName !== "BODY") {
-      p.style.setProperty("overflow", "visible", "important");
-      p = p.parentElement;
-    }
+    // Unclip block root and canvas wrapper so cross-block dragging is never clipped:
+    blockRoot.setAttribute("data-has-free-positioned", "true");
     blockRoot.style.setProperty("overflow", "visible", "important");
-    blockRoot.style.setProperty("z-index", "100", "important");
+    blockRoot.style.setProperty("position", "relative", "important");
+    blockRoot.style.setProperty("z-index", "9999", "important");
     if (blockRoot.parentElement && blockRoot.parentElement !== canvasRoot) {
+      blockRoot.parentElement.setAttribute("data-has-free-positioned", "true");
       blockRoot.parentElement.style.setProperty("overflow", "visible", "important");
-      blockRoot.parentElement.style.setProperty("z-index", "100", "important");
+      blockRoot.parentElement.style.setProperty("position", "relative", "important");
+      blockRoot.parentElement.style.setProperty("z-index", "9999", "important");
     }
 
     // Calibrate against the real rect so transformed / centered elements don't jump.
@@ -2141,7 +2439,7 @@ export function startElementFreeDrag(
     currentX = startOffsetX;
     currentY = startOffsetY;
 
-    targets = collectSnapTargets(canvasRoot, draggedElement, canvasRectAtStart, measurementScale, blockRoot);
+    targets = collectSnapTargets(canvasRoot, draggedElement, canvasRectAtStart, measurementScale, blockRoot, elRectAtStart);
   }
 
   function applyMove(moveEvent: MouseEvent) {

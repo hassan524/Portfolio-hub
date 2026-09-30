@@ -113,13 +113,27 @@ export function buildResponsiveEditorStyles(accent: string) {
       transform: scale(1.01);
       transition: outline 0.12s ease, transform 0.12s ease;
     }
+    [data-free-positioned="true"] {
+      z-index: 250 !important;
+    }
+    [data-has-free-positioned="true"],
+    [data-has-free-positioned="true"] [data-block-id],
+    [data-has-free-positioned="true"] > [data-block-id] > section,
+    [data-has-free-positioned="true"] > [data-block-id] > header,
+    [data-has-free-positioned="true"] > [data-block-id] > nav,
+    [data-has-free-positioned="true"] > [data-block-id] > footer,
+    [data-has-free-positioned="true"] section,
+    [data-has-free-positioned="true"] .group\/block,
+    [data-has-free-positioned="true"] .group\/dragblock {
+      overflow: visible !important;
+    }
     .preview-edit-canvas.edit-active .preview-edit-selected,
     .preview-edit-selected {
       outline: 2px solid ${accent} !important;
       outline-offset: 3px !important;
       box-shadow: 0 0 0 4px ${accent}33, 0 8px 24px rgba(0,0,0,0.18) !important;
       transform: scale(1.02) !important;
-      z-index: 35 !important;
+      z-index: 200 !important;
       transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), outline 0.15s ease, box-shadow 0.18s ease !important;
     }
     .preview-hover-lift:hover {

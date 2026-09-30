@@ -531,21 +531,25 @@ export function applyPreviewStyle(
         element.style.setProperty("top", \`\${coords.y}px\`, "important");
         element.style.setProperty("right", "auto", "important");
         element.style.setProperty("bottom", "auto", "important");
-        element.style.setProperty("z-index", "40", "important");
+        element.style.setProperty("z-index", "250", "important");
+        element.setAttribute("data-free-positioned", "true");
 
-        // Unclip parent containers up to canvas root and elevate z-index so cross-block drops are never hidden
+        // Elevate blockRoot and canvas wrapper so cross-block drops are never hidden
         let p = element.parentElement;
         while (p && !p.hasAttribute("data-block-id") && p.tagName !== "BODY") {
-          p.style.setProperty("overflow", "visible", "important");
           p = p.parentElement;
         }
         if (p && p.hasAttribute("data-block-id")) {
+          p.setAttribute("data-has-free-positioned", "true");
           p.style.setProperty("overflow", "visible", "important");
-          p.style.setProperty("z-index", "35", "important");
+          p.style.setProperty("position", "relative", "important");
+          p.style.setProperty("z-index", "200", "important");
           let wrapper = p.parentElement;
           while (wrapper && wrapper.tagName !== "BODY" && !wrapper.classList.contains("preview-edit-canvas")) {
+            wrapper.setAttribute("data-has-free-positioned", "true");
             wrapper.style.setProperty("overflow", "visible", "important");
-            wrapper.style.setProperty("z-index", "35", "important");
+            wrapper.style.setProperty("position", "relative", "important");
+            wrapper.style.setProperty("z-index", "200", "important");
             wrapper = wrapper.parentElement;
           }
         }
@@ -554,12 +558,14 @@ export function applyPreviewStyle(
         element.style.removeProperty("left");
         element.style.removeProperty("top");
         element.style.removeProperty("z-index");
+        element.removeAttribute("data-free-positioned");
       }
     } else {
       element.style.removeProperty("position");
       element.style.removeProperty("left");
       element.style.removeProperty("top");
       element.style.removeProperty("z-index");
+      element.removeAttribute("data-free-positioned");
     }
   }
 
@@ -671,6 +677,96 @@ function findMatchingEdit(
   return null;
 }
 
+const PREVIEW_EFFECTS_STYLE_ID = "preview-effects-styles";
+
+function ensurePreviewEffectsStylesheet(doc: Document | null | undefined): void {
+  if (!doc) return;
+  if (doc.getElementById(PREVIEW_EFFECTS_STYLE_ID)) return;
+
+  const styleEl = doc.createElement("style");
+  styleEl.id = PREVIEW_EFFECTS_STYLE_ID;
+  styleEl.textContent = \`
+    [data-hover-fx="grow"] { transition: transform 0.2s ease; }
+    [data-hover-fx="grow"]:hover { transform: scale(1.04); }
+
+    [data-hover-fx="lift"] { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    [data-hover-fx="lift"]:hover { transform: translateY(-6px); box-shadow: 0 14px 28px -8px rgba(0,0,0,0.28); }
+
+    [data-hover-fx="glow"] { transition: box-shadow 0.2s ease; }
+    [data-hover-fx="glow"]:hover { box-shadow: 0 0 26px rgba(99,102,241,0.55); }
+
+    [data-hover-fx="darken"] { transition: filter 0.2s ease; }
+    [data-hover-fx="darken"]:hover { filter: brightness(0.85); }
+
+    @keyframes pe-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pe-slide-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pe-zoom-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+    [data-entrance-fx="fade"] { animation: pe-fade-in 0.5s ease both; }
+    [data-entrance-fx="slideUp"] { animation: pe-slide-up 0.5s ease both; }
+    [data-entrance-fx="zoom"] { animation: pe-zoom-in 0.4s ease both; }
+
+    [data-block-kind="navbar"] header,
+    [data-block-kind="navbar"] nav {
+      position: relative !important;
+      top: auto !important;
+    }
+
+    [data-free-positioned="true"] {
+      z-index: 250 !important;
+    }
+
+    [data-has-free-positioned="true"],
+    [data-has-free-positioned="true"] [data-block-id],
+    [data-has-free-positioned="true"] > [data-block-id] > section,
+    [data-has-free-positioned="true"] > [data-block-id] > header,
+    [data-has-free-positioned="true"] > [data-block-id] > nav,
+    [data-has-free-positioned="true"] > [data-block-id] > footer,
+    [data-has-free-positioned="true"] section,
+    [data-has-free-positioned="true"] .group\\\\/block,
+    [data-has-free-positioned="true"] .group\\\\/dragblock {
+      overflow: visible !important;
+    }
+  \`;
+  doc.head.appendChild(styleEl);
+}
+
+function applyBlockSurfaceStyles(blockRoot, block, backgroundColor) {
+  const surfaceSelectors = "section, nav, header, footer";
+  const bg = backgroundColor || block?.bgColor;
+  if (bg) {
+    blockRoot.style.setProperty("--block-bg", bg);
+    blockRoot.style.setProperty("background-color", bg, "important");
+    blockRoot.querySelectorAll(surfaceSelectors).forEach((node) => {
+      if (isChromeElement(node)) return;
+      node.style.setProperty("background-color", bg, "important");
+      const kind = block?.props?.kind || block?.kind;
+      if (kind === "spacer") {
+        node.style.setProperty("background-image", "none", "important");
+      }
+    });
+  }
+  if (block?.height) {
+    blockRoot.style.setProperty("height", block.height + "px", "important");
+    blockRoot.style.setProperty("min-height", block.height + "px", "important");
+    blockRoot.querySelectorAll(surfaceSelectors).forEach((node) => {
+      if (isChromeElement(node)) return;
+      node.style.setProperty("height", "100%", "important");
+      node.style.setProperty("min-height", "0", "important");
+      node.style.setProperty("max-height", "100%", "important");
+    });
+  } else {
+    blockRoot.style.removeProperty("height");
+    blockRoot.style.removeProperty("min-height");
+    blockRoot.querySelectorAll(surfaceSelectors).forEach((node) => {
+      if (isChromeElement(node)) return;
+      node.style.removeProperty("height");
+      node.style.removeProperty("min-height");
+      node.style.removeProperty("max-height");
+    });
+  }
+}
+
 export function applyAllPreviewEdits(
   root: HTMLElement | null,
   previewEdits: any,
@@ -683,6 +779,16 @@ export function applyAllPreviewEdits(
   const breakpoint = typeof window !== "undefined" ? breakpointFromWidth(window.innerWidth) : "desktop";
   const elements = previewEdits.elements;
 
+  const blocksWithFreePos = new Set<string>();
+  if (elements) {
+    for (const [editKey, editData] of Object.entries(elements)) {
+      if ((editData as any)?.style?.freePositioned) {
+        const bId = (editData as any).blockId || editKey.split(":")[0];
+        if (bId) blocksWithFreePos.add(bId);
+      }
+    }
+  }
+
   root.querySelectorAll<HTMLElement>("[data-block-id]").forEach((blockRoot) => {
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
@@ -692,60 +798,41 @@ export function applyAllPreviewEdits(
       blockRoot.id = sectionId;
     }
 
+    const hasFree = blocksWithFreePos.has(blockId);
+    const wrapper = blockRoot.parentElement;
+
+    if (hasFree) {
+      blockRoot.setAttribute("data-has-free-positioned", "true");
+      blockRoot.style.setProperty("overflow", "visible", "important");
+      blockRoot.style.setProperty("position", "relative", "important");
+      blockRoot.style.setProperty("z-index", "200", "important");
+      if (wrapper && !wrapper.classList.contains("preview-edit-canvas")) {
+        wrapper.setAttribute("data-has-free-positioned", "true");
+        wrapper.style.setProperty("overflow", "visible", "important");
+        wrapper.style.setProperty("position", "relative", "important");
+        wrapper.style.setProperty("z-index", "200", "important");
+      }
+    } else {
+      blockRoot.removeAttribute("data-has-free-positioned");
+      blockRoot.style.setProperty("position", "relative", "important");
+      blockRoot.style.setProperty("z-index", "1", "important");
+      if (wrapper && !wrapper.classList.contains("preview-edit-canvas")) {
+        wrapper.removeAttribute("data-has-free-positioned");
+        wrapper.style.setProperty("position", "relative", "important");
+        wrapper.style.setProperty("z-index", "1", "important");
+      }
+    }
+
+    if (block) {
+      applyBlockSurfaceStyles(blockRoot, block);
+    }
+
     if (!blockRoot.dataset.previewEditId) {
       blockRoot.dataset.previewEditId = \`\${blockId}:root\`;
     }
 
-    const isNavbar = block?.props?.kind === "navbar" || block?.kind === "navbar";
-    if (elements[\`\${blockId}:root\`]?.style || block?.bgColor) {
-      if (elements[\`\${blockId}:root\`]?.style) {
-        var rootStyle = elements[\`\${blockId}:root\`].style;
-        // For navbars, strip backgroundColor so applyPreviewStyle doesn't
-        // set it on the full-width wrapper — the navbar handler below
-        // applies it only on the inner pill element.
-        if (isNavbar) {
-          rootStyle = Object.assign({}, rootStyle);
-          delete rootStyle.backgroundColor;
-          if (rootStyle.responsive) {
-            rootStyle.responsive = Object.assign({}, rootStyle.responsive);
-            ["desktop", "tablet", "mobile"].forEach(function(bp) {
-              if (rootStyle.responsive[bp] && rootStyle.responsive[bp].backgroundColor !== undefined) {
-                rootStyle.responsive[bp] = Object.assign({}, rootStyle.responsive[bp]);
-                delete rootStyle.responsive[bp].backgroundColor;
-              }
-            });
-          }
-        }
-        applyPreviewStyle(blockRoot, rootStyle, breakpoint, elements);
-      }
-      const rootBg = resolveResponsiveValue(elements[\`\${blockId}:root\`]?.style, "backgroundColor", breakpoint) || block?.bgColor;
-      if (rootBg) {
-        if (isNavbar) {
-          blockRoot.style.setProperty("background-color", "transparent", "important");
-          // Make header/nav itself transparent too
-          var navHeaderEl = blockRoot.querySelector<HTMLElement>("header, nav");
-          if (navHeaderEl && !isChromeElement(navHeaderEl)) {
-            navHeaderEl.style.setProperty("background-color", "transparent", "important");
-          }
-          // Only the inner pill (header > div / nav > div) gets the bg color
-          var innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
-          if (innerNav && !isChromeElement(innerNav)) {
-            innerNav.style.setProperty("background-color", rootBg, "important");
-          }
-        } else {
-          blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer, header > div, nav > div").forEach((el) => {
-            if (!isChromeElement(el)) {
-              el.style.setProperty("background-color", rootBg, "important");
-            }
-          });
-        }
-      } else {
-        blockRoot.querySelectorAll<HTMLElement>("section, nav, header, footer, header > div, nav > div").forEach((el) => {
-          if (!isChromeElement(el)) {
-            el.style.removeProperty("background-color");
-          }
-        });
-      }
+    if (elements[\`\${blockId}:root\`]?.style) {
+      applyPreviewStyle(blockRoot, elements[\`\${blockId}:root\`].style, breakpoint, elements);
     }
 
     blockRoot.querySelectorAll<HTMLElement>("*").forEach((element) => {
@@ -772,21 +859,11 @@ export function applyAllPreviewEdits(
       }
     });
 
-    if (isNavbar) {
-      blockRoot.style.setProperty("background-color", "transparent", "important");
-      const navHeaderEl = blockRoot.querySelector<HTMLElement>("header, nav");
-      const innerNav = blockRoot.querySelector<HTMLElement>("header > div, nav > div");
-      if (innerNav && navHeaderEl && !isChromeElement(navHeaderEl)) {
-        const headerBg = navHeaderEl.style.backgroundColor;
-        if (headerBg && headerBg !== "transparent") {
-          innerNav.style.setProperty("background-color", headerBg, "important");
-        }
-        navHeaderEl.style.setProperty("background-color", "transparent", "important");
-      }
-      const rootBg = resolveResponsiveValue(elements[\`\${blockId}:root\`]?.style, "backgroundColor", breakpoint) || block?.bgColor;
-      if (rootBg && innerNav && !isChromeElement(innerNav)) {
-        innerNav.style.setProperty("background-color", rootBg, "important");
-      }
+    const rootBg =
+      resolveResponsiveValue(elements[\`\${blockId}:root\`]?.style, "backgroundColor", breakpoint) ||
+      block?.bgColor;
+    if (block) {
+      applyBlockSurfaceStyles(blockRoot, block, rootBg);
     }
   });
 }

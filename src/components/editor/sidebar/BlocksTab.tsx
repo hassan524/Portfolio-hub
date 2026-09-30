@@ -8,9 +8,9 @@ import {
   moveSidebarBlockToTarget,
   normalizeSectionHref,
   updateSidebarBlockHeight,
-  useLiveBlockBg,
   useLiveBlockHeight,
 } from "@/lib/functions/sidebar";
+import { getBlockDefaultBackground } from "@/lib/functions/livePreview/blockWrapper";
 import { ThemeCircle } from "@/components/editor/ui/ThemeColorPicker";
 import type { BlocksTabProps } from "./types";
 
@@ -89,11 +89,10 @@ function BlockRow({
 }: BlockRowProps) {
   const storedHeight = block.height;
   const liveHeight = useLiveBlockHeight(block.id, isExpanded);
-  const storedBgColor =
-    (block as { bgColor?: string }).bgColor ||
-    (block.props as { backgroundColor?: string })?.backgroundColor;
-  const liveBg = useLiveBlockBg(block.id, isExpanded && !storedBgColor, theme.bg);
-  const bgColor = storedBgColor ?? liveBg;
+  const storedBgColor = (block as { bgColor?: string }).bgColor;
+  const defaultBg = getBlockDefaultBackground(block, theme);
+  // Use theme / block defaults — DOM sampling picked accent buttons inside navbars (#292929).
+  const bgColor = storedBgColor ?? defaultBg;
 
   const [heightInput, setHeightInput] = useState<string>(
     typeof storedHeight === "number" ? String(storedHeight) : liveHeight ? String(liveHeight) : "",
@@ -243,7 +242,7 @@ function BlockRow({
               <ThemeCircle
                 label={`${displayName} Background`}
                 shortLabel="BG"
-                value={bgColor || theme.bg || "#000000"}
+                value={bgColor || defaultBg || "#000000"}
                 isOpen={isColorPickerOpen}
                 onOpenChange={setIsColorPickerOpen}
                 onChange={(color) => {

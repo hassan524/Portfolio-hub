@@ -88,6 +88,7 @@ export function TemplateLivePreview({
   device,
   activeSection,
   selectedElementId,
+  selectedElement,
   onSelectElement,
   onChangeElementStyle,
   onDeviceChange,
@@ -114,6 +115,7 @@ export function TemplateLivePreview({
   activeSection: string;
 
   selectedElementId?: string | null;
+  selectedElement?: PreviewElementEdit | null;
   onSelectElement?: (edit: PreviewElementEdit | null) => void;
   onChangeElementStyle?: (elementId: string, patch: Partial<PreviewElementStyle>) => void;
 
@@ -368,6 +370,7 @@ export function TemplateLivePreview({
       blocks,
       site,
       onSelectElement,
+      selectedElement || (selectedElementId ? ({ id: selectedElementId } as PreviewElementEdit) : null),
     );
   }
 
@@ -498,13 +501,16 @@ export function TemplateLivePreview({
   }, [isDesktop]);
 
   function handlePreviewClick(e: React.MouseEvent) {
-    handlePreviewNavigationClick({
-      event: e,
-      isDesktop,
-      contentRef,
-      desktopScrollRef,
-      responsiveFrameRef,
-    });
+    if (!editMode && !moveMode) {
+      handlePreviewNavigationClick({
+        event: e,
+        isDesktop,
+        contentRef,
+        desktopScrollRef,
+        responsiveFrameRef,
+      });
+      return;
+    }
 
     if (!editMode) return;
     handleInteractivePreviewClick(e, editMode, blocks, site, onSelectElement);
@@ -574,6 +580,7 @@ export function TemplateLivePreview({
             blocks,
             site,
             onSelectElement,
+            selectedElement || (selectedElementId ? ({ id: selectedElementId } as PreviewElementEdit) : null),
           );
         },
       });
@@ -1192,12 +1199,32 @@ export function TemplateLivePreview({
           outline-offset: 4px !important;
           cursor: move !important;
         }
+        [data-free-positioned="true"] {
+          z-index: 250 !important;
+        }
+        [data-has-free-positioned="true"],
+        [data-has-free-positioned="true"] [data-block-id],
+        [data-has-free-positioned="true"] > [data-block-id] > section,
+        [data-has-free-positioned="true"] > [data-block-id] > header,
+        [data-has-free-positioned="true"] > [data-block-id] > nav,
+        [data-has-free-positioned="true"] > [data-block-id] > footer,
+        [data-has-free-positioned="true"] section,
+        [data-has-free-positioned="true"] .group\/block,
+        [data-has-free-positioned="true"] .group\/dragblock {
+          overflow: visible !important;
+        }
+        .preview-edit-canvas.move-active section,
+        .preview-edit-canvas.move-active [data-block-id],
+        .preview-edit-canvas.move-active .group\/block,
+        .preview-edit-canvas.move-active .group\/dragblock {
+          overflow: visible !important;
+        }
         .preview-edit-canvas.edit-active .preview-edit-selected,
         .preview-edit-selected {
           outline: 2px solid ${theme.accent} !important;
           outline-offset: 3px !important;
           box-shadow: 0 0 0 4px ${theme.accent}33 !important;
-          z-index: 35 !important;
+          z-index: 200 !important;
         }
         .preview-hover-lift:hover {
           transform: translateY(-4px) !important;

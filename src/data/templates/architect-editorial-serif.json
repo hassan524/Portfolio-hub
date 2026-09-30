@@ -1,89 +1,100 @@
 {
   "id": "architect-editorial-serif",
+  "name": "Sagent Architecture",
   "category": "Architecture Studio",
   "theme": {
-    "bg": "#fdfcf9",
-    "bg-second": "#ffffff",
-    "ink": "#111111",
-    "ink-second": "#000000",
-    "accent": "#8a1f11",
-    "surface": "#dfdedb",
-    "fontHeading": "Fraunces",
-    "fontBody": "Inter",
+    "bg": "#E8EEEB",
+    "bg-second": "#DFE6E2",
+    "surface": "#CEDAD4",
+    "ink": "#111417",
+    "ink-second": "#566166",
+    "accent": "#D92335",
+    "fontHeading": "Cormorant Garamond",
+    "fontBody": "DM Sans",
     "corners": "sharp",
     "spacing": "airy"
   },
   "blocks": [
     {
-      "id": "nav-fzhlx",
+      "id": "nav-1",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "ArchitectureStudio1Navbar",
         "links": [],
         "sticky": true
       }
     },
     {
-      "id": "block-hero-1",
-      "type": "HeroCentered",
+      "id": "hero-1",
+      "type": "hero",
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-20"
+        "variant": "ArchitectureStudio1Hero"
       }
     },
     {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
+      "id": "projects-1",
+      "type": "projects",
       "order": 2,
       "props": {
         "kind": "projects",
-        "items": [],
-        "variant": "projects-14"
+        "variant": "ArchitectureStudio1Projects",
+        "items": []
       }
     },
     {
-      "id": "block-about-1",
-      "type": "AboutSimple",
+      "id": "about-1",
+      "type": "about",
       "order": 3,
       "props": {
         "kind": "about",
+        "variant": "ArchitectureStudio1About",
         "paragraphs": [],
         "skills": [],
-        "experience": [],
-        "variant": "about-20"
+        "experience": []
       }
     },
     {
-      "id": "block-testimonials-1",
-      "type": "TestimonialsDefault",
+      "id": "services-1",
+      "type": "services",
       "order": 4,
       "props": {
-        "kind": "testimonials",
-        "items": [],
-        "variant": "testimonials-20"
+        "kind": "services",
+        "variant": "ArchitectureStudio1Services",
+        "items": []
       }
     },
     {
-      "id": "block-contact-1",
-      "type": "ContactForm",
+      "id": "testimonials-1",
+      "type": "testimonials",
       "order": 5,
       "props": {
-        "kind": "contact",
-        "socials": [],
-        "variant": "contact-20"
+        "kind": "testimonials",
+        "variant": "ArchitectureStudio1Testimonials",
+        "items": []
       }
     },
     {
-      "id": "block-footer-1",
-      "type": "FooterDefault",
+      "id": "contact-1",
+      "type": "contact",
       "order": 6,
       "props": {
+        "kind": "contact",
+        "variant": "ArchitectureStudio1Contact",
+        "socials": []
+      }
+    },
+    {
+      "id": "footer-1",
+      "type": "footer",
+      "order": 7,
+      "props": {
         "kind": "footer",
-        "socials": [],
-        "variant": "footer-20"
+        "variant": "ArchitectureStudio1Footer",
+        "socials": []
       }
     }
   ],

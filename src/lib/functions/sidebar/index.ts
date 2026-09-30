@@ -8,6 +8,11 @@ import {
   handleBlockHeightChange,
   moveSidebarBlock,
 } from "@/lib/functions/template";
+import {
+  getBlockDefaultBackground,
+  measurePreviewBlockBackground,
+  measurePreviewBlockHeight,
+} from "@/lib/functions/livePreview/blockWrapper";
 
 export type ImagePath = (string | number)[];
 
@@ -122,9 +127,15 @@ export function useLiveBlockBg(blockId: string, active: boolean, fallback: strin
       return;
     }
 
-    const el = findBlockElement(blockId);
-    const hex = findVisibleBackgroundColor(el);
-    setColor(hex ?? fallback);
+    const measure = () => {
+      const el = findBlockElement(blockId);
+      const hex = measurePreviewBlockBackground(el, rgbStringToHex, fallback);
+      setColor(hex ?? fallback);
+    };
+
+    measure();
+    const timer = setTimeout(measure, 100);
+    return () => clearTimeout(timer);
   }, [active, blockId, fallback]);
 
   return color;
@@ -138,11 +149,8 @@ export function useLiveBlockHeight(blockId: string, active: boolean): number | n
 
     const measure = () => {
       const el = findBlockElement(blockId);
-      if (!el) return;
-
-      const rect = el.getBoundingClientRect();
-      const height = Math.round(rect.height || el.offsetHeight);
-      if (height > 0) setLiveHeight(height);
+      const height = measurePreviewBlockHeight(el);
+      if (height) setLiveHeight(height);
     };
 
     measure();
@@ -297,6 +305,9 @@ export function createEditableArrayItem(key: string, blockKind?: Block["props"][
   }
   if (key === "items" && blockKind === "testimonials") {
     return { quote: "", name: "", role: "" };
+  }
+  if (key === "items" && blockKind === "services") {
+    return { title: "", desc: "", icon: "", tags: [] };
   }
   if (key === "items" && blockKind === "stats") return { value: "", label: "", suffix: "" };
   return "";
