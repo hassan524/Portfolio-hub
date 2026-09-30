@@ -79,8 +79,8 @@ export function ArchitectureStudio1Navbar({ props = {}, theme, onChange }: Block
         </span>
         <a
           href="#contact"
-          className="inline-flex items-center gap-1.5 rounded-none h-10 px-[18px] text-[10px] font-bold tracking-wider uppercase shadow-none cursor-pointer transition-transform hover:-translate-y-0.5"
-          style={{ backgroundColor: accent, color: "#ffffff" }}
+          className="inline-flex items-center gap-1.5 rounded-none h-10 px-[18px] text-[10px] font-bold tracking-wider uppercase shadow-none cursor-pointer transition-transform hover:-translate-y-0.5 bg-[var(--accent)] text-white"
+          style={{ backgroundColor: accent, color: "#ffffff", "--accent": accent }}
         >
           <Editable value="LET'S TALK" />
           <ArrowUpRight size={14} />

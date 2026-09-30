@@ -119,11 +119,53 @@ export function findPreviewBlockSurface(root: HTMLElement | null): HTMLElement |
   return surface ?? root;
 }
 
+export function getElementZoomScale(el: HTMLElement | null): number {
+  if (!el) return 1;
+
+  // 1. Check currentCSSZoom (Chrome standard for effective inherited zoom)
+  if (typeof (el as any).currentCSSZoom === "number") {
+    const cz = (el as any).currentCSSZoom;
+    if (cz > 0) return cz;
+  }
+
+  // 2. Walk up ancestors to find the element that has CSS zoom applied (e.g. frameRef style.zoom)
+  let curr: HTMLElement | null = el;
+  while (curr && curr !== curr.ownerDocument?.documentElement) {
+    const rawZoom = (curr.style as any)?.zoom;
+    if (rawZoom) {
+      const z = parseFloat(rawZoom);
+      if (!isNaN(z) && z > 0 && Math.abs(z - 1) > 0.001) return z;
+    }
+    curr = curr.parentElement;
+  }
+
+  return 1;
+}
+
 export function measurePreviewBlockHeight(root: HTMLElement | null): number | null {
   const surface = findPreviewBlockSurface(root);
   if (!surface) return null;
-  const height = Math.round(surface.getBoundingClientRect().height || surface.offsetHeight);
-  return height > 0 ? height : null;
+
+  // 1. offsetHeight is the native unzoomed layout height in CSS pixels across all browsers
+  if (surface.offsetHeight > 0) {
+    return surface.offsetHeight;
+  }
+
+  if (root && root.offsetHeight > 0) {
+    return root.offsetHeight;
+  }
+
+  // 2. Fallback to getBoundingClientRect() divided by zoom scale if offsetHeight is 0
+  const scale = getElementZoomScale(surface);
+  const safeScale = scale > 0 ? scale : 1;
+
+  const rect = surface.getBoundingClientRect();
+  if (rect.height > 0) {
+    const unscaled = Math.round(rect.height / safeScale);
+    if (unscaled > 0) return unscaled;
+  }
+
+  return null;
 }
 
 /** Hex background for sidebar display — reads the block surface, not random child chips/buttons. */

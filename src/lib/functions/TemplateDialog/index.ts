@@ -647,7 +647,7 @@ export function handleContentFreeDragStart(
 ): void {
   startElementFreeDrag(
     e,
-    editMode && moveMode,
+    moveMode,
     device,
     scale,
     (elementId, patch) => onChangeElementStyle?.(elementId, patch),
@@ -771,6 +771,37 @@ export function getElementLabel(element: HTMLElement): string {
   return element.tagName.toLowerCase();
 }
 
+// Tracks which CSS properties and attributes the editor applied to each element.
+// Unedited elements are NEVER touched, preserving template inline styles (theme.surface, theme.accent, theme.bgSecond, etc.).
+const appliedStylesByElement = new WeakMap<HTMLElement, Set<string>>();
+const originalStylesBeforeEdit = new WeakMap<HTMLElement, Map<string, string>>();
+
+function rememberOriginalStyle(element: HTMLElement, prop: string): void {
+  let map = originalStylesBeforeEdit.get(element);
+  if (!map) {
+    map = new Map();
+    originalStylesBeforeEdit.set(element, map);
+  }
+  if (!map.has(prop)) {
+    map.set(prop, element.style.getPropertyValue(prop));
+  }
+}
+
+function restoreOriginalStyle(element: HTMLElement, prop: string): void {
+  const map = originalStylesBeforeEdit.get(element);
+  if (map && map.has(prop)) {
+    const orig = map.get(prop);
+    if (orig && orig !== "") {
+      element.style.setProperty(prop, orig);
+    } else {
+      element.style.removeProperty(prop);
+    }
+    map.delete(prop);
+  } else {
+    element.style.removeProperty(prop);
+  }
+}
+
 // Applies one element's saved style (bold, color, size, position, etc.)
 // directly onto its real DOM node. This is what makes saved edits actually
 // show up visually in the preview.
@@ -783,6 +814,8 @@ export function applyPreviewStyle(
 ): void {
   if (!element || !style || Object.keys(style).length === 0) return;
 
+  const appliedProps = new Set<string>();
+
   const resolve = <K extends keyof PreviewElementStyle>(key: K): PreviewElementStyle[K] =>
     resolveResponsiveValue(style, key, breakpoint);
 
@@ -790,11 +823,14 @@ export function applyPreviewStyle(
 
   const isImportant = resolve("isImportant");
   const imp = isImportant ? "important" : "";
-  const setProp = (prop: string, val: string | undefined | null) => {
+  const setProp = (prop: string, val: string | undefined | null, priority = imp) => {
     if (val !== undefined && val !== null && val !== "") {
-      element.style.setProperty(prop, val, imp);
+      rememberOriginalStyle(element, prop);
+      element.style.setProperty(prop, val, priority);
+      appliedProps.add(prop);
     } else {
-      element.style.removeProperty(prop);
+      restoreOriginalStyle(element, prop);
+      appliedProps.delete(prop);
     }
   };
 
@@ -890,15 +926,15 @@ export function applyPreviewStyle(
   if (controlled("color")) {
     const color = resolve("color");
     if (color) {
-      element.style.setProperty("color", color, "important");
-      element.style.setProperty("--ai-theme-ink", color);
-      element.style.setProperty("--theme-ink", color);
-      element.style.setProperty("--ink", color);
+      setProp("color", color, "important");
+      setProp("--ai-theme-ink", color);
+      setProp("--theme-ink", color);
+      setProp("--ink", color);
     } else {
-      element.style.removeProperty("color");
-      element.style.removeProperty("--ai-theme-ink");
-      element.style.removeProperty("--theme-ink");
-      element.style.removeProperty("--ink");
+      setProp("color", null);
+      setProp("--ai-theme-ink", null);
+      setProp("--theme-ink", null);
+      setProp("--ink", null);
     }
 
     const textDescendants = element.querySelectorAll<HTMLElement>("*");
@@ -913,15 +949,22 @@ export function applyPreviewStyle(
       );
       if (!childHasOwnColor) {
         if (color) {
+          rememberOriginalStyle(child, "color");
+          rememberOriginalStyle(child, "--ai-theme-ink");
+          rememberOriginalStyle(child, "--theme-ink");
+          rememberOriginalStyle(child, "--ink");
           child.style.setProperty("color", color, "important");
           child.style.setProperty("--ai-theme-ink", color);
           child.style.setProperty("--theme-ink", color);
           child.style.setProperty("--ink", color);
+          child.setAttribute("data-preview-cascaded-color", "true");
+          appliedProps.add("cascaded-color");
         } else {
-          child.style.removeProperty("color");
-          child.style.removeProperty("--ai-theme-ink");
-          child.style.removeProperty("--theme-ink");
-          child.style.removeProperty("--ink");
+          restoreOriginalStyle(child, "color");
+          restoreOriginalStyle(child, "--ai-theme-ink");
+          restoreOriginalStyle(child, "--theme-ink");
+          restoreOriginalStyle(child, "--ink");
+          child.removeAttribute("data-preview-cascaded-color");
         }
       }
     });
@@ -1072,12 +1115,12 @@ export function applyPreviewStyle(
     if (width) {
       const formattedWidth = /^\d+(\.\d+)?$/.test(String(width).trim()) ? `${String(width).trim()}px` : String(width).trim();
       setProp("width", formattedWidth);
-      element.style.setProperty("max-width", "none", "important");
-      element.style.setProperty("min-width", "0", "important");
+      setProp("max-width", "none", "important");
+      setProp("min-width", "0", "important");
     } else {
-      element.style.removeProperty("width");
-      element.style.removeProperty("max-width");
-      element.style.removeProperty("min-width");
+      setProp("width", null);
+      setProp("max-width", null);
+      setProp("min-width", null);
     }
   }
 
@@ -1086,12 +1129,12 @@ export function applyPreviewStyle(
     if (height) {
       const formattedHeight = /^\d+(\.\d+)?$/.test(String(height).trim()) ? `${String(height).trim()}px` : String(height).trim();
       setProp("height", formattedHeight);
-      element.style.setProperty("max-height", "none", "important");
-      element.style.setProperty("min-height", "0", "important");
+      setProp("max-height", "none", "important");
+      setProp("min-height", "0", "important");
     } else {
-      element.style.removeProperty("height");
-      element.style.removeProperty("max-height");
-      element.style.removeProperty("min-height");
+      setProp("height", null);
+      setProp("max-height", null);
+      setProp("min-height", null);
     }
   }
 
@@ -1182,13 +1225,14 @@ export function applyPreviewStyle(
           element.style.position === "absolute" ||
           ((element.getAttribute("class") || "").includes("absolute")) ||
           (typeof window !== "undefined" && window.getComputedStyle(element).position === "absolute");
-        element.style.setProperty("position", isAbs ? "absolute" : "relative", "important");
-        element.style.setProperty("left", `${coords.x}px`, "important");
-        element.style.setProperty("top", `${coords.y}px`, "important");
-        element.style.setProperty("right", "auto", "important");
-        element.style.setProperty("bottom", "auto", "important");
-        element.style.setProperty("z-index", "250", "important");
+        setProp("position", isAbs ? "absolute" : "relative", "important");
+        setProp("left", `${coords.x}px`, "important");
+        setProp("top", `${coords.y}px`, "important");
+        setProp("right", "auto", "important");
+        setProp("bottom", "auto", "important");
+        setProp("z-index", "250", "important");
         element.setAttribute("data-free-positioned", "true");
+        appliedProps.add("data-free-positioned");
 
         // Elevate blockRoot and canvas wrapper so cross-block drops are never hidden
         let p = element.parentElement;
@@ -1210,18 +1254,24 @@ export function applyPreviewStyle(
           }
         }
       } else {
-        element.style.removeProperty("position");
-        element.style.removeProperty("left");
-        element.style.removeProperty("top");
-        element.style.removeProperty("z-index");
+        setProp("position", null);
+        setProp("left", null);
+        setProp("top", null);
+        setProp("right", null);
+        setProp("bottom", null);
+        setProp("z-index", null);
         element.removeAttribute("data-free-positioned");
+        appliedProps.delete("data-free-positioned");
       }
     } else {
-      element.style.removeProperty("position");
-      element.style.removeProperty("left");
-      element.style.removeProperty("top");
-      element.style.removeProperty("z-index");
+      setProp("position", null);
+      setProp("left", null);
+      setProp("top", null);
+      setProp("right", null);
+      setProp("bottom", null);
+      setProp("z-index", null);
       element.removeAttribute("data-free-positioned");
+      appliedProps.delete("data-free-positioned");
     }
   }
 
@@ -1229,8 +1279,10 @@ export function applyPreviewStyle(
     const hoverEffect = resolve("hoverEffect");
     if (hoverEffect && hoverEffect !== "none") {
       element.setAttribute("data-hover-fx", hoverEffect);
+      appliedProps.add("data-hover-fx");
     } else {
       element.removeAttribute("data-hover-fx");
+      appliedProps.delete("data-hover-fx");
     }
   }
 
@@ -1239,71 +1291,84 @@ export function applyPreviewStyle(
     const entranceDuration = resolve("entranceDuration");
     if (entrance && entrance !== "none") {
       element.setAttribute("data-entrance-fx", entrance);
+      appliedProps.add("data-entrance-fx");
       setProp("animation-duration", `${entranceDuration !== undefined ? entranceDuration : 0.6}s`);
     } else {
       element.removeAttribute("data-entrance-fx");
-      element.style.removeProperty("animation-duration");
+      appliedProps.delete("data-entrance-fx");
+      setProp("animation-duration", null);
     }
+  }
+
+  // Reconcile with previously applied properties: any property that was
+  // previously applied to this element by the editor but is no longer in
+  // appliedProps gets restored.
+  const prevApplied = appliedStylesByElement.get(element);
+  if (prevApplied) {
+    for (const prop of prevApplied) {
+      if (!appliedProps.has(prop)) {
+        if (prop.startsWith("data-")) {
+          element.removeAttribute(prop);
+        } else if (prop === "cascaded-color") {
+          element.querySelectorAll<HTMLElement>("[data-preview-cascaded-color]").forEach((child) => {
+            restoreOriginalStyle(child, "color");
+            restoreOriginalStyle(child, "--ai-theme-ink");
+            restoreOriginalStyle(child, "--theme-ink");
+            restoreOriginalStyle(child, "--ink");
+            child.removeAttribute("data-preview-cascaded-color");
+          });
+        } else {
+          restoreOriginalStyle(element, prop);
+        }
+      }
+    }
+  }
+
+  appliedStylesByElement.set(element, appliedProps);
+  if (appliedProps.size > 0) {
+    element.setAttribute("data-preview-applied-props", Array.from(appliedProps).join(";"));
+  } else {
+    element.removeAttribute("data-preview-applied-props");
+    appliedStylesByElement.delete(element);
   }
 }
 
 export function clearPreviewStyle(element: HTMLElement): void {
-  element.style.removeProperty("position");
-  element.style.removeProperty("left");
-  element.style.removeProperty("top");
-  element.style.removeProperty("right");
-  element.style.removeProperty("bottom");
-  element.style.removeProperty("z-index");
+  // If the editor never touched this element, leave it completely alone!
+  // This preserves template inline styles (theme.surface, theme.accent, theme.bgSecond, etc.).
+  const applied = appliedStylesByElement.get(element);
+  const attr = element.getAttribute("data-preview-applied-props");
+  if ((!applied || applied.size === 0) && !attr) {
+    return;
+  }
+
+  const propsToClear = applied && applied.size > 0
+    ? new Set(applied)
+    : new Set(attr?.split(";").filter(Boolean));
+
+  for (const prop of propsToClear) {
+    if (prop.startsWith("data-")) {
+      element.removeAttribute(prop);
+    } else if (prop === "cascaded-color") {
+      element.querySelectorAll<HTMLElement>("[data-preview-cascaded-color]").forEach((child) => {
+        restoreOriginalStyle(child, "color");
+        restoreOriginalStyle(child, "--ai-theme-ink");
+        restoreOriginalStyle(child, "--theme-ink");
+        restoreOriginalStyle(child, "--ink");
+        child.removeAttribute("data-preview-cascaded-color");
+      });
+    } else {
+      restoreOriginalStyle(element, prop);
+    }
+  }
+
   element.removeAttribute("data-free-positioned");
-
-  element.style.removeProperty("color");
-  element.style.removeProperty("--ai-theme-ink");
-  element.style.removeProperty("--theme-ink");
-  element.style.removeProperty("--ink");
-
-  element.style.removeProperty("background-color");
-  element.style.removeProperty("border-radius");
-  element.style.removeProperty("font-size");
-  element.style.removeProperty("font-weight");
-  element.style.removeProperty("font-style");
-  element.style.removeProperty("text-decoration");
-  element.style.removeProperty("text-align");
-  element.style.removeProperty("text-transform");
-
-  element.style.removeProperty("border-width");
-  element.style.removeProperty("border-style");
-  element.style.removeProperty("border-color");
-  element.style.removeProperty("box-shadow");
-  element.style.removeProperty("backdrop-filter");
-  element.style.removeProperty("-webkit-backdrop-filter");
-
-  element.style.removeProperty("padding");
-  element.style.removeProperty("margin");
-  element.style.removeProperty("width");
-  element.style.removeProperty("max-width");
-  element.style.removeProperty("min-width");
-  element.style.removeProperty("height");
-  element.style.removeProperty("max-height");
-  element.style.removeProperty("min-height");
-
-  element.style.removeProperty("display");
-  element.style.removeProperty("visibility");
-  element.style.removeProperty("cursor");
-  element.style.removeProperty("overflow");
-  element.style.removeProperty("transform");
-  element.style.removeProperty("animation-duration");
-
   element.removeAttribute("data-hover-fx");
   element.removeAttribute("data-entrance-fx");
+  element.removeAttribute("data-preview-applied-props");
 
-  element.querySelectorAll<HTMLElement>("*").forEach((child) => {
-    if (!child.dataset.previewEditId) {
-      child.style.removeProperty("color");
-      child.style.removeProperty("--ai-theme-ink");
-      child.style.removeProperty("--theme-ink");
-      child.style.removeProperty("--ink");
-    }
-  });
+  appliedStylesByElement.delete(element);
+  originalStylesBeforeEdit.delete(element);
 }
 
 const PREVIEW_EFFECTS_STYLE_ID = "preview-effects-styles";
@@ -1469,18 +1534,9 @@ export function tagAndApplyPreviewStyles(
     const blockId = blockRoot.dataset.blockId;
     if (!blockId) return;
     const block = blocks.find((b) => b.id === blockId);
-    if (!block) return;
-
-    const rootBg =
-      (elements?.[`${blockId}:root`]?.style &&
-        resolveResponsiveValue(
-          elements[`${blockId}:root`].style,
-          "backgroundColor",
-          breakpoint,
-        )) ||
-      block.bgColor;
-
-    applyPreviewBlockSurfaceStyles(blockRoot, block, { backgroundColor: rootBg });
+    if (block) {
+      applyPreviewBlockSurfaceStyles(blockRoot, block);
+    }
   });
 }
 
@@ -1737,9 +1793,10 @@ export type Rect = {
   centerY: number;
   always?: boolean;
   strong?: boolean;
+  inBlock?: boolean;
 };
 
-const SNAP_SCREEN_PX = 6; // snap distance in on-screen pixels (zoom-independent)
+const SNAP_SCREEN_PX = 8; // responsive & magnetic snap distance in on-screen pixels (zoom-independent)
 const DRAG_THRESHOLD = 5; // screen px before a drag starts
 const ALIGN_EPS = 0.5; // lines closer than this count as "aligned"
 
@@ -1766,9 +1823,8 @@ export function rectOf(el: HTMLElement, containerRect: DOMRect, scale = 1): Rect
 const xLines = (r: Rect) => [r.left, r.centerX, r.right];
 const yLines = (r: Rect) => [r.top, r.centerY, r.bottom];
 
-// 1) find the closest (edge|center) <-> (edge|center) match per axis and snap to it
-// 2) after snapping, draw EVERY line that now aligns (left + right + center together)
-const SNAP_PROXIMITY = 280; // ignore elements farther than this (canvas px)
+// Proximity to consider targets from other sections (canvas px)
+const SNAP_PROXIMITY = 600;
 
 const gapY = (a: Rect, b: Rect) =>
   Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
@@ -1793,8 +1849,8 @@ export function computeSnap(
   const dY = yLines(dragged);
 
   for (const t of targets) {
-    const nearY = t.always || gapY(dragged, t) <= SNAP_PROXIMITY;
-    const nearX = t.always || gapX(dragged, t) <= SNAP_PROXIMITY;
+    const nearY = t.always || t.inBlock || gapY(dragged, t) <= SNAP_PROXIMITY;
+    const nearX = t.always || t.inBlock || gapX(dragged, t) <= SNAP_PROXIMITY;
     const tX = xLines(t);
     const tY = yLines(t);
 
@@ -1852,25 +1908,21 @@ export function computeSnap(
 
   if (bestX) {
     const bx = bestX as Best;
-    let start = s.top;
-    let end = s.bottom;
+    let start = Math.min(s.top, bx.target.top);
+    let end = Math.max(s.bottom, bx.target.bottom);
     if (bx.canvas) {
       start = bx.target.top;
       end = bx.target.bottom;
     } else {
-      let extended = false;
       for (const t of targets) {
-        if (t.always || gapY(s, t) > SNAP_PROXIMITY) continue;
-        if (xLines(t).some((v) => Math.abs(v - bx.pos) <= ALIGN_EPS)) {
+        if (t.always || (!t.inBlock && gapY(s, t) > SNAP_PROXIMITY)) continue;
+        if (xLines(t).some((v) => Math.abs(v - bx.pos) <= 2)) {
           start = Math.min(start, t.top);
           end = Math.max(end, t.bottom);
-          extended = true;
         }
       }
-      if (!extended) {
-        start = s.top - 120;
-        end = s.bottom + 120;
-      }
+      start = Math.max(0, start - 16);
+      end = end + 16;
     }
     guides.push({
       type: "v",
@@ -1883,25 +1935,21 @@ export function computeSnap(
 
   if (bestY) {
     const by = bestY as Best;
-    let start = s.left;
-    let end = s.right;
+    let start = Math.min(s.left, by.target.left);
+    let end = Math.max(s.right, by.target.right);
     if (by.canvas) {
       start = by.target.left;
       end = by.target.right;
     } else {
-      let extended = false;
       for (const t of targets) {
-        if (t.always || gapX(s, t) > SNAP_PROXIMITY) continue;
-        if (yLines(t).some((v) => Math.abs(v - by.pos) <= ALIGN_EPS)) {
+        if (t.always || (!t.inBlock && gapX(s, t) > SNAP_PROXIMITY)) continue;
+        if (yLines(t).some((v) => Math.abs(v - by.pos) <= 2)) {
           start = Math.min(start, t.left);
           end = Math.max(end, t.right);
-          extended = true;
         }
       }
-      if (!extended) {
-        start = s.left - 120;
-        end = s.right + 120;
-      }
+      start = Math.max(0, start - 16);
+      end = end + 16;
     }
     guides.push({
       type: "h",
@@ -1916,13 +1964,6 @@ export function computeSnap(
 }
 
 // Collected ONCE per drag (not every frame): canvas, every block, every editable element.
-const NON_SNAP_TAGS = new Set([
-  "H1", "H2", "H3", "H4", "H5", "H6", "P", "SPAN", "LABEL", "LI",
-  "SMALL", "STRONG", "EM", "B", "I", "SVG", "PATH", "INPUT",
-]);
-const MIN_TARGET_W = 100;
-const MIN_TARGET_H = 48;
-
 function collectSnapTargets(
   canvasRoot: HTMLElement,
   draggedElement: HTMLElement,
@@ -1950,50 +1991,49 @@ function collectSnapTargets(
       centerX: sr.centerX,
       centerY: sr.centerY,
       strong: true,
+      inBlock: true,
     });
   }
 
-  // ---- global landmarks (unchanged): canvas, blocks, large containers ----
+  // 1. Global landmarks: canvas full width/height & center
   const cw = canvasRect.width / scale;
   const ch = canvasRect.height / scale;
   push({ left: 0, top: 0, right: cw, bottom: ch, centerX: cw / 2, centerY: ch / 2, always: true });
 
+  // 2. All section blocks
   canvasRoot.querySelectorAll<HTMLElement>("[data-block-id]").forEach((b) => {
     if (isChromeElement(b)) return;
-    push(rectOf(b, canvasRect, scale));
+    const r = rectOf(b, canvasRect, scale);
+    if (b === blockRoot) {
+      r.strong = true;
+      r.inBlock = true;
+    }
+    push(r);
   });
-
-  canvasRoot.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((el) => {
-    if (el === draggedElement || draggedElement.contains(el) || el.contains(draggedElement)) return;
-    if (isChromeElement(el)) return;
-    if (el.dataset.previewEditId?.endsWith(":root")) return;
-    if (NON_SNAP_TAGS.has(el.tagName.toUpperCase())) return;
-    const r = el.getBoundingClientRect();
-    if (r.width / scale < MIN_TARGET_W || r.height / scale < MIN_TARGET_H) return;
-    push(rectFromDom(r, canvasRect, scale));
-  });
-
-  // ---- scoped targets: siblings + parent containers (shapes/boxes only) ----
-  const draggedIsText = NON_SNAP_TAGS.has(draggedElement.tagName.toUpperCase());
-  if (draggedIsText) return out;
 
   const ownerWin = draggedElement.ownerDocument.defaultView || window;
-  const SVG_INNER = new Set(["SVG", "PATH", "CIRCLE", "LINE", "RECT", "G", "DEFS", "POLYLINE", "POLYGON"]);
+  const SVG_INNER = new Set(["PATH", "CIRCLE", "LINE", "RECT", "G", "DEFS", "POLYLINE", "POLYGON", "CLIPPAT", "USE"]);
 
   const isUsable = (el: HTMLElement) =>
     el !== draggedElement &&
+    !draggedElement.contains(el) &&
+    !el.contains(draggedElement) &&
     !isChromeElement(el) &&
-    !SVG_INNER.has(el.tagName.toUpperCase()) &&
-    !NON_SNAP_TAGS.has(el.tagName.toUpperCase());
+    !SVG_INNER.has(el.tagName.toUpperCase());
 
-  const pushEl = (el: HTMLElement) => {
+  const pushEl = (el: HTMLElement, inBlock = false) => {
+    if (!isUsable(el)) return;
     const r = el.getBoundingClientRect();
-    if (r.width / scale < 2 || r.height / scale < 2) return;
-    push(rectFromDom(r, canvasRect, scale));
+    const w = r.width / scale;
+    const h = r.height / scale;
+    if (w < 4 || h < 4) return;
+    const rect = rectFromDom(r, canvasRect, scale);
+    if (inBlock) rect.inBlock = true;
+    push(rect);
   };
 
-  // Parent's content box (inside border + padding), like Figma's parent-frame snapping.
-  const pushContentBox = (el: HTMLElement) => {
+  // Parent container's content box (inside border + padding), like Figma's parent-frame snapping.
+  const pushContentBox = (el: HTMLElement, inBlock = false) => {
     const base = rectFromDom(el.getBoundingClientRect(), canvasRect, scale);
     const cs = ownerWin.getComputedStyle(el);
     const n = (v: string) => Number.parseFloat(v) || 0;
@@ -2010,27 +2050,35 @@ function collectSnapTargets(
       centerX: (left + right) / 2,
       centerY: (top + bottom) / 2,
       strong: true,
+      inBlock,
     });
   };
 
+  // 3. Current block's padded content box & center
+  pushContentBox(blockRoot, true);
+
+  // 4. Scoped targets: walk up parent hierarchy of draggedElement up to blockRoot
   let chain: HTMLElement = draggedElement;
   let parent: HTMLElement | null = draggedElement.parentElement;
 
-  for (let level = 0; parent && parent !== blockRoot && parent !== canvasRoot && level < 3; level++) {
-    if (level < 2) pushContentBox(parent);
+  for (let level = 0; parent && parent !== canvasRoot && level < 4; level++) {
+    pushContentBox(parent, true);
 
     const kids = Array.from(parent.children) as HTMLElement[];
     const siblingRects: Rect[] = [];
     for (const child of kids) {
       if (child === chain || !isUsable(child)) continue;
       const r = child.getBoundingClientRect();
-      if (r.width / scale < 2 || r.height / scale < 2) continue;
+      const w = r.width / scale;
+      const h = r.height / scale;
+      if (w < 4 || h < 4) continue;
       const rect = rectFromDom(r, canvasRect, scale);
+      rect.inBlock = true;
       push(rect);
       siblingRects.push(rect);
       if (level <= 1) {
         for (const grandChild of Array.from(child.children) as HTMLElement[]) {
-          if (isUsable(grandChild)) pushEl(grandChild);
+          pushEl(grandChild, true);
         }
       }
     }
@@ -2054,6 +2102,7 @@ function collectSnapTargets(
             centerX: midX,
             centerY: (top + bottom) / 2,
             strong: true,
+            inBlock: true,
           });
         }
       }
@@ -2075,14 +2124,21 @@ function collectSnapTargets(
             centerX: (left + right) / 2,
             centerY: midY,
             strong: true,
+            inBlock: true,
           });
         }
       }
     }
 
+    if (parent === blockRoot) break;
     chain = parent;
     parent = parent.parentElement;
   }
+
+  // 5. Also collect other visible editable elements in the section
+  blockRoot.querySelectorAll<HTMLElement>("[data-preview-edit-id]").forEach((el) => {
+    pushEl(el, true);
+  });
 
   return out;
 }
@@ -2240,8 +2296,8 @@ export function startElementFreeDrag(
   _device: "desktop" | "responsive",
   scale: number,
   onChangeElementStyle: (elementId: string, patch: Partial<PreviewElementStyle>) => void,
-  _setGuides: (guides: GuideLine[]) => void,
-  _setDraggingId: (id: string | null) => void,
+  setGuides?: (guides: GuideLine[]) => void,
+  setDraggingId?: (id: string | null) => void,
   blocks?: Block[],
   site?: PreviewEditableSite,
   onSelectElement?: (edit: PreviewElementEdit | null) => void,
@@ -2400,11 +2456,13 @@ export function startElementFreeDrag(
     if (key === lastGuideKey) return;
     lastGuideKey = key;
     guideStore.set(guides);
+    setGuides?.(guides);
   }
 
   function beginDrag() {
     hasMoved = true;
     elementDragActive = true;
+    setDraggingId?.(elementId);
     ownerDoc.body.style.cursor = "grabbing";
     ownerDoc.body.style.userSelect = "none";
 
@@ -2533,6 +2591,8 @@ export function startElementFreeDrag(
 
     elementDragActive = false;
     guideStore.set([]);
+    setGuides?.([]);
+    setDraggingId?.(null);
 
     ownerDoc.body.style.removeProperty("cursor");
     ownerDoc.body.style.removeProperty("user-select");

@@ -14,7 +14,7 @@ export function ArchitectureStudio2Hero({ props = {}, theme, onChange }: any) {
   return (
     <section
       id="top"
-      className="relative flex items-center min-h-[620px] overflow-hidden transition-colors w-full"
+      className="relative flex flex-col justify-center overflow-hidden transition-colors w-full px-6 md:px-14 lg:px-20 py-28 md:py-36 lg:py-44"
       style={{
         backgroundColor: bg,
         color: ink,
@@ -36,9 +36,9 @@ export function ArchitectureStudio2Hero({ props = {}, theme, onChange }: any) {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-14 lg:px-20">
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto">
         <div
-          className="flex items-center gap-3 mb-5 text-[10px] font-bold uppercase tracking-wider"
+          className="flex items-center gap-3 mb-4 text-[10px] font-bold uppercase tracking-wider"
           style={{ color: accent }}
         >
           <Editable value="ARCHITECTURE WITH FEELING" />
@@ -46,7 +46,7 @@ export function ArchitectureStudio2Hero({ props = {}, theme, onChange }: any) {
 
         <Editable
           as="h1"
-          className="text-[54px] sm:text-[70px] md:text-[86px] lg:text-[104px] font-medium leading-[0.86] max-w-2xl mb-6 tracking-tight font-serif [&_span.italic]:italic"
+          className="text-[54px] sm:text-[70px] md:text-[86px] lg:text-[104px] font-medium leading-[0.86] max-w-2xl mb-5 tracking-tight font-serif [&_span.italic]:italic"
           style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
           value={props?.headline || 'Design with an<br /><span class="italic">aesthetic sense.</span>'}
           onChange={(v) => onChange?.({ headline: v })}
@@ -54,7 +54,7 @@ export function ArchitectureStudio2Hero({ props = {}, theme, onChange }: any) {
 
         <Editable
           as="p"
-          className="max-w-[400px] text-[15px] leading-[1.75] mb-8 opacity-80"
+          className="max-w-[400px] text-[15px] leading-[1.75] mb-7 opacity-80"
           style={{ color: inkSecond }}
           value={props?.subheadline || "Spaces that make you stop, feel, and imagine what comes next."}
           onChange={(v) => onChange?.({ subheadline: v })}
@@ -79,14 +79,6 @@ export function ArchitectureStudio2Hero({ props = {}, theme, onChange }: any) {
             <ArrowRight size={16} />
           </a>
         </div>
-      </div>
-
-      <div
-        className="absolute bottom-6 left-6 right-6 md:left-14 md:right-14 lg:left-20 lg:right-20 z-10 flex justify-between text-[10px] font-bold uppercase tracking-wider opacity-75"
-        style={{ color: ink }}
-      >
-        <Editable value="INDEPENDENT ARCHITECTURE STUDIO" />
-        <Editable value="SCROLL TO DISCOVER ↓" />
       </div>
     </section>
   );

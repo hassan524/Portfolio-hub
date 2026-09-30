@@ -2,12 +2,12 @@
   "id": "chef-pastel-soft",
   "category": "Bakery",
   "theme": {
-    "bg": "#fff5f7",
-    "bg-second": "#ffffff",
-    "ink": "#2e2a2c",
-    "ink-second": "#000000",
-    "accent": "#ff8fa3",
-    "surface": "#e0d8d9",
+    "bg": "#ffffff",
+    "bg-second": "#f7f4f6",
+    "ink": "#242023",
+    "ink-second": "#655b63",
+    "surface": "#ded7dc",
+    "accent": "#882b8b",
     "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "pill",
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar5",
+        "variant": "Bakery2navbar",
         "links": [],
         "sticky": true
       }
@@ -31,7 +31,7 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-4"
+        "variant": "Bakery2hero"
       }
     },
     {
@@ -41,7 +41,7 @@
       "props": {
         "kind": "projects",
         "items": [],
-        "variant": "projects-26"
+        "variant": "Bakery2projects"
       }
     },
     {
@@ -53,7 +53,7 @@
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-4"
+        "variant": "Bakery2about"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-4"
+        "variant": "Bakery2testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-4"
+        "variant": "Bakery2contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-4"
+        "variant": "Bakery2footer"
       }
     }
   ],

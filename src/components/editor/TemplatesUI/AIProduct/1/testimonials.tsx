@@ -12,6 +12,8 @@ export function AIProduct1Testimonials({ props = {}, theme }: BlockComponentProp
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#38BDF8";
 
+  console.log("[surface-debug]", theme?.surface, theme);
+
   const testimonials = [
     {
       quote: "We migrated our entire vector search pipeline to this stack in an afternoon. Latency dropped from 240ms to 14ms instantly.",

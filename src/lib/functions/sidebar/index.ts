@@ -154,8 +154,12 @@ export function useLiveBlockHeight(blockId: string, active: boolean): number | n
     };
 
     measure();
-    const timer = setTimeout(measure, 100);
-    return () => clearTimeout(timer);
+    const t1 = setTimeout(measure, 100);
+    const t2 = setTimeout(measure, 300);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [active, blockId]);
 
   return liveHeight;
