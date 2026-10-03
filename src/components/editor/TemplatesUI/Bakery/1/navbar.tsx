@@ -9,6 +9,8 @@ export function Bakery1Navbar({ props = {}, theme, onChange }: any) {
   const ink = theme?.ink || "#1a1a1a";
   const surface = theme?.surface || "#dcdbd8";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
   const links = ["Work", "Services", "About", "Contact"];
 
   return (
@@ -25,7 +27,7 @@ export function Bakery1Navbar({ props = {}, theme, onChange }: any) {
             value={props?.logoText || "The Pantry"}
             onChange={(v) => onChange?.({ logoText: v })}
             className="text-xl tracking-tight"
-            style={{ fontFamily: '"DM Serif Display", Georgia, serif', color: ink }}
+            style={{ fontFamily: fontHeading, color: ink }}
           />
         </div>
 

@@ -12,6 +12,8 @@ export function ArchitectureStudio1Navbar({ props = {}, theme, onChange }: Block
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#D92335";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   const navLinks = [
     { label: "Projects", href: "#projects" },
@@ -27,7 +29,7 @@ export function ArchitectureStudio1Navbar({ props = {}, theme, onChange }: Block
         backgroundColor: `${bg}F2`,
         borderColor: `${ink}1A`,
         color: ink,
-        fontFamily: '"DM Sans", Arial, sans-serif',
+        fontFamily: fontBody,
       }}
     >
       {/* Logo — wrapped in div so [&_nav>div] applies block-bg correctly */}
@@ -35,7 +37,7 @@ export function ArchitectureStudio1Navbar({ props = {}, theme, onChange }: Block
         <a
           href="#top"
           className="flex items-center gap-3 text-[35px] font-semibold leading-none tracking-tight whitespace-nowrap transition-opacity hover:opacity-80 font-serif"
-          style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: ink, fontFamily: fontHeading }}
         >
           {props?.logo ? (
             <img

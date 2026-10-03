@@ -19,8 +19,7 @@ export function SpacerBlock({ props, theme }: any) {
         backgroundPosition: bgPosition,
         backgroundRepeat: bgRepeat,
         transition: "none",
-        animation: "none",
-      }}
+        animation: "none" }}
     >
       <div className="text-center select-none py-4 opacity-70 hover:opacity-100 transition-opacity">
         <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft/70">

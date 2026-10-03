@@ -7,7 +7,7 @@ export function Bakery2About({ props = {}, theme, onChange }: any) {
   const ink = theme?.ink || "#242023";
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "#ded7dc";
-  const accent = theme?.accent || "#882b8b";
+  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
 
   const values = [
     { label: "Craft", desc: "Every detail executed with precision and intent." },
@@ -16,7 +16,7 @@ export function Bakery2About({ props = {}, theme, onChange }: any) {
   ];
 
   return (
-    <section id="studio" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink }}>
+    <section id="studio" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="grid gap-16 md:grid-cols-2 md:items-center">
           {/* Text */}
@@ -25,7 +25,7 @@ export function Bakery2About({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-5 text-4xl font-bold uppercase leading-tight md:text-5xl"
-              style={{ fontFamily: '"Oswald", sans-serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.aboutTitle || "Craft, clarity, and conviction."}
               onChange={(aboutTitle) => onChange?.({ aboutTitle })}
             />

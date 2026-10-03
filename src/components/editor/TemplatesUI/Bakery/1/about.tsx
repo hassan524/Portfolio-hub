@@ -9,9 +9,11 @@ export function Bakery1About({ props = {}, theme, onChange }: any) {
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "#dcdbd8";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
 
   return (
-    <section id="about" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bgSecond, color: ink }}>
+    <section id="about" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bgSecond, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="grid gap-16 md:grid-cols-2 md:items-center">
           {/* Image */}
@@ -30,7 +32,7 @@ export function Bakery1About({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-4 text-4xl leading-tight md:text-5xl"
-              style={{ fontFamily: '"DM Serif Display", Georgia, serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.aboutTitle || "Baking since 1987, one loaf at a time."}
               onChange={(aboutTitle) => onChange?.({ aboutTitle })}
             />

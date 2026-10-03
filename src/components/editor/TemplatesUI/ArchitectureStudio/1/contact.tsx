@@ -9,12 +9,14 @@ export function ArchitectureStudio1Contact({ props = {}, theme, onChange }: any)
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   return (
     <section
       id="contact"
       className="px-6 md:px-14 lg:px-20 py-28 md:py-36 transition-colors w-full"
-      style={{ backgroundColor: bg, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-6xl mx-auto">
         <span
@@ -27,7 +29,7 @@ export function ArchitectureStudio1Contact({ props = {}, theme, onChange }: any)
         <Editable
           as="h2"
           className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-[92px] font-medium leading-[0.95] max-w-4xl mb-12 tracking-tight font-serif"
-          style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: ink, fontFamily: fontHeading }}
           value={props?.title || "Let’s create something together."}
           onChange={(v) => onChange?.({ title: v })}
         />
@@ -36,7 +38,7 @@ export function ArchitectureStudio1Contact({ props = {}, theme, onChange }: any)
           <a
             href="mailto:hello@sagent.studio"
             className="inline-flex items-center gap-4 md:gap-8 pb-3 border-b-2 text-2xl sm:text-3xl md:text-4xl lg:text-5xl transition-opacity hover:opacity-75 font-serif"
-            style={{ borderColor: accent, color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+            style={{ borderColor: accent, color: ink, fontFamily: fontHeading }}
           >
             <Editable value="hello@sagent.studio" />
             <ArrowUpRight className="w-6 h-6 md:w-10 md:h-10 shrink-0" />

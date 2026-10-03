@@ -12,6 +12,21 @@ import {
   getPreviewBlockWrapperStyle,
 } from "@/lib/functions/livePreview/blockWrapper";
 
+// JSON font name -> CSS class suffix
+const FONT_CLASS: Record<string, string> = {
+  "Poppins": "poppins",
+  "Inter": "inter",
+  "Fraunces": "fraunces",
+  "Space Grotesk": "space-grotesk",
+  "Cormorant Garamond": "cormorant",
+  "DM Sans": "dm-sans",
+  "Instrument Serif": "instrument",
+  "Outfit": "outfit",
+  "Comic Relief": "comic",
+  "Open Sans": "open-sans",
+  "Roboto": "roboto",
+};
+
 export function PreviewLoadingState({ bg, ink }: { bg: string; ink: string }) {
   return (
     <div
@@ -74,6 +89,10 @@ export function PreviewBlock({
   const wrapperClassName = getPreviewBlockWrapperClasses(block, { isActive });
   const innerClassName = getPreviewBlockInnerClasses(block);
 
+  const fontClasses = FONT_CLASS[theme.fontBody] ? `tb-${FONT_CLASS[theme.fontBody]}` : "";
+
+  console.log('font classes ', fontClasses)
+
   const hasFreePositioned = Boolean(
     site.previewEdits?.elements &&
     Object.entries(site.previewEdits.elements).some(
@@ -102,7 +121,7 @@ export function PreviewBlock({
         data-block-kind={block.props.kind}
         data-has-custom-bg={hasCustomBg ? "true" : undefined}
         data-has-free-positioned={hasFreePositioned ? "true" : undefined}
-        className={wrapperClassName}
+        className={`${wrapperClassName} ${fontClasses}`}
         style={wrapperStyle}
       >
         <ResizeHandle
@@ -192,13 +211,12 @@ function ResizeHandle({
 
       {/* Resize pill bar */}
       <div
-        className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${
-          isResizingThis
-            ? "bg-foreground shadow-md scale-110 opacity-100"
-            : isActive
-              ? "bg-foreground/50 hover:bg-foreground/90 scale-105 opacity-90"
-              : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
-        }`}
+        className={`h-1.5 w-20 rounded-full transition-all flex items-center justify-center ${isResizingThis
+          ? "bg-foreground shadow-md scale-110 opacity-100"
+          : isActive
+            ? "bg-foreground/50 hover:bg-foreground/90 scale-105 opacity-90"
+            : "bg-foreground/30 group-hover/resize:bg-foreground/80 group-hover/resize:scale-105 opacity-0 group-hover/block:opacity-100"
+          }`}
       >
         <div className="h-0.5 w-6 rounded-full bg-background/80" />
       </div>

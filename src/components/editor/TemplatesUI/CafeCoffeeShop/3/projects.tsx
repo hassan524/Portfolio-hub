@@ -1,0 +1,16 @@
+// @ts-nocheck
+import { ArrowUpRight, Coffee, Croissant, GlassWater } from 'lucide-react';
+import { Editable } from '@/components/editor/ui/Editable';
+
+export function Projects({ props = {}, theme, onChange }: any) {
+    const bg = theme?.bg || '#f1eadf';
+    const bgSecond = theme?.['bg-second'] || '#382116';
+    const ink = theme?.ink || '#382116';
+    const inkSecond = theme?.['ink-second'] || '#f1eadf';
+    const surface = theme?.surface || 'rgba(56, 33, 22, 0.14)';
+    const accent = theme?.accent || '#c98a50';
+  const fontBody = theme?.fontBody || "Inter";
+    const items = props?.items || [{ title: 'Espresso', note: 'A soft, sweet house blend', price: '$5', image: 'https://images.pexels.com/photos/9114086/pexels-photo-9114086.jpeg?auto=compress&cs=tinysrgb&h=650&w=940' }, { title: 'Morning toast', note: 'Sourdough, butter, seasonal jam', price: '$12', image: 'https://images.pexels.com/photos/7440417/pexels-photo-7440417.jpeg?auto=compress&cs=tinysrgb&h=650&w=940' }, { title: 'Cold things', note: 'Bright sodas and iced coffee', price: '$7', image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=900&q=80' }, { title: 'House beans', note: 'A bag for tomorrow morning', price: '$18', image: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=900&q=80' }];
+    const icons = [Coffee, Croissant, GlassWater];
+    return <section id="projects" className="px-5 py-24 sm:px-8" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}><div className="mx-auto max-w-6xl"><div className="flex items-end justify-between border-b pb-5" style={{ borderColor: surface }}><div><p className="text-[9px] uppercase tracking-[0.2em]" style={{ color: accent }}><Editable value={props?.label || 'A little menu'} /></p><h2 className="mt-4 font-fraunces text-6xl tracking-[-0.05em] sm:text-8xl"><Editable value={props?.headline || 'Made for now.'} /></h2></div><p className="hidden max-w-[180px] text-right text-xs leading-5 sm:block" style={{ color: `${ink}88` }}><Editable value={props?.intro || 'Come hungry. Leave brighter.'} /></p></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{items.map((item, index) => { const Icon = icons[index % icons.length]; return <article key={item.title} className="group rounded-[1.5rem] border p-3 transition hover:-translate-y-1" style={{ borderColor: surface, backgroundColor: `${bgSecond}08` }}><div className="relative h-52 overflow-hidden rounded-[1.1rem]"><img src={item.image} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /><span className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-full" style={{ backgroundColor: `${bg}dd`, color: ink }}><Icon size={14} /></span></div><div className="flex items-start justify-between gap-3 px-2 pb-2 pt-5"><div><h3 className="font-fraunces text-3xl"><Editable value={item.title} /></h3><p className="mt-1 text-xs" style={{ color: `${ink}88` }}><Editable value={item.note} /></p></div><div className="text-right"><p className="text-sm" style={{ color: accent }}><Editable value={item.price} /></p><a href="#contact" className="mt-5 inline-flex transition hover:scale-[1.02]" style={{ color: ink }}><ArrowUpRight size={16} /></a></div></div></article>; })}</div></div></section>;
+}

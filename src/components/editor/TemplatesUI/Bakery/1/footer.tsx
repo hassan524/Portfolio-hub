@@ -10,11 +10,13 @@ export function Bakery1Footer({ props = {}, theme }: any) {
   const ink = theme?.bg || "#faf9f6";
   const surface = "rgba(255,255,255,0.12)";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
 
   const links = ["Menu", "Workshops", "Wholesale", "Press", "Contact"];
 
   return (
-    <footer className="py-16 px-6 md:px-12" style={{ backgroundColor: bg, color: ink }}>
+    <footer className="py-16 px-6 md:px-12" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
           {/* Brand */}
@@ -25,7 +27,7 @@ export function Bakery1Footer({ props = {}, theme }: any) {
             <Editable
               as="div"
               className="text-2xl"
-              style={{ fontFamily: '"DM Serif Display", Georgia, serif' }}
+              style={{ fontFamily: fontHeading }}
             >
               {props.heading || "The Pantry"}
             </Editable>

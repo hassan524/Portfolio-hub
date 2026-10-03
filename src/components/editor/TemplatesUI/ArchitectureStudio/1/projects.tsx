@@ -13,6 +13,8 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
   const [active, setActive] = useState<number | null>(null);
 
   const projects = [
@@ -38,7 +40,7 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
     <section
       id="projects"
       className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bg, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-6xl mx-auto mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -51,7 +53,7 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
           <Editable
             as="h2"
             className="text-4xl sm:text-5xl md:text-6xl font-medium leading-none tracking-tight"
-            style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+            style={{ color: ink, fontFamily: fontHeading }}
             value={props?.title || "Selected projects"}
             onChange={(v) => onChange?.({ title: v })}
           />
@@ -99,7 +101,7 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
                   <Editable
                     as="strong"
                     className="text-xl md:text-2xl font-medium"
-                    style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                    style={{ color: ink, fontFamily: fontHeading }}
                     value={item.title}
                   />
                 </div>
@@ -136,7 +138,7 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
         {project && (
           <DialogContent
             className="max-w-2xl p-0 overflow-hidden border"
-            style={{ backgroundColor: bg, borderColor: `${ink}26`, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+            style={{ backgroundColor: bg, borderColor: `${ink}26`, color: ink, fontFamily: fontBody }}
             aria-describedby="project-description"
           >
             <img className="w-full h-72 object-cover" src={project.image} alt={project.title} />
@@ -147,7 +149,7 @@ export function ArchitectureStudio1Projects({ props = {}, theme, onChange }: any
               >
                 <Editable value={project.category} />
               </span>
-              <DialogTitle className="text-3xl font-medium mb-3" style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
+              <DialogTitle className="text-3xl font-medium mb-3" style={{ color: ink, fontFamily: fontHeading }}>
                 <Editable value={project.title} />
               </DialogTitle>
               <DialogDescription id="project-description" className="text-sm leading-relaxed mb-6 opacity-80" style={{ color: inkSecond }}>

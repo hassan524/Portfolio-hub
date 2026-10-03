@@ -1,6 +1,6 @@
 import type { SpacerProps } from "@/types/builder.schema";
 
-export function SpacerBlock({ props, theme }: any) {
+export function CreativePortfolio1Spacer ({ props, theme }: any) {
   const bg = props.backgroundColor || theme.bg;
   const bgImage = (props as Record<string, unknown>).backgroundImage as string | undefined;
   const bgSize = (props as Record<string, unknown>).backgroundSize as string | undefined;

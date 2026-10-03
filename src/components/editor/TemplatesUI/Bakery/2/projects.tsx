@@ -14,11 +14,11 @@ export function Bakery2Projects({ props = {}, theme, onChange }: any) {
   const bg = theme?.bg || "#ffffff";
   const ink = theme?.ink || "#242023";
   const surface = theme?.surface || "#ded7dc";
-  const accent = theme?.accent || "#882b8b";
+  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
   const items = (props.items && props.items.length > 0) ? props.items : DEFAULT_ITEMS;
 
   return (
-    <section id="work" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink }}>
+    <section id="work" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex items-end justify-between border-b pb-8" style={{ borderColor: surface }}>
           <div>
@@ -26,7 +26,7 @@ export function Bakery2Projects({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-3 text-4xl font-bold uppercase leading-tight md:text-5xl"
-              style={{ fontFamily: '"Oswald", sans-serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.projectsTitle || "Work that speaks for itself."}
               onChange={(projectsTitle) => onChange?.({ projectsTitle })}
             />
@@ -49,7 +49,7 @@ export function Bakery2Projects({ props = {}, theme, onChange }: any) {
                   <Editable
                     as="h3"
                     className="mt-1 text-xl font-bold uppercase"
-                    style={{ fontFamily: '"Oswald", sans-serif' }}
+                    style={{ fontFamily: fontHeading }}
                     value={item.title || `Project ${i + 1}`}
                   />
                 </div>

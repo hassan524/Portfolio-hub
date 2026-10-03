@@ -6,9 +6,11 @@ export function Bakery1Hero({ props = {}, theme, onChange }: any) {
   const bg = theme?.bg || "#faf9f6";
   const ink = theme?.ink || "#1a1a1a";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
 
   return (
-    <section id="home" className="relative isolate min-h-[680px] overflow-hidden" style={{ backgroundColor: bg, color: ink }}>
+    <section id="home" className="relative isolate min-h-[680px] overflow-hidden" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <img
         src={hero}
         alt="Pantry bakery hero"
@@ -31,7 +33,7 @@ export function Bakery1Hero({ props = {}, theme, onChange }: any) {
           <Editable
             as="h1"
             className="text-5xl leading-tight md:text-7xl"
-            style={{ fontFamily: '"DM Serif Display", Georgia, serif' }}
+            style={{ fontFamily: fontHeading }}
             value={props.headline || "Bread made with love & tradition."}
             onChange={(headline) => onChange?.({ headline })}
           />

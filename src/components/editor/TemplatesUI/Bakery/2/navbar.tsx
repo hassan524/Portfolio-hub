@@ -8,7 +8,7 @@ export function Bakery2Navbar({ props = {}, theme, onChange }: any) {
   const bg = theme?.bg || "#ffffff";
   const ink = theme?.ink || "#242023";
   const surface = theme?.surface || "#ded7dc";
-  const accent = theme?.accent || "#882b8b";
+  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
   const links = ["Studio", "Work", "People", "Contact"];
 
   return (
@@ -25,7 +25,7 @@ export function Bakery2Navbar({ props = {}, theme, onChange }: any) {
             value={props?.logoText || "Bread Studio"}
             onChange={(v) => onChange?.({ logoText: v })}
             className="text-xl font-black uppercase tracking-tight"
-            style={{ fontFamily: '"Oswald", sans-serif', color: ink }}
+            style={{ fontFamily: fontHeading, color: ink }}
           />
         </div>
 

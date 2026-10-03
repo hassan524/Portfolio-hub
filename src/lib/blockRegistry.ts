@@ -87,12 +87,20 @@ const FOLDERS = Object.values(CATEGORY_TO_FOLDER).sort((a, b) => b.length - a.le
 function loadTemplateComponent(folder: string, index: number, kind: string) {
   const cap = kind.charAt(0).toUpperCase() + kind.slice(1);
   const path = `../components/editor/TemplatesUI/${folder}/${index}/${kind.toLowerCase()}.tsx`;
-  const mod = templateModules[path];
+  let mod = templateModules[path];
+  if (!mod || !Object.keys(mod).length) {
+    const fallbackPath = `../components/editor/TemplatesUI/${folder}/1/${kind.toLowerCase()}.tsx`;
+    mod = templateModules[fallbackPath];
+  }
   if (!mod) return null;
   const Cmp =
     mod[`${folder}${index}${cap}`] ||
+    mod[cap] ||
+    mod[kind.toLowerCase()] ||
+    (kind.toLowerCase() === "spacer" ? mod.SpacerBlock || mod.Spacer : null) ||
     mod.default ||
-    Object.values(mod).find((v) => typeof v === "function");
+    mod[`${folder}1${cap}`] ||
+    Object.values(mod).find((v) => typeof v === "function" && !isExportEmpty(v));
   return Cmp && !isExportEmpty(Cmp) ? Cmp : null;
 }
 

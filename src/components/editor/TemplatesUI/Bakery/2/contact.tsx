@@ -8,10 +8,10 @@ export function Bakery2Contact({ props = {}, theme, onChange }: any) {
   const bg = theme?.["bg-second"] || "#f7f4f6";
   const ink = theme?.ink || "#242023";
   const surface = theme?.surface || "#ded7dc";
-  const accent = theme?.accent || "#882b8b";
+  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
 
   return (
-    <section id="contact" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink }}>
+    <section id="contact" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="grid gap-16 md:grid-cols-2 md:items-start">
           {/* Left */}
@@ -20,7 +20,7 @@ export function Bakery2Contact({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-5 text-4xl font-bold uppercase leading-tight md:text-6xl"
-              style={{ fontFamily: '"Oswald", sans-serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.contactTitle || "Let's make something."}
               onChange={(contactTitle) => onChange?.({ contactTitle })}
             />

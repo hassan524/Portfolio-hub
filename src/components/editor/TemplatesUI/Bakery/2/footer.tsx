@@ -9,12 +9,12 @@ export function Bakery2Footer({ props = {}, theme }: any) {
   const bg = theme?.ink || "#242023";
   const ink = theme?.bg || "#ffffff";
   const surface = "rgba(255,255,255,0.1)";
-  const accent = theme?.accent || "#882b8b";
+  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
 
   const links = ["Work", "Studio", "People", "Process", "Contact"];
 
   return (
-    <footer className="py-16 px-6 md:px-12" style={{ backgroundColor: bg, color: ink }}>
+    <footer className="py-16 px-6 md:px-12" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl">
         <div className="border-b pb-12 flex flex-col gap-10 md:flex-row md:items-end md:justify-between" style={{ borderColor: surface }}>
           {/* Brand */}
@@ -25,7 +25,7 @@ export function Bakery2Footer({ props = {}, theme }: any) {
             <Editable
               as="div"
               className="text-4xl font-bold uppercase"
-              style={{ fontFamily: '"Oswald", sans-serif' }}
+              style={{ fontFamily: fontHeading }}
             >
               {props.heading || "Bread Studio"}
             </Editable>

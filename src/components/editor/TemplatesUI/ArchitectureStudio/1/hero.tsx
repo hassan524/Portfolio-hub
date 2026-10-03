@@ -10,6 +10,8 @@ export function ArchitectureStudio1Hero({ props = {}, theme, onChange }: any) {
     const inkSecond = theme?.["ink-second"] || ink;
     const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
     const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
     return (
         <section
@@ -18,7 +20,7 @@ export function ArchitectureStudio1Hero({ props = {}, theme, onChange }: any) {
             style={{
                 backgroundColor: bg,
                 color: ink,
-                fontFamily: '"DM Sans", Arial, sans-serif',
+                fontFamily: fontBody,
             }}
         >
             <div className="absolute inset-0 z-0">
@@ -44,7 +46,7 @@ export function ArchitectureStudio1Hero({ props = {}, theme, onChange }: any) {
                 <Editable
                     as="h1"
                     className="text-[54px] sm:text-[70px] md:text-[86px] lg:text-[104px] font-medium leading-[0.86] max-w-3xl mb-5 tracking-tight font-serif"
-                    style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                    style={{ color: ink, fontFamily: fontHeading }}
                     value={props?.headline || "Places with a point of view."}
                     onChange={(v) => onChange?.({ headline: v })}
                 />

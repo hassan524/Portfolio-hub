@@ -12,6 +12,8 @@ export function ArchitectureStudio3Navbar({ props = {}, theme, onChange }: Block
     const inkSecond = theme?.["ink-second"] || ink;
     const surface = theme?.surface || "rgba(0, 0, 0, 0.06)";
     const accent = theme?.accent || "#292929";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
     const navLinks = [
         { label: "Projects", href: "#projects" },
@@ -27,7 +29,7 @@ export function ArchitectureStudio3Navbar({ props = {}, theme, onChange }: Block
                 backgroundColor: `${bg}F2`,
                 borderColor: `${ink}1A`,
                 color: ink,
-                fontFamily: '"DM Sans", Arial, sans-serif',
+                fontFamily: fontBody,
             }}
         >
             {/* Logo — wrapped in div so [&_nav>div] applies block-bg to full navbar */}

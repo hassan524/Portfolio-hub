@@ -9,18 +9,20 @@ export function ArchitectureStudio1Footer({ props = {}, theme, onChange }: any) 
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   return (
     <footer
       className="px-6 md:px-14 lg:px-20 pt-16 pb-8 transition-colors w-full"
-      style={{ backgroundColor: bgSecond, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bgSecond, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr_45px] gap-8 md:gap-10 pb-16">
           <a
             href="#top"
             className="text-4xl md:text-5xl font-medium leading-none transition-opacity hover:opacity-80 font-serif"
-            style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+            style={{ color: ink, fontFamily: fontHeading }}
           >
             <Editable value={props?.logoText || "Sagent"} onChange={(v) => onChange?.({ logoText: v })} />
           </a>

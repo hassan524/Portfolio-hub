@@ -9,6 +9,8 @@ export function ArchitectureStudio3About({ props = {}, theme, onChange }: any) {
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   return (
     <section

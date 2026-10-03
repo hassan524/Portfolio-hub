@@ -11,6 +11,21 @@ type BuildResult = {
   patchedBlockSource: Record<string, string>;
 };
 
+// JSON font name -> CSS class (same classes are defined in buildHtml.ts)
+const FONT_CLASS: Record<string, string> = {
+  "Poppins": "tb-poppins",
+  "Inter": "tb-inter",
+  "Fraunces": "tb-fraunces",
+  "Space Grotesk": "tb-space-grotesk",
+  "Cormorant Garamond": "tb-cormorant",
+  "DM Sans": "tb-dm-sans",
+  "Instrument Serif": "tb-instrument",
+  "Outfit": "tb-outfit",
+  "Comic Relief": "tb-comic",
+  "Open Sans": "tb-open-sans",
+  "Roboto": "tb-roboto",
+};
+
 export function buildAppTsx(
   site: SiteData,
   blockSource: Record<string, string>,
@@ -27,6 +42,10 @@ export function buildAppTsx(
     [data-has-free-positioned="true"] > [data-block-id] > footer,
     [data-has-free-positioned="true"] section { overflow: visible !important; }
   `.trim();
+
+  // Font class from site.json -> theme.fontBody (empty if the font isn't in the list)
+  const fontClass = FONT_CLASS[(site.theme as any)?.fontBody] ?? "";
+
   const sorted = [...site.blocks].sort((a, b) => a.order - b.order);
   const importLines: string[] = [];
   const renderLines: string[] = [];
@@ -166,7 +185,7 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: AI_THEME_STYLES }} />
-      <main ref={mainRef} style={{ minHeight: "100vh", background: siteData.theme.bg, color: siteData.theme.ink, width: "100%", maxWidth: "100vw", overflowX: "hidden", "--background": siteData.theme.bg, "--foreground": siteData.theme.ink, "--ink": siteData.theme.ink, "--theme-bg": siteData.theme.bg, "--theme-ink": siteData.theme.ink, "--theme-accent": siteData.theme.accent, "--accent": siteData.theme.accent, "--theme-surface": siteData.theme.surface || siteData.theme.bg, "--surface": siteData.theme.surface || siteData.theme.bg }}>
+      <main ref={mainRef} className="${fontClass}" style={{ minHeight: "100vh", background: siteData.theme.bg, color: siteData.theme.ink, width: "100%", maxWidth: "100vw", overflowX: "hidden", "--background": siteData.theme.bg, "--foreground": siteData.theme.ink, "--ink": siteData.theme.ink, "--theme-bg": siteData.theme.bg, "--theme-ink": siteData.theme.ink, "--theme-accent": siteData.theme.accent, "--accent": siteData.theme.accent, "--theme-surface": siteData.theme.surface || siteData.theme.bg, "--surface": siteData.theme.surface || siteData.theme.bg }}>
       ${renderLines.join("\n      ")}
       </main>
     </>

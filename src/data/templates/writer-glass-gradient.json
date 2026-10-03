@@ -1,26 +1,27 @@
 {
   "id": "writer-glass-gradient",
+  "name": "Atelier Obsidian Parfums",
   "category": "Perfume Brand",
   "theme": {
-    "bg": "#101018",
-    "bg-second": "#ffffff",
-    "ink": "#eef0ff",
-    "ink-second": "#000000",
-    "accent": "#7c9dff",
-    "surface": "#2d2d34",
-    "fontHeading": "Space Grotesk",
+    "bg": "#0A090D",
+    "bg-second": "#14121B",
+    "ink": "#F5F2EB",
+    "ink-second": "#9E96A6",
+    "accent": "#D4AF37",
+    "surface": "rgba(255, 255, 255, 0.05)",
+    "fontHeading": "Cinzel",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
   },
   "blocks": [
     {
-      "id": "nav-o87oj",
+      "id": "nav-pb2",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "PerfumeBrand2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +32,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-2"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-2"
+        "variant": "PerfumeBrand2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-2"
+        "variant": "PerfumeBrand2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "PerfumeBrand2Projects"
       }
     },
     {
@@ -63,7 +64,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-2"
+        "variant": "PerfumeBrand2Testimonials"
       }
     },
     {
@@ -73,7 +74,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-2"
+        "variant": "PerfumeBrand2Contact"
       }
     },
     {
@@ -83,7 +84,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-2"
+        "variant": "PerfumeBrand2Footer"
       }
     }
   ],

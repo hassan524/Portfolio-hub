@@ -9,6 +9,8 @@ export function ArchitectureStudio1Services({ props = {}, theme, onChange }: any
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   const services = [
     {
@@ -32,7 +34,7 @@ export function ArchitectureStudio1Services({ props = {}, theme, onChange }: any
     <section
       id="services"
       className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bg, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-6xl mx-auto mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -45,7 +47,7 @@ export function ArchitectureStudio1Services({ props = {}, theme, onChange }: any
           <Editable
             as="h2"
             className="text-4xl sm:text-5xl md:text-6xl font-medium leading-none tracking-tight font-serif"
-            style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+            style={{ color: ink, fontFamily: fontHeading }}
             value="Architecture & placemaking"
           />
         </div>
@@ -76,7 +78,7 @@ export function ArchitectureStudio1Services({ props = {}, theme, onChange }: any
             <Editable
               as="h3"
               className="text-2xl md:text-3xl font-medium font-serif"
-              style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+              style={{ color: ink, fontFamily: fontHeading }}
               value={s.title}
             />
             <Editable

@@ -11,6 +11,8 @@ export function ArchitectureStudio2Testimonials({ props = {}, theme, onChange }:
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
   const [open, setOpen] = useState(0);
 
   const steps = [
@@ -36,7 +38,7 @@ export function ArchitectureStudio2Testimonials({ props = {}, theme, onChange }:
     <section
       id="testimonials"
       className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bgSecond, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bgSecond, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-4xl mx-auto">
         <span
@@ -49,7 +51,7 @@ export function ArchitectureStudio2Testimonials({ props = {}, theme, onChange }:
         <Editable
           as="h2"
           className="text-3xl sm:text-4xl md:text-5xl font-medium max-w-3xl mb-12 tracking-tight leading-tight font-serif italic"
-          style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: ink, fontFamily: fontHeading }}
           value={props?.title || "Four steps to a place that feels like yours."}
           onChange={(v) => onChange?.({ title: v })}
         />
@@ -75,7 +77,7 @@ export function ArchitectureStudio2Testimonials({ props = {}, theme, onChange }:
                   <Editable
                     value={s.title}
                     className="text-2xl md:text-3xl font-medium font-serif italic"
-                    style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                    style={{ color: ink, fontFamily: fontHeading }}
                   />
                 </span>
                 <motion.span
@@ -112,7 +114,7 @@ export function ArchitectureStudio2Testimonials({ props = {}, theme, onChange }:
         <Editable
           as="blockquote"
           className="mt-16 block max-w-3xl text-xl sm:text-2xl leading-relaxed opacity-90 font-serif italic"
-          style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: ink, fontFamily: fontHeading }}
           value={
             props?.quote ||
             "“They listened first, then designed a home we never imagined possible.” — Daniel Foster"

@@ -201,8 +201,6 @@ export function ElementStylePanel({
 
   const dynamicFontFamilies = [
     { label: "Theme Default", value: "inherit" },
-    ...(theme?.fontHeading ? [{ label: `Heading (${theme.fontHeading})`, value: theme.fontHeading }] : []),
-    ...(theme?.fontBody ? [{ label: `Body (${theme.fontBody})`, value: theme.fontBody }] : []),
     ...FONT_FAMILIES_STATIC,
   ];
 
@@ -385,9 +383,16 @@ export function ElementStylePanel({
                   <div className="space-y-1">
                     <Select value={style.fontFamily ?? "inherit"} onValueChange={(fontFamily) => onChange({ fontFamily })}>
                       <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="templates-category-select-content">
                         {dynamicFontFamilies.map((font) => (
-                          <SelectItem key={font.value} value={font.value} className="cursor-pointer text-[11px]">{font.label}</SelectItem>
+                          <SelectItem
+                            key={font.value}
+                            value={font.value}
+                            className="cursor-pointer text-[11px]"
+                            style={{ fontFamily: font.value }}
+                          >
+                            {font.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

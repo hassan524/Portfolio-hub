@@ -1,10 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Comic+Relief:wght@400;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+/* 1) All @import rules must come first in the file.
+   Google Fonts merged into ONE request (faster, fewer imports). */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Comic+Relief:wght@400;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap');
 
+/* 2) Tailwind v4 (requires tailwindcss >= 4.0 and the @tailwindcss/postcss or @tailwindcss/vite plugin) */
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+
+/* 3) @source must come after the imports */
+@source "../src";
 
 [data-ai-product-theme] [class*="text-white"],
 [data-ai-product-theme] [class*="text-gray-900"],
@@ -85,6 +88,9 @@
   --font-serif: "Instrument Serif", serif;
   --font-cormorant: "Cormorant Garamond", Georgia, serif;
   --font-dm-sans: "DM Sans", Arial, sans-serif;
+  --font-fraunces: "Fraunces", Georgia, serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-inter: "Inter", sans-serif;
 }
 
 :root {
@@ -107,7 +113,7 @@
   --primary: oklch(0.448 0.119 151.328);
   --primary-foreground: oklch(0.16 0.02 135);
 
-  /* Secondary = yellow-lime (the filled CTA buttons) */
+  /* Secondary */
   --secondary: oklch(0% 0 0);
   --secondary-foreground: oklch(0.16 0.02 135);
 
@@ -125,8 +131,8 @@
   --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.35), 0 8px 24px oklch(0 0 0 / 0.4);
   --shadow-lift: 0 8px 24px oklch(0 0 0 / 0.4), 0 32px 90px oklch(0 0 0 / 0.6);
   --gradient-hero: radial-gradient(1200px 620px at 50% -5%, oklch(0.44 0.12 130 / 0.5), transparent 65%),
-                   radial-gradient(800px 520px at 88% 10%, oklch(0.85 0.21 129 / 0.14), transparent 60%),
-                   radial-gradient(900px 520px at 5% 70%, oklch(0.3 0.06 130 / 0.3), transparent 65%);
+    radial-gradient(800px 520px at 88% 10%, oklch(0.85 0.21 129 / 0.14), transparent 60%),
+    radial-gradient(900px 520px at 5% 70%, oklch(0.3 0.06 130 / 0.3), transparent 65%);
   --gradient-brand: linear-gradient(135deg, oklch(0.77 0.20 131), oklch(0.85 0.21 129) 100%);
 }
 
@@ -154,9 +160,11 @@
   * {
     border-color: var(--color-border);
   }
+
   html {
     scroll-behavior: smooth;
   }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -164,8 +172,11 @@
     font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 {
-    font-family: var(--font-display);
+
+  h1,
+  h2,
+  h3 {
+    font-family: inherit;
     letter-spacing: -0.02em;
   }
 }
@@ -188,6 +199,7 @@
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
 }
+
 @utility shadow-lift {
   box-shadow: var(--shadow-lift);
 }
@@ -202,13 +214,23 @@
 
 /* Marquee scrolling animations */
 @keyframes marquee-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes marquee-right {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
 }
 
 @utility animate-marquee-left {
@@ -223,7 +245,6 @@
 .marquee-row:hover .animate-marquee-right {
   animation-play-state: paused;
 }
-
 
 .simple-scrollbar {
   overflow-y: auto;
@@ -291,9 +312,7 @@
   border-radius: 9999px;
 }
 
-
-
-/* font  */
+/* font helper classes */
 .poppins {
   font-family: "Poppins", sans-serif;
 }
@@ -326,27 +345,50 @@
   font-style: normal;
 }
 
-
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @utility animate-spin-slow {
   animation: spin-slow 3s linear infinite;
 }
 
-
 @keyframes line-right {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateX(300%); opacity: 0; }
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(300%);
+    opacity: 0;
+  }
 }
 
 @keyframes line-left {
-  0% { transform: translateX(100%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateX(-300%); opacity: 0; }
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-300%);
+    opacity: 0;
+  }
 }
 
 @utility animate-line-right {
@@ -358,8 +400,13 @@
 }
 
 @keyframes skeleton-shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .animate-skeleton-shimmer {
@@ -372,13 +419,57 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.07) 40%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.07) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.07) 40%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.07) 60%,
+      transparent 100%);
   animation: skeleton-shimmer 1.8s infinite ease-in-out;
+}
+
+
+/* ---------- Theme font utilities (set on the block wrapper, inherited by everything inside) ---------- */
+.tb-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+.tb-inter {
+  font-family: "Inter", sans-serif;
+}
+
+.tb-fraunces {
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.tb-space-grotesk {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.tb-cormorant {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.tb-dm-sans {
+  font-family: "DM Sans", Arial, sans-serif;
+}
+
+.tb-instrument {
+  font-family: "Instrument Serif", serif;
+}
+
+.tb-outfit {
+  font-family: "Outfit", sans-serif;
+}
+
+.tb-comic {
+  font-family: "Comic Relief", system-ui;
+}
+
+.tb-open-sans {
+  font-family: "Open Sans", sans-serif;
+}
+
+.tb-roboto {
+  font-family: "Roboto", sans-serif;
 }

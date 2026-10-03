@@ -9,9 +9,11 @@ export function Bakery1Contact({ props = {}, theme, onChange }: any) {
   const ink = theme?.ink || "#1a1a1a";
   const surface = theme?.surface || "#dcdbd8";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
 
   return (
-    <section id="contact" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink }}>
+    <section id="contact" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="grid gap-16 md:grid-cols-2 md:items-start">
           {/* Left: info */}
@@ -20,7 +22,7 @@ export function Bakery1Contact({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-4 text-4xl md:text-5xl"
-              style={{ fontFamily: '"DM Serif Display", Georgia, serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.contactTitle || "Come say hello."}
               onChange={(contactTitle) => onChange?.({ contactTitle })}
             />

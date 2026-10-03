@@ -44,6 +44,12 @@ function resolveModuleAndExport(
     if (mod[componentName] && !isExportEmpty(mod[componentName])) {
         return { path, exportName: componentName, isDefault: false };
     }
+    if (mod[capitalizedKind] && !isExportEmpty(mod[capitalizedKind])) {
+        return { path, exportName: capitalizedKind, isDefault: false };
+    }
+    if (kind.toLowerCase() === "spacer" && mod.SpacerBlock && !isExportEmpty(mod.SpacerBlock)) {
+        return { path, exportName: "SpacerBlock", isDefault: false };
+    }
     if (mod.default && !isExportEmpty(mod.default)) {
         return { path, exportName: null, isDefault: true };
     }

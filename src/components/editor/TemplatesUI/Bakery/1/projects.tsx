@@ -15,10 +15,12 @@ export function Bakery1Projects({ props = {}, theme, onChange }: any) {
   const ink = theme?.ink || "#1a1a1a";
   const surface = theme?.surface || "#dcdbd8";
   const accent = theme?.accent || "#e85d3d";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
   const items = (props.items && props.items.length > 0) ? props.items : DEFAULT_ITEMS;
 
   return (
-    <section id="work" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink }}>
+    <section id="work" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex items-end justify-between border-b pb-8" style={{ borderColor: surface }}>
           <div>
@@ -26,7 +28,7 @@ export function Bakery1Projects({ props = {}, theme, onChange }: any) {
             <Editable
               as="h2"
               className="mt-3 text-4xl md:text-5xl"
-              style={{ fontFamily: '"DM Serif Display", Georgia, serif' }}
+              style={{ fontFamily: fontHeading }}
               value={props.projectsTitle || "Made fresh, every morning."}
               onChange={(projectsTitle) => onChange?.({ projectsTitle })}
             />
@@ -46,7 +48,7 @@ export function Bakery1Projects({ props = {}, theme, onChange }: any) {
                 </div>
                 <div className="mt-4">
                   <p className="text-xs font-bold uppercase tracking-widest opacity-50">{item.category || "Bakery"}</p>
-                  <Editable as="h3" className="mt-1 text-lg" style={{ fontFamily: '"DM Serif Display", Georgia, serif' }} value={item.title || `Item ${i + 1}`} />
+                  <Editable as="h3" className="mt-1 text-lg" style={{ fontFamily: fontHeading }} value={item.title || `Item ${i + 1}`} />
                 </div>
               </div>
             );

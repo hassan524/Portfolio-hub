@@ -10,6 +10,8 @@ export function ArchitectureStudio3Hero({ props = {}, theme, onChange }: any) {
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   return (
     <section
@@ -18,7 +20,7 @@ export function ArchitectureStudio3Hero({ props = {}, theme, onChange }: any) {
       style={{
         backgroundColor: bg,
         color: ink,
-        fontFamily: '"DM Sans", Arial, sans-serif',
+        fontFamily: fontBody,
         "--accent": accent,
         "--ink": ink,
         "--bg": bg,
@@ -49,7 +51,7 @@ export function ArchitectureStudio3Hero({ props = {}, theme, onChange }: any) {
         <Editable
           as="h1"
           className="text-[54px] sm:text-[70px] md:text-[86px] lg:text-[104px] font-medium leading-[0.92] max-w-2xl mb-5 tracking-tight font-sans"
-          style={{ color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+          style={{ color: ink, fontFamily: fontBody }}
           value={props?.headline || "Ambitious by design."}
           onChange={(v) => onChange?.({ headline: v })}
         />

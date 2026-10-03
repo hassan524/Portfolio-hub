@@ -8,12 +8,14 @@ export function ArchitectureStudio1Testimonials({ props = {}, theme, onChange }:
   const inkSecond = theme?.["ink-second"] || ink;
   const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
   const accent = theme?.accent || "#3B82F6";
+  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const fontBody = theme?.fontBody || "DM Sans";
 
   return (
     <section
       id="testimonials"
       className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors text-center w-full"
-      style={{ backgroundColor: bgSecond, color: ink, fontFamily: '"DM Sans", Arial, sans-serif' }}
+      style={{ backgroundColor: bgSecond, color: ink, fontFamily: fontBody }}
     >
       <div className="max-w-4xl mx-auto flex flex-col items-center">
         <span
@@ -25,7 +27,7 @@ export function ArchitectureStudio1Testimonials({ props = {}, theme, onChange }:
 
         <div
           className="text-7xl md:text-8xl leading-none select-none my-2"
-          style={{ color: accent, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: accent, fontFamily: fontHeading }}
         >
           “
         </div>
@@ -33,7 +35,7 @@ export function ArchitectureStudio1Testimonials({ props = {}, theme, onChange }:
         <Editable
           as="blockquote"
           className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium leading-[1.2] max-w-3xl mb-10 tracking-tight font-serif"
-          style={{ color: ink, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+          style={{ color: ink, fontFamily: fontHeading }}
           value={
             props?.quote ||
             "“Sagent understood the character of our neighbourhood and created something that feels entirely of its place.”"

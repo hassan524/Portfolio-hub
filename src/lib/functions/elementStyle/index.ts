@@ -1,12 +1,20 @@
 import type { PreviewElementStyle } from "@/types/previewEditTypes";
 
 export const FONT_FAMILIES_STATIC = [
-  { label: "Inter", value: "'Inter', sans-serif" },
-  { label: "Outfit", value: "'Outfit', sans-serif" },
-  { label: "Roboto", value: "'Roboto', sans-serif" },
-  { label: "Playfair Display", value: "'Playfair Display', serif" },
-  { label: "Space Grotesk", value: "'Space Grotesk', sans-serif" },
-  { label: "Fira Code", value: "'Fira Code', monospace" },
+  { label: "Poppins", value: '"Poppins", sans-serif' },
+  { label: "Inter", value: '"Inter", sans-serif' },
+  { label: "Fraunces", value: '"Fraunces", Georgia, serif' },
+  { label: "Space Grotesk", value: '"Space Grotesk", sans-serif' },
+  { label: "Cormorant Garamond", value: '"Cormorant Garamond", Georgia, serif' },
+  { label: "DM Sans", value: '"DM Sans", Arial, sans-serif' },
+  { label: "Instrument Serif", value: '"Instrument Serif", serif' },
+  { label: "Outfit", value: '"Outfit", sans-serif' },
+  { label: "Comic Relief", value: '"Comic Relief", system-ui' },
+  { label: "Open Sans", value: '"Open Sans", sans-serif' },
+  { label: "Roboto", value: '"Roboto", sans-serif' },
+  { label: "System Sans", value: 'ui-sans-serif, system-ui, sans-serif' },
+  { label: "System Serif", value: 'ui-serif, Georgia, Cambria, "Times New Roman", serif' },
+  { label: "System Mono", value: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
 ];
 
 export const GRADIENT_PRESETS = [
@@ -40,22 +48,22 @@ export const HOVER_EFFECT_OPTIONS: {
   value: NonNullable<PreviewElementStyle["hoverEffect"]>;
   label: string;
 }[] = [
-  { value: "none", label: "None" },
-  { value: "grow", label: "Grow" },
-  { value: "lift", label: "Lift" },
-  { value: "glow", label: "Glow" },
-  { value: "darken", label: "Darken" },
-];
+    { value: "none", label: "None" },
+    { value: "grow", label: "Grow" },
+    { value: "lift", label: "Lift" },
+    { value: "glow", label: "Glow" },
+    { value: "darken", label: "Darken" },
+  ];
 
 export const ENTRANCE_OPTIONS: {
   value: NonNullable<PreviewElementStyle["entrance"]>;
   label: string;
 }[] = [
-  { value: "none", label: "None" },
-  { value: "fade", label: "Fade" },
-  { value: "slideUp", label: "Slide Up" },
-  { value: "zoom", label: "Zoom" },
-];
+    { value: "none", label: "None" },
+    { value: "fade", label: "Fade" },
+    { value: "slideUp", label: "Slide Up" },
+    { value: "zoom", label: "Zoom" },
+  ];
 
 export const SWATCHES = [
   "#f43f5e",
@@ -143,7 +151,7 @@ export function hsvToRgb(h: number, s: number, v: number) {
   else if (h < 180) [r, g, b] = [0, c, x];
   else if (h < 240) [r, g, b] = [0, x, c];
   else if (h < 300) [r, g, b] = [x, 0, c];
-  else [r, g, b] = [c, 0, x];
+  else[r, g, b] = [c, 0, x];
 
   return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
 }
