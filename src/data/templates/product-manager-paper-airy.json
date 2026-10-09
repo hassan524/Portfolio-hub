@@ -1,14 +1,14 @@
 {
   "id": "product-manager-paper-airy",
   "category": "SaaS Product",
+  "view": "hero",
   "theme": {
-    "bg": "#faf9f6",
-    "bg-second": "#ffffff",
-    "ink": "#1a1a1a",
-    "ink-second": "#000000",
-    "accent": "#e85d3d",
-    "surface": "#dcdbd8",
-    "fontHeading": "Fraunces",
+    "bg": "#18191B",
+    "bg-second": "#1F2023",
+    "ink": "#FFFFFF",
+    "ink-second": "#A1A1A6",
+    "surface": "rgba(255, 255, 255, 0.07)",
+    "accent": "#FF4D00",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "SaaSProduct5Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-19"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-25"
+        "variant": "SaaSProduct5Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-19"
+        "variant": "SaaSProduct5About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "SaaSProduct5Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-19"
+        "variant": "SaaSProduct5Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-19"
+        "variant": "SaaSProduct5Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-19"
+        "variant": "SaaSProduct5Footer"
       }
     }
   ],

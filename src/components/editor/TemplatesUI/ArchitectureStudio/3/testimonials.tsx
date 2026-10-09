@@ -1,78 +1,124 @@
 // @ts-nocheck
-import { Editable } from "@/components/editor/ui/Editable";
 import { motion } from "framer-motion";
+import { Editable } from "@/components/editor/ui/Editable";
+import { Award, Quote, Star } from "lucide-react";
 
 export function ArchitectureStudio3Testimonials({ props = {}, theme, onChange }: any) {
-  const bg = theme?.bg || "#0A0A0C";
-  const bgSecond = theme?.["bg-second"] || bg;
-  const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#3B82F6";
-  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const bg = theme?.bg || "#09090B";
+  const ink = theme?.ink || "#FFFFFF";
   const fontBody = theme?.fontBody || "DM Sans";
 
-  const stats = [
-    { value: "18", label: "Years of practice" },
-    { value: "120+", label: "Projects delivered" },
-    { value: "14", label: "Design awards" },
-    { value: "9", label: "Countries" },
+  const reviews = [
+    {
+      ref: "CRITIQUE // 01",
+      citation: "Nordic Architectural Review",
+      quote:
+        "AMB·TIOUS creates monumental civic forms that feel simultaneously ancient and fiercely contemporary. Their mastery of mass timber and raw concrete sets a new Scandinavian standard.",
+      critic: "Dr. Kaisa Mikkola",
+      title: "Senior Architectural Scholar, Aalto University",
+      badge: "PRACTICE OF THE YEAR 2025",
+    },
+    {
+      ref: "CRITIQUE // 02",
+      citation: "Civic Trust International",
+      quote:
+        "The Arc Cultural Center has become a catalyst for waterfront regeneration. The acoustics, the daylight control, and the carbon-neutral envelope are nothing short of triumphant.",
+      critic: "Henrik Lindegaard",
+      title: "Jury President, European Urban Design",
+      badge: "CIVIC GOLD MEDAL",
+    },
+    {
+      ref: "CRITIQUE // 03",
+      citation: "Patron Monograph",
+      quote:
+        "They took our complex topographic site and carved a home of astonishing stillness. In winter, the sunlight penetrates to the deepest core of the house.",
+      critic: "Soren & Mette Haahr",
+      title: "Patrons, Woodland Monolith Sanctuary",
+      badge: "RESIDENTIAL CITATION 2024",
+    },
   ];
 
   return (
     <section
       id="testimonials"
-      className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bgSecond, color: ink }}
+      className="w-full px-6 md:px-12 lg:px-16 py-24 md:py-36 transition-colors border-b"
+      style={{
+        backgroundColor: bg,
+        borderColor: "rgba(255, 255, 255, 0.12)",
+        color: ink,
+        fontFamily: fontBody,
+      }}
     >
-      <div className="max-w-6xl mx-auto">
-        <span
-          className="text-[10px] font-bold uppercase tracking-widest block mb-4"
-          style={{ color: accent }}
-        >
-          <Editable value="THE STUDIO IN NUMBERS" />
-        </span>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-white/12">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/70 block mb-3">
+              <Editable value="04 // CRITICAL APPRAISAL" />
+            </span>
+            <Editable
+              as="h2"
+              className="text-4xl sm:text-6xl md:text-7xl font-bold uppercase tracking-tight leading-none text-white"
+              value={props?.title || "Endorsements & monograph verdicts."}
+              onChange={(v) => onChange?.({ title: v })}
+            />
+          </div>
 
-        <div
-          className="mt-10 grid grid-cols-2 gap-px md:grid-cols-4 border"
-          style={{ backgroundColor: surface, borderColor: `${ink}1A` }}
-        >
-          {stats.map((s, i) => (
+          <div className="font-mono text-xs text-white/60">
+            <span>PEER REVIEWS & AWARDS</span>
+          </div>
+        </div>
+
+        {/* 3-Card Dark Brutalist Testimonial Grid with Framer Motion */}
+        <div className="grid md:grid-cols-3 gap-8">
+          {reviews.map((r, idx) => (
             <motion.div
-              key={s.label}
-              whileHover={{ y: -4 }}
-              initial={{ opacity: 0, y: 20 }}
+              key={r.ref}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="flex flex-col gap-2 p-8 transition-colors"
-              style={{ backgroundColor: bg }}
+              transition={{ duration: 0.6, delay: idx * 0.15 }}
+              whileHover={{ y: -4, borderColor: "rgba(255,255,255,0.4)" }}
+              className="p-8 border border-white/12 bg-[#0D0D10] flex flex-col justify-between transition-colors shadow-lg"
             >
-              <Editable
-                as="strong"
-                value={s.value}
-                className="text-4xl sm:text-5xl font-bold font-sans"
-                style={{ color: ink }}
-              />
-              <Editable
-                value={s.label}
-                className="text-xs uppercase tracking-widest font-semibold opacity-60"
-                style={{ color: inkSecond }}
-              />
+              <div>
+                <div className="flex items-center justify-between pb-3 mb-6 border-b border-white/10 font-mono text-xs text-white/60">
+                  <span className="font-bold text-white">{r.ref}</span>
+                  <span className="uppercase text-[10px]">{r.citation}</span>
+                </div>
+
+                <Quote size={24} className="text-white/40 mb-6" />
+
+                <Editable
+                  as="blockquote"
+                  className="text-base sm:text-lg leading-relaxed text-white/90 font-light mb-8 font-sans"
+                  value={`“${r.quote}”`}
+                />
+              </div>
+
+              <div className="pt-4 border-t border-white/10 font-mono text-xs">
+                <span className="font-bold text-white block mb-1">{r.critic}</span>
+                <span className="text-[11px] text-white/60 block mb-3">{r.title}</span>
+                <span className="inline-block px-2.5 py-1 border border-white/30 text-[10px] font-bold text-white">
+                  {r.badge}
+                </span>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        <Editable
-          as="blockquote"
-          className="mt-16 block max-w-3xl text-xl sm:text-2xl md:text-3xl font-sans font-medium leading-snug opacity-90"
-          style={{ color: ink }}
-          value={
-            props?.quote ||
-            "“A remarkably clear vision, from the first conversation to the final detail.” — Daniel Foster"
-          }
-          onChange={(v) => onChange?.({ quote: v })}
-        />
+        {/* Global Press Ribbon */}
+        <div className="mt-14 p-8 border border-white/12 bg-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 font-mono text-xs">
+          <div className="flex items-center gap-3">
+            <Award size={20} className="text-white" />
+            <span className="text-white font-bold tracking-wide">
+              HELSINKI DESIGN PRIZE & MIES AWARD COMMENDED (2025)
+            </span>
+          </div>
+          <span className="text-white/60 tracking-wider">
+            ALL MONOGRAPHS DOCUMENTED UNDER ISO 14001
+          </span>
+        </div>
       </div>
     </section>
   );

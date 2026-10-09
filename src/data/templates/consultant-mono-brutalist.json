@@ -1,14 +1,14 @@
 {
   "id": "consultant-mono-brutalist",
   "category": "Clothing Brand",
+  "view": "hero",
   "theme": {
-    "bg": "#ffffff",
-    "bg-second": "#ffffff",
-    "ink": "#000000",
-    "ink-second": "#000000",
-    "accent": "#000000",
-    "surface": "#e0e0e0",
-    "fontHeading": "Space Grotesk",
+    "bg": "#F3EDE3",
+    "bg-second": "#E8DED0",
+    "ink": "#1E1B18",
+    "ink-second": "#6E665D",
+    "surface": "rgba(30,27,24,0.08)",
+    "accent": "#B95C3B",
     "fontBody": "Inter",
     "corners": "sharp",
     "spacing": "compact"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar5",
+        "variant": "ClothingBrand2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-9"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-7"
+        "variant": "ClothingBrand2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-9"
+        "variant": "ClothingBrand2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "ClothingBrand2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-9"
+        "variant": "ClothingBrand2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-9"
+        "variant": "ClothingBrand2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-9"
+        "variant": "ClothingBrand2Footer"
       }
     }
   ],

@@ -1,6 +1,7 @@
 {
   "id": "marketer-corporate-blue",
   "category": "Startup",
+  "view": "hero",
   "theme": {
     "bg": "#f4f6fa",
     "bg-second": "#ffffff",
@@ -8,7 +9,6 @@
     "ink-second": "#000000",
     "accent": "#2563eb",
     "surface": "#d7d8dc",
-    "fontHeading": "Inter",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "Startup1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-15"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-30"
+        "variant": "Startup1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-15"
+        "variant": "Startup1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "Startup1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-15"
+        "variant": "Startup1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-15"
+        "variant": "Startup1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-15"
+        "variant": "Startup1Footer"
       }
     }
   ],

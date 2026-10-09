@@ -1,6 +1,7 @@
 {
   "id": "fashion-designer-retro-terminal",
   "category": "Beauty & Cosmetics",
+  "view": "hero",
   "theme": {
     "bg": "#260C0A",
     "bg-second": "#F7E8D8",
@@ -8,7 +9,6 @@
     "ink-second": "#F3C7AD",
     "surface": "rgba(255,255,255,.1)",
     "accent": "#F37D4C",
-    "fontHeading": "Space Grotesk",
     "fontBody": "Space Grotesk",
     "corners": "sharp",
     "spacing": "compact"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "BeautyCosmetics2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-1"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-20"
+        "variant": "BeautyCosmetics2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-1"
+        "variant": "BeautyCosmetics2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "BeautyCosmetics2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-1"
+        "variant": "BeautyCosmetics2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-1"
+        "variant": "BeautyCosmetics2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-1"
+        "variant": "BeautyCosmetics2Footer"
       }
     }
   ],

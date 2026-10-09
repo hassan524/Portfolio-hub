@@ -59,10 +59,7 @@ export function getPreviewBlockWrapperClasses(
   const hasHeight = Boolean(block.height);
 
   const navbarLayout = isNavbar
-    ? hasHeight
-      ? "[&_header]:!relative [&_header]:!top-auto [&_nav]:!relative [&_nav]:!top-auto"
-      : "[&_header]:!relative [&_header]:!top-auto [&_header]:!h-auto [&_header]:!min-h-0 " +
-        "[&_nav]:!relative [&_nav]:!top-auto [&_nav]:!h-auto [&_nav]:!min-h-0"
+    ? "[&_header]:!relative [&_header]:!top-auto [&_nav]:!relative [&_nav]:!top-auto"
     : "";
 
   const heightClasses = hasHeight
@@ -101,12 +98,13 @@ export function getPreviewBlockWrapperStyle(
 ): CSSProperties {
   const hasCustomBg = Boolean(block.bgColor);
 
+  const isNavbar = isNavbarBlock(block);
   return {
     ...(options?.isActive ? { outlineColor: theme.accent } : undefined),
     minHeight: block.height ? `${block.height}px` : undefined,
     height: block.height ? `${block.height}px` : undefined,
     backgroundColor: block.bgColor || undefined,
-    zIndex: options?.hasFreePositioned ? 200 : 1,
+    zIndex: options?.hasFreePositioned ? 200 : isNavbar ? 50 : 1,
     overflow: options?.hasFreePositioned ? "visible" : undefined,
     position: "relative",
     ...(hasCustomBg ? ({ "--block-bg": block.bgColor } as CSSProperties) : {}),

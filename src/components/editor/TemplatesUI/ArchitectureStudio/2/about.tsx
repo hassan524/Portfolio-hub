@@ -1,69 +1,154 @@
 // @ts-nocheck
 import { Editable } from "@/components/editor/ui/Editable";
-import { ArrowUpRight, Plus } from "lucide-react";
+import { ArrowUpRight, Box, Compass, Layers, Scale, ShieldCheck } from "lucide-react";
+
+const mix = (c: string = "#1A1816", p: number = 50) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
 
 export function ArchitectureStudio2About({ props = {}, theme, onChange }: any) {
-  const bg = theme?.bg || "#0A0A0C";
-  const bgSecond = theme?.["bg-second"] || bg;
-  const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#3B82F6";
-  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const bgSecond = theme?.["bg-second"] || "#EBE5DC";
+  const ink = theme?.ink || "#1A1816";
+  const inkSecond = theme?.["ink-second"] || "#5C5650";
+  const accent = theme?.accent || "#C85A32";
+  const fontHeading = theme?.fontHeading || "DM Sans";
   const fontBody = theme?.fontBody || "DM Sans";
+
+  const pillars = [
+    {
+      code: "TEC-01",
+      title: "Structural Legibility",
+      desc: "We believe a building is most poetic when its structural skeleton is visible and honest. Load paths, cast joints, and cantilevers are articulated as primary architectural expressions.",
+      icon: Layers,
+    },
+    {
+      code: "TEC-02",
+      title: "Climatic Geometry",
+      desc: "Our facades are shaped by computational solar analysis and airflow simulations. Deep reveals, kinetic louvers, and massive thermal stone shields reduce active cooling loads by up to 60%.",
+      icon: Compass,
+    },
+    {
+      code: "TEC-03",
+      title: "Monolithic Permanence",
+      desc: "We eschew fast-cycle cladding materials in favor of quarried travertine, architectural terracotta, and structural cross-laminated timber designed for a 120-year operational life.",
+      icon: Scale,
+    },
+  ];
 
   return (
     <section
       id="about"
-      className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bgSecond, color: ink, fontFamily: fontBody }}
+      className="w-full px-6 md:px-12 py-24 md:py-32 transition-colors border-b"
+      style={{
+        backgroundColor: bgSecond,
+        borderColor: mix(ink, 16),
+        color: ink,
+        fontFamily: fontBody,
+      }}
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-start">
-        <div>
-          <span
-            className="text-[10px] font-bold uppercase tracking-widest block mb-4"
-            style={{ color: accent }}
-          >
-            <Editable value="THE STUDIO / 01" />
-          </span>
-          <Editable
-            as="h2"
-            className="text-4xl sm:text-5xl md:text-6xl font-medium leading-[0.98] max-w-md tracking-tight font-serif italic"
-            style={{ color: ink, fontFamily: fontHeading }}
-            value={props?.title || "A new perspective on the places we share."}
-            onChange={(v) => onChange?.({ title: v })}
-          />
-        </div>
-
-        <div className="pt-0 md:pt-16 grid grid-cols-1 sm:grid-cols-[90px_1fr] gap-6 md:gap-8 items-start">
-          <div
-            className="w-[90px] h-[90px] border flex items-center justify-center shrink-0"
-            style={{ borderColor: accent, color: accent }}
-          >
-            <Plus size={50} strokeWidth={1} />
+      <div className="max-w-[1400px] mx-auto">
+        {/* Section Header */}
+        <div className="grid lg:grid-cols-12 gap-8 items-end pb-14 border-b" style={{ borderColor: mix(ink, 14) }}>
+          <div className="lg:col-span-6">
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold block mb-3" style={{ color: accent }}>
+              <Editable value="01 // TECTONICS & PHILOSOPHY" />
+            </span>
+            <Editable
+              as="h2"
+              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight uppercase leading-[0.98]"
+              style={{ color: ink }}
+              value={props?.title || "A new perspective on the places we share."}
+              onChange={(v) => onChange?.({ title: v })}
+            />
           </div>
 
-          <div>
+          <div className="lg:col-span-6 flex flex-col justify-between gap-6">
             <Editable
               as="p"
-              className="text-base md:text-[17px] leading-[1.8] mb-8 opacity-85 max-w-lg"
-              style={{ color: inkSecond }}
+              className="text-base md:text-lg leading-relaxed font-normal"
+              style={{ color: mix(ink, 80) }}
               value={
                 props?.description ||
-                "Our practice brings together architecture, placemaking and an instinct for what makes a neighbourhood feel alive. Every project starts with a question: what could this place become?"
+                "Cúbiq operates at the intersection of rigorous European engineering and sculptural spatial art. Founded in Milan, our studio creates civic buildings, residential towers, and public spaces that celebrate the weight of stone and the precision of the line."
               }
               onChange={(v) => onChange?.({ description: v })}
             />
 
-            <a
-              href="#services"
-              className="inline-flex items-center gap-6 pb-2 border-b text-[10px] font-bold uppercase tracking-wider transition-opacity hover:opacity-60"
-              style={{ borderColor: ink, color: ink }}
-            >
-              <Editable value="HOW WE WORK" />
-              <ArrowUpRight size={16} />
-            </a>
+            <div className="flex items-center gap-6">
+              <a
+                href="#services"
+                className="inline-flex items-center gap-2 pb-1 border-b font-mono text-xs uppercase tracking-widest font-bold transition-opacity hover:opacity-70"
+                style={{ borderColor: accent, color: accent }}
+              >
+                <Editable value="DISCOVER OUR METHODOLOGY" />
+                <ArrowUpRight size={14} />
+              </a>
+              <span className="text-xs font-mono opacity-60" style={{ color: inkSecond }}>
+                MILANO // ZÜRICH
+              </span>
+            </div>
           </div>
+        </div>
+
+        {/* 3 Modernist Structural Pillar Cards */}
+        <div className="grid md:grid-cols-3 gap-8 py-16">
+          {pillars.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.code}
+                className="p-8 border flex flex-col justify-between transition-all hover:-translate-y-1 shadow-xs"
+                style={{
+                  backgroundColor: mix(bgSecond, 65),
+                  borderColor: mix(ink, 16),
+                }}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-8 pb-4 border-b font-mono text-xs" style={{ borderColor: mix(ink, 12) }}>
+                    <span className="font-bold" style={{ color: accent }}>
+                      {item.code}
+                    </span>
+                    <Icon size={16} style={{ color: mix(ink, 50) }} />
+                  </div>
+                  <Editable
+                    as="h3"
+                    className="text-xl md:text-2xl font-bold uppercase tracking-tight mb-4"
+                    style={{ color: ink }}
+                    value={item.title}
+                  />
+                  <Editable
+                    as="p"
+                    className="text-sm leading-relaxed"
+                    style={{ color: mix(ink, 75) }}
+                    value={item.desc}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Studio Stats Grid */}
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-10 border-t font-mono text-xs"
+          style={{ borderColor: mix(ink, 14) }}
+        >
+          {[
+            { val: "18 YRS", label: "PRACTICE CONTINUITY", note: "EST. 2008" },
+            { val: "52 WORKS", label: "BUILT PORTFOLIO", note: "CIVIC & HIGH-RISE" },
+            { val: "€420M", label: "CONSTRUCTED VALUE", note: "ON BUDGET DELIVERY" },
+            { val: "14 CITIES", label: "EUROPEAN PRESENCE", note: "GLOBAL COMMISSIONS" },
+          ].map((stat, idx) => (
+            <div key={idx} className="flex flex-col gap-1">
+              <span className="text-3xl font-bold tracking-tight" style={{ color: ink }}>
+                {stat.val}
+              </span>
+              <span className="font-semibold uppercase tracking-wider text-[11px]" style={{ color: accent }}>
+                {stat.label}
+              </span>
+              <span className="text-[10px] opacity-60" style={{ color: inkSecond }}>
+                {stat.note}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

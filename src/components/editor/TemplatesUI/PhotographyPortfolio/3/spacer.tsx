@@ -1,17 +1,19 @@
+// @ts-nocheck
 import type { SpacerProps } from "@/types/builder.schema";
 
-export function SpacerBlock({ props, theme }: any) {
-  const bg = props.backgroundColor || theme.bg;
-  const bgImage = (props as Record<string, unknown>).backgroundImage as string | undefined;
-  const bgSize = (props as Record<string, unknown>).backgroundSize as string | undefined;
-  const bgPosition = (props as Record<string, unknown>).backgroundPosition as string | undefined;
-  const bgRepeat = (props as Record<string, unknown>).backgroundRepeat as string | undefined;
-  const isBlended = Boolean((props as Record<string, unknown>).isBlended);
+export function SpacerBlock({ props = {}, theme = {} }: any) {
+  const bg = props?.backgroundColor || theme?.bg;
+  const bgImage = (props as Record<string, unknown>)?.backgroundImage as string | undefined;
+  const bgSize = (props as Record<string, unknown>)?.backgroundSize as string | undefined;
+  const bgPosition = (props as Record<string, unknown>)?.backgroundPosition as string | undefined;
+  const bgRepeat = (props as Record<string, unknown>)?.backgroundRepeat as string | undefined;
+  const isBlended = Boolean((props as Record<string, unknown>)?.isBlended);
 
   return (
     <section
-      className={`w-full relative flex items-center justify-center p-8 transition-all min-h-[140px] ${isBlended ? "" : "border border-dashed border-border/40 rounded-lg"
-        }`}
+      className={`w-full relative flex items-center justify-center p-8 transition-all min-h-[140px] ${
+        isBlended ? "" : "border border-dashed border-border/40 rounded-lg"
+      }`}
       style={{
         backgroundColor: bg,
         backgroundImage: bgImage && bgImage !== "none" ? bgImage : undefined,
@@ -33,3 +35,6 @@ export function SpacerBlock({ props, theme }: any) {
     </section>
   );
 }
+
+export const PhotographyPortfolio3Spacer = SpacerBlock;
+export default SpacerBlock;

@@ -2,17 +2,17 @@
   "id": "architect-example-with-navbar",
   "name": "Cúbiq Architecture",
   "category": "Architecture Studio",
+  "view": "hero",
   "theme": {
-    "bg": "#F8F5EF",
-    "bg-second": "#302319",
-    "surface": "#E8DCD1",
-    "ink": "#2F2019",
-    "ink-second": "#6C5A4F",
-    "accent": "#EB5837",
-    "fontHeading": "Cormorant Garamond",
+    "bg": "#F4F0EA",
+    "bg-second": "#EBE5DC",
+    "surface": "#DFD8CD",
+    "ink": "#1A1816",
+    "ink-second": "#5C5650",
+    "accent": "#C85A32",
     "fontBody": "DM Sans",
-    "corners": "soft",
-    "spacing": "cozy"
+    "corners": "sharp",
+    "spacing": "spacious"
   },
   "blocks": [
     {
@@ -36,25 +36,25 @@
       }
     },
     {
-      "id": "projects-2",
-      "type": "projects",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "variant": "ArchitectureStudio2Projects",
-        "items": []
-      }
-    },
-    {
       "id": "about-2",
       "type": "about",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "variant": "ArchitectureStudio2About",
         "paragraphs": [],
         "skills": [],
         "experience": []
+      }
+    },
+    {
+      "id": "projects-2",
+      "type": "projects",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "ArchitectureStudio2Projects",
+        "items": []
       }
     },
     {

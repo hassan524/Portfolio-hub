@@ -2,6 +2,7 @@
   "id": "ux-researcher-ocean-deep",
   "name": "Auryx Creative AI Agency",
   "category": "Digital Agency",
+  "view": "hero",
   "theme": {
     "bg": "#0B26E8",
     "bg-second": "#061385",
@@ -9,7 +10,6 @@
     "ink-second": "rgba(255, 255, 255, 0.75)",
     "accent": "#FFFFFF",
     "surface": "rgba(255, 255, 255, 0.12)",
-    "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -48,9 +48,18 @@
       }
     },
     {
+      "id": "block-services-5",
+      "type": "ServicesDefault",
+      "order": 3,
+      "props": {
+        "kind": "services",
+        "variant": "DigitalAgency5Services"
+      }
+    },
+    {
       "id": "block-projects-5",
       "type": "ProjectsGrid",
-      "order": 3,
+      "order": 4,
       "props": {
         "kind": "projects",
         "items": [],
@@ -60,7 +69,7 @@
     {
       "id": "block-testimonials-5",
       "type": "TestimonialsDefault",
-      "order": 4,
+      "order": 5,
       "props": {
         "kind": "testimonials",
         "items": [],
@@ -70,7 +79,7 @@
     {
       "id": "block-contact-5",
       "type": "ContactForm",
-      "order": 5,
+      "order": 6,
       "props": {
         "kind": "contact",
         "socials": [],
@@ -80,7 +89,7 @@
     {
       "id": "block-footer-5",
       "type": "FooterDefault",
-      "order": 6,
+      "order": 7,
       "props": {
         "kind": "footer",
         "socials": [],

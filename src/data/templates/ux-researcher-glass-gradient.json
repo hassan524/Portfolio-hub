@@ -1,14 +1,14 @@
 {
   "id": "ux-researcher-glass-gradient",
   "category": "Digital Agency",
+  "view": "hero",
   "theme": {
-    "bg": "#101018",
-    "bg-second": "#ffffff",
-    "ink": "#eef0ff",
-    "ink-second": "#000000",
-    "accent": "#7c9dff",
-    "surface": "#2d2d34",
-    "fontHeading": "Space Grotesk",
+    "bg": "#12062B",
+    "bg-second": "#2A0F5C",
+    "ink": "#F5F0FF",
+    "ink-second": "#C4B5FD",
+    "surface": "rgba(196, 181, 253, 0.10)",
+    "accent": "#A78BFA",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "DigitalAgency2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,17 +31,16 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-1"
+        "variant": "DigitalAgency2Hero"
       }
     },
     {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
+      "id": "block-services-1",
+      "type": "ServicesDefault",
       "order": 2,
       "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-26"
+        "kind": "services",
+        "variant": "DigitalAgency2Services"
       }
     },
     {
@@ -53,37 +52,47 @@
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-1"
+        "variant": "DigitalAgency2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 4,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "DigitalAgency2Projects"
       }
     },
     {
       "id": "block-testimonials-1",
       "type": "TestimonialsDefault",
-      "order": 4,
+      "order": 5,
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-1"
+        "variant": "DigitalAgency2Testimonials"
       }
     },
     {
       "id": "block-contact-1",
       "type": "ContactForm",
-      "order": 5,
+      "order": 6,
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-1"
+        "variant": "DigitalAgency2Contact"
       }
     },
     {
       "id": "block-footer-1",
       "type": "FooterDefault",
-      "order": 6,
+      "order": 7,
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-1"
+        "variant": "DigitalAgency2Footer"
       }
     }
   ],

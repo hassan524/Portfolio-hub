@@ -1,52 +1,40 @@
 // @ts-nocheck
-import { Sparkles } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-export function AIProduct3Footer({ props = {}, theme }: BlockComponentProps<any>) {
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
+
+export function AIProduct3Footer({ theme }: BlockComponentProps<any>) {
   const bg = theme?.bg || "#140C12";
-  const bgSecond = theme?.["bg-second"] || "#FFF5F8";
   const ink = theme?.ink || "#FFFFFF";
-  const inkSecond = theme?.["ink-second"] || "#1E0C17";
-  const surface = theme?.surface || "#231420";
   const accent = theme?.accent || "#FF3B76";
+  const line = mix(ink, 14);
 
   return (
-    <footer 
-      className="py-16 px-4 sm:px-6 border-t transition-colors" 
-      style={{ 
-        backgroundColor: bg, 
-        color: ink, 
-        borderColor: `${accent}20` 
-      }}
-    >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs" style={{ color: ink, opacity: 0.75 }}>
-        <div className="flex items-center gap-3 group cursor-pointer">
-          {props?.logo ? (
-            <img
-              src={props.logo}
-              alt="Logo"
-              className="h-8 sm:h-9 w-auto max-w-[180px] shrink-0 object-contain"
-            />
-          ) : (
-            <div 
-              className="h-8 w-8 rounded-xl flex items-center justify-center font-bold text-xs transition-transform duration-300 group-hover:scale-110 shadow-sm" 
-              style={{ 
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
-                color: ink 
-              }}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-            </div>
-          )}
-          <Editable className="font-bold text-sm tracking-tight" style={{ color: ink }}>{props?.heading || "WideApp GO"}</Editable>
+    <footer className="relative w-full overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink, borderTop: `1px solid ${line}` }}>
+      {/* oversized outlined wordmark */}
+      <div className="relative select-none pt-16 px-5 sm:px-10">
+        <Editable as="div" className="text-[22vw] sm:text-[17vw] font-black tracking-tighter leading-[0.85] whitespace-nowrap"
+          style={{ color: "transparent", WebkitTextStroke: `1.5px ${mix(accent, 60)}` }}>
+          ALEX RIVERA
+        </Editable>
+        <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none" style={{ background: `linear-gradient(to top, ${bg}, transparent)` }} />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-10 py-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-xs" style={{ color: mix(ink, 55) }}>
+        <Editable as="p">{`© ${new Date().getFullYear()} Alex Rivera. All rights reserved.`}</Editable>
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+          <Editable as="p">Designed and built with care</Editable>
         </div>
-        <Editable as="p" style={{ color: ink, opacity: 0.75 }}>© {new Date().getFullYear()} WideApp GO Inc. All rights reserved.</Editable>
-        <div className="flex gap-6">
-          <a href="#" className="hover:opacity-100 transition-opacity" style={{ color: ink, opacity: 0.75 }}><Editable>Privacy Policy</Editable></a>
-          <a href="#" className="hover:opacity-100 transition-opacity" style={{ color: ink, opacity: 0.75 }}><Editable>Terms of Service</Editable></a>
-          <a href="#" className="hover:opacity-100 transition-opacity" style={{ color: ink, opacity: 0.75 }}><Editable>Security</Editable></a>
-        </div>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Back to top"
+          className="group inline-flex items-center gap-3 cursor-pointer font-semibold" style={{ color: ink }}>
+          <Editable className="inline">Back to top</Editable>
+          <span className="h-10 w-10 rounded-full grid place-items-center border transition-all group-hover:-translate-y-1" style={{ borderColor: accent, color: accent }}>
+            <ArrowUp className="h-4 w-4" />
+          </span>
+        </button>
       </div>
     </footer>
   );

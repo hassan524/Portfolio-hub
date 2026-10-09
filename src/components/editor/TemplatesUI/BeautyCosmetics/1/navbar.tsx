@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Menu, X, Sparkles } from 'lucide-react';
 import { Editable } from '@/components/editor/ui/Editable';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 
 export function Navbar({ props = {}, theme, onChange }: any) {
     const bg = theme?.bg || '#FFF8F7';
@@ -11,6 +11,8 @@ export function Navbar({ props = {}, theme, onChange }: any) {
     const surface = theme?.surface || 'rgba(255,255,255,.75)';
     const accent = theme?.accent || '#D97382';
     const [open, setOpen] = useState(false);
+    const { scrollYProgress } = useScroll();
+    const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 25 });
     const links = [['About', '#about'], ['Collection', '#projects'], ['Journal', '#journal'], ['Contact', '#contact']];
     return (
         <motion.header
@@ -37,6 +39,7 @@ export function Navbar({ props = {}, theme, onChange }: any) {
                 </button>
                 <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X /> : <Menu />}</button>
             </div>
+            <motion.div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 origin-left" style={{ scaleX: progress, backgroundColor: accent }} />
             {open && (
                 <nav className="flex flex-col gap-4 px-5 pb-5 md:hidden">
                     {links.map(([label, href]) => (

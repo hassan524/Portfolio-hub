@@ -1,6 +1,8 @@
 {
   "id": "fine-artist-midnight-mono",
+  "name": "Hasan Senjig Atmospheric UI",
   "category": "Creative Portfolio",
+  "view": "hero",
   "theme": {
     "bg": "#160B2B",
     "bg-second": "#2A1050",
@@ -8,82 +10,87 @@
     "ink-second": "#CDB9E8",
     "surface": "rgba(255,248,255,.16)",
     "accent": "#C98CFF",
-    "fontHeading": "Space Grotesk",
-    "fontBody": "Inter",
+    "fontBody": "Space Grotesk",
     "corners": "sharp",
     "spacing": "compact"
   },
   "blocks": [
     {
-      "id": "nav-ow5az",
+      "id": "nav-creative-3",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
-        "links": [],
+        "variant": "CreativePortfolio3Navbar",
+        "links": [
+          {
+            "label": "The Lab",
+            "href": "#about"
+          },
+          {
+            "label": "Selected Work",
+            "href": "#projects"
+          },
+          {
+            "label": "Hire Me",
+            "href": "#contact"
+          }
+        ],
         "sticky": true
       }
     },
     {
-      "id": "block-hero-1",
+      "id": "block-hero-3",
       "type": "HeroCentered",
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-6"
+        "variant": "CreativePortfolio3Hero"
       }
     },
     {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
+      "id": "block-about-3",
+      "type": "AboutSimple",
       "order": 2,
       "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-19"
+        "kind": "about",
+        "variant": "CreativePortfolio3About"
       }
     },
     {
-      "id": "block-about-1",
-      "type": "AboutSimple",
+      "id": "block-projects-3",
+      "type": "ProjectsGrid",
       "order": 3,
       "props": {
-        "kind": "about",
-        "paragraphs": [],
-        "skills": [],
-        "experience": [],
-        "variant": "about-6"
+        "kind": "projects",
+        "variant": "CreativePortfolio3Projects"
       }
     },
     {
-      "id": "block-testimonials-1",
+      "id": "block-testimonials-3",
       "type": "TestimonialsDefault",
       "order": 4,
       "props": {
         "kind": "testimonials",
-        "items": [],
-        "variant": "testimonials-6"
+        "variant": "CreativePortfolio3Testimonials"
       }
     },
     {
-      "id": "block-contact-1",
+      "id": "block-contact-3",
       "type": "ContactForm",
       "order": 5,
       "props": {
         "kind": "contact",
-        "socials": [],
-        "variant": "contact-6"
+        "variant": "CreativePortfolio3Contact"
       }
     },
     {
-      "id": "block-footer-1",
+      "id": "block-footer-3",
       "type": "FooterDefault",
       "order": 6,
       "props": {
         "kind": "footer",
-        "socials": [],
-        "variant": "footer-6"
+        "variant": "CreativePortfolio3Footer"
       }
     }
   ],

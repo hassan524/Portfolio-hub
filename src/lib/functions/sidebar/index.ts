@@ -313,6 +313,9 @@ export function createEditableArrayItem(key: string, blockKind?: Block["props"][
   if (key === "items" && blockKind === "services") {
     return { title: "", desc: "", icon: "", tags: [] };
   }
+  if (key === "items" && blockKind === "experience") {
+    return { co: "", role: "", yr: "", desc: "" };
+  }
   if (key === "items" && blockKind === "stats") return { value: "", label: "", suffix: "" };
   return "";
 }

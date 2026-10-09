@@ -1,17 +1,17 @@
 {
   "id": "architect-midnight-mono",
   "category": "Interior Design Studio",
+  "view": "hero",
   "theme": {
-    "bg": "#0a0a0a",
-    "bg-second": "#ffffff",
-    "ink": "#ffffff",
-    "ink-second": "#000000",
-    "accent": "#6ee7b7",
-    "surface": "#272727",
-    "fontHeading": "Space Grotesk",
+    "bg": "#F2EEE6",
+    "bg-second": "#E7E1D5",
+    "ink": "#17201B",
+    "ink-second": "#5C655F",
+    "accent": "#2F5D46",
+    "surface": "#FFFFFF",
     "fontBody": "Inter",
-    "corners": "sharp",
-    "spacing": "compact"
+    "corners": "pill",
+    "spacing": "airy"
   },
   "blocks": [
     {
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "InteriorDesignStudio2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-1"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-16"
+        "variant": "InteriorDesignStudio2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-1"
+        "variant": "InteriorDesignStudio2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "InteriorDesignStudio2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-1"
+        "variant": "InteriorDesignStudio2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-1"
+        "variant": "InteriorDesignStudio2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-1"
+        "variant": "InteriorDesignStudio2Footer"
       }
     }
   ],

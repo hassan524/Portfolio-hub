@@ -15,41 +15,6 @@ import {
 import { templates, allCategories } from "@/data/templates";
 import type { SiteData } from "@/types/builder.schema";
 
-const CATEGORY_ORDER = [
-  "Developer Portfolio",
-  "Designer Portfolio",
-  "Creative Portfolio",
-  "Personal Brand",
-  "SaaS Product",
-  "AI Product",
-  "Startup",
-  "Mobile App",
-  "Digital Agency",
-  "Marketing Agency",
-  "Business / Company",
-  "Clothing Brand",
-  "Streetwear Brand",
-  "Beauty & Cosmetics",
-  "Skincare Brand",
-  "Perfume Brand",
-  "Jewelry Brand",
-  "Food Brand",
-  "Restaurant",
-  "Cafe / Coffee Shop",
-  "Bakery",
-  "Photography Portfolio",
-  "Content Creator",
-  "Music Artist / Band",
-  "Architecture Studio",
-  "Interior Design Studio",
-  "Real Estate Brand",
-  "Fitness Brand / Gym",
-  "Travel Brand / Agency",
-  "Wedding Website",
-  "Event / Conference",
-  "Online Community",
-] as const;
-
 // 5 rows worth at the widest (3-col) breakpoint. Bump each "Show more" click by the same amount.
 const PAGE_SIZE = 15;
 
@@ -70,8 +35,6 @@ export function TemplatesPage() {
     let list = cat === "All" ? templates : templates.filter((t) => t.category === cat);
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      // NOTE: adjust these field names to whatever SiteData actually exposes
-      // (e.g. t.title / t.name, t.description / t.tagline).
       list = list.filter((t: any) =>
         [t.name, t.title, t.description, t.tagline, t.category].filter(Boolean).some((v: string) => v.toLowerCase().includes(q))
       );
@@ -123,11 +86,11 @@ export function TemplatesPage() {
           <SelectTrigger className="h-8 w-[220px] max-w-full cursor-pointer rounded-sm bg-surface text-white">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
-          <SelectContent className="templates-category-select-content w-[var(--radix-select-trigger-width)] min-w-0 rounded-sm bg-surface text-white">
-              <SelectItem value="All" className="cursor-pointer py-1.5">
+          <SelectContent className="templates-category-select-content w-[var(--radix-select-trigger-width)] min-w-0 rounded-sm bg-surface text-white max-h-[360px] overflow-y-auto">
+            <SelectItem value="All" className="cursor-pointer py-1.5">
               All categories ({getCategoryCount("All")})
             </SelectItem>
-            {CATEGORY_ORDER.map((c) => (
+            {allCategories.map((c) => (
               <SelectItem key={c} value={c} className="cursor-pointer py-1.5">
                 {c} ({getCategoryCount(c)})
               </SelectItem>
@@ -176,3 +139,5 @@ export function TemplatesPage() {
     </PageShell>
   );
 }
+
+export default TemplatesPage;

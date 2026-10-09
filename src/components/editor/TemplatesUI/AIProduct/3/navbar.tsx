@@ -1,129 +1,72 @@
 // @ts-nocheck
 import { useState } from "react";
-import { Menu, X, ChevronDown, Sparkles, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-type Props = BlockComponentProps<any>;
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
+const ITEMS = [
+  { label: "About", id: "about" },
+  { label: "Work", id: "projects" },
+  { label: "Kind words", id: "testimonials" },
+  { label: "Contact", id: "contact" },
+];
+// one-page portfolio: scroll within the page, no hrefs / routes
+const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-export function AIProduct3Navbar({ props = {}, theme, onChange }: Props) {
-  const [open, setOpen] = useState(false);
+export function AIProduct3Navbar({ theme }: BlockComponentProps<any>) {
   const bg = theme?.bg || "#140C12";
-  const bgSecond = theme?.["bg-second"] || "#FFF5F8";
   const ink = theme?.ink || "#FFFFFF";
-  const inkSecond = theme?.["ink-second"] || "#1E0C17";
-  const surface = theme?.surface || "#231420";
   const accent = theme?.accent || "#FF3B76";
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="w-full px-4 sm:px-8 py-5 relative z-20 transition-all">
-      <div 
-        className="w-full max-w-7xl mx-auto flex items-center justify-between px-5 sm:px-7 py-3.5 rounded-2xl border backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.45)] transition-all duration-300"
-        style={{ 
-          borderColor: `${accent}28`, 
-          backgroundColor: `${surface}D9` 
-        }}
-      >
+    <header className="w-full px-5 sm:px-10 pt-6 pb-2 relative z-30 transition-colors" style={{ backgroundColor: bg, color: ink }}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* wordmark */}
+        <button onClick={() => go("home")} className="flex items-center gap-3 cursor-pointer" aria-label="Back to top">
+          <svg viewBox="0 0 36 36" className="h-9 w-9" aria-hidden>
+            <circle cx="18" cy="18" r="16" fill="none" stroke={accent} strokeWidth="1.5" strokeDasharray="3 4" />
+            <circle cx="18" cy="18" r="9" fill={accent} />
+            <circle cx="27" cy="9" r="2.5" fill={ink} />
+          </svg>
+          <Editable as="span" className="font-bold text-lg tracking-tight" style={{ color: ink }}>Alex Rivera</Editable>
+        </button>
 
-        {/* Brand Logo */}
-        <div className="flex items-center gap-3.5 group cursor-pointer">
-          {props?.logo ? (
-            <img
-              src={props.logo}
-              alt="Logo"
-              className="h-9 sm:h-10 w-auto max-w-[180px] shrink-0 object-contain"
-            />
-          ) : (
-            <div 
-              className="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center font-black text-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
-              style={{ 
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`,
-                color: ink,
-                boxShadow: `0 0 20px ${accent}60`
-              }}
-            >
-              <Sparkles className="h-4 w-4 animate-pulse" />
-            </div>
-          )}
-          <Editable
-            value={props?.logoText || "WideApp AI"}
-            onChange={(v) => onChange?.({ logoText: v })}
-            className="font-extrabold text-base tracking-tight"
-            style={{ color: ink }}
-          />
-        </div>
-
-        {/* Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-semibold tracking-wide" style={{ color: ink }}>
-          <a href="#models" className="opacity-80 hover:opacity-100 transition-opacity flex items-center gap-1.5 group">
-            <Editable className="inline">AI Models</Editable> 
-            <ChevronDown className="h-3 w-3 opacity-60 transition-transform group-hover:translate-y-0.5" />
-          </a>
-          <a href="#solutions" className="opacity-80 hover:opacity-100 transition-opacity flex items-center gap-1.5 group">
-            <Editable className="inline">Solutions</Editable> 
-            <ChevronDown className="h-3 w-3 opacity-60 transition-transform group-hover:translate-y-0.5" />
-          </a>
-          <a href="#portfolio" className="opacity-80 hover:opacity-100 transition-opacity">
-            <Editable className="inline">Portfolio</Editable>
-          </a>
-          <a href="#research" className="opacity-80 hover:opacity-100 transition-opacity">
-            <Editable className="inline">Research</Editable>
-          </a>
+        {/* nav: plain text with a growing underline, no boxes */}
+        <nav className="hidden md:flex items-center gap-10">
+          {ITEMS.map((n, i) => (
+            <button key={n.id} onClick={() => go(n.id)} className="group relative text-sm font-medium cursor-pointer" style={{ color: mix(ink, 78) }}>
+              <span className="mr-1.5 text-[10px] font-mono align-top" style={{ color: accent }}>0{i + 1}</span>
+              <Editable className="inline">{n.label}</Editable>
+              <span className="absolute -bottom-1.5 left-0 h-px w-0 group-hover:w-full transition-all duration-300" style={{ background: accent }} />
+            </button>
+          ))}
         </nav>
 
-        {/* CTA Buttons */}
-        <div className="hidden md:flex items-center gap-3">
-          <a
-            href="#contact"
-            className="px-4 py-2 rounded-xl text-xs font-bold border transition-all duration-300 hover:scale-105"
-            style={{ 
-              borderColor: `${accent}30`, 
-              backgroundColor: `${bg}90`, 
-              color: ink 
-            }}
-          >
-            Schedule Demo
-          </a>
-          <a
-            href="#portfolio"
-            className="px-5 py-2 rounded-xl text-xs font-bold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5"
-            style={{ 
-              background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
-              color: ink,
-              boxShadow: `0 0 20px ${accent}45`
-            }}
-          >
-            <span>Explore AI</span>
-            <ArrowRight className="h-3 w-3" />
-          </a>
+        <div className="hidden md:flex items-center gap-2.5 text-xs font-medium" style={{ color: mix(ink, 70) }}>
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full rounded-full animate-ping opacity-70" style={{ background: "#34D399" }} />
+            <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#34D399" }} />
+          </span>
+          <Editable className="inline">Open to new projects</Editable>
         </div>
 
-        <button 
-          onClick={() => setOpen(!open)} 
-          className="md:hidden p-2 rounded-lg opacity-80 hover:opacity-100 cursor-pointer" 
-          style={{ color: ink }}
-        >
+        <button onClick={() => setOpen(!open)} className="md:hidden h-10 w-10 grid place-items-center cursor-pointer" aria-label="Toggle menu" style={{ color: ink }}>
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
+      <div className="max-w-7xl mx-auto mt-6 h-px" style={{ background: `linear-gradient(90deg, ${accent}, ${mix(ink, 10)} 40%, transparent)` }} />
+
       {open && (
-        <div 
-          className="fixed inset-0 z-50 flex flex-col p-6 backdrop-blur-2xl animate-fadeIn" 
-          style={{ backgroundColor: `${bg}F2`, color: ink }}
-        >
-          <div className="flex justify-between items-center mb-8">
-            <span className="font-bold text-xs uppercase tracking-widest" style={{ color: ink, opacity: 0.75 }}>Navigation</span>
-            <button onClick={() => setOpen(false)} className="p-2 cursor-pointer" style={{ color: ink }}>
-              <X className="h-6 w-6" />
+        <div className="md:hidden absolute inset-x-0 top-full px-5 pb-8 pt-4 flex flex-col gap-5 backdrop-blur-2xl" style={{ backgroundColor: mix(bg, 96) }}>
+          {ITEMS.map((n, i) => (
+            <button key={n.id} onClick={() => { setOpen(false); go(n.id); }} className="text-left text-3xl font-bold tracking-tight cursor-pointer" style={{ color: ink }}>
+              <span className="mr-3 text-xs font-mono" style={{ color: accent }}>0{i + 1}</span>
+              <Editable className="inline">{n.label}</Editable>
             </button>
-          </div>
-          <div className="flex flex-col gap-6 text-xl font-bold">
-            <a href="#models" onClick={() => setOpen(false)} className="transition-colors hover:opacity-100" style={{ color: ink }}>AI Models</a>
-            <a href="#solutions" onClick={() => setOpen(false)} className="transition-colors hover:opacity-100" style={{ color: ink }}>Solutions</a>
-            <a href="#portfolio" onClick={() => setOpen(false)} className="transition-colors hover:opacity-100" style={{ color: ink }}>Portfolio</a>
-            <a href="#research" onClick={() => setOpen(false)} className="transition-colors hover:opacity-100" style={{ color: ink }}>Research</a>
-          </div>
+          ))}
         </div>
       )}
     </header>

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Coffee, Menu, X, CircleArrowUpRight } from 'lucide-react';
+import { Coffee, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Editable } from '@/components/editor/ui/Editable';
 

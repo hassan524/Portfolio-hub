@@ -1,6 +1,7 @@
 {
   "id": "chef-example-no-navbar",
   "category": "Cafe / Coffee Shop",
+  "view": "hero",
   "theme": {
     "bg": "#7a3f1d",
     "bg-second": "#f7f4ef",
@@ -8,7 +9,6 @@
     "ink-second": "#382116",
     "surface": "rgba(255, 250, 244, 0.18)",
     "accent": "#d99b68",
-    "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "CafeCoffeeShop1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-11"
-      }
-    },
-    {
-      "id": "projects-1",
-      "type": "projects",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "variant": "projects-2",
-        "items": []
+        "variant": "CafeCoffeeShop1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutDefault",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-11"
+        "variant": "CafeCoffeeShop1About"
+      }
+    },
+    {
+      "id": "projects-1",
+      "type": "projects",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "CafeCoffeeShop1Projects",
+        "items": []
       }
     },
     {
@@ -62,7 +62,7 @@
       "order": 4,
       "props": {
         "kind": "testimonials",
-        "variant": "testimonials-11",
+        "variant": "CafeCoffeeShop1Testimonials",
         "items": []
       }
     },
@@ -72,7 +72,7 @@
       "order": 5,
       "props": {
         "kind": "contact",
-        "variant": "contact-11",
+        "variant": "CafeCoffeeShop1Contact",
         "socials": []
       }
     },
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-11"
+        "variant": "CafeCoffeeShop1Footer"
       }
     }
   ],

@@ -1,16 +1,17 @@
 {
   "id": "designer-corporate-blue",
   "category": "Designer Portfolio",
+  "view": "hero",
   "theme": {
-    "bg": "#f4f6fa",
-    "bg-second": "#ffffff",
-    "ink": "#0f1f3d",
-    "ink-second": "#000000",
-    "accent": "#2563eb",
-    "surface": "#d7d8dc",
-    "fontHeading": "Inter",
+    "bg": "#FFFFFF",
+    "bg-second": "#F8FAFC",
+    "text": "#0F172A",
+    "text-second": "#64748B",
+    "surface": "#F1F5F9",
+    "accent": "#2563EB",
+    "on-accent": "#FFFFFF",
     "fontBody": "Inter",
-    "corners": "soft",
+    "corners": "rounded",
     "spacing": "cozy"
   },
   "blocks": [
@@ -20,7 +21,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "DesignerPortfolio1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +32,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-5"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-26"
+        "variant": "DesignerPortfolio1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-5"
+        "variant": "DesignerPortfolio1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "DesignerPortfolio1Projects"
       }
     },
     {
@@ -63,7 +64,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-5"
+        "variant": "DesignerPortfolio1Testimonials"
       }
     },
     {
@@ -73,7 +74,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-5"
+        "variant": "DesignerPortfolio1Contact"
       }
     },
     {
@@ -83,7 +84,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-5"
+        "variant": "DesignerPortfolio1Footer"
       }
     }
   ],

@@ -1,6 +1,7 @@
 {
   "id": "chef-pastel-soft",
   "category": "Bakery",
+  "view": "hero",
   "theme": {
     "bg": "#ffffff",
     "bg-second": "#f7f4f6",
@@ -8,7 +9,6 @@
     "ink-second": "#655b63",
     "surface": "#ded7dc",
     "accent": "#882b8b",
-    "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "pill",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "Bakery2navbar",
+        "variant": "Bakery2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,59 +31,68 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "Bakery2hero"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "Bakery2projects"
+        "variant": "Bakery2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "Bakery2about"
+        "variant": "Bakery2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "Bakery2Projects"
+      }
+    },
+    {
+      "id": "block-services-1",
+      "type": "ServicesGrid",
+      "order": 4,
+      "props": {
+        "kind": "services",
+        "variant": "Bakery2Services"
       }
     },
     {
       "id": "block-testimonials-1",
       "type": "TestimonialsDefault",
-      "order": 4,
+      "order": 5,
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "Bakery2testimonials"
+        "variant": "Bakery2Testimonials"
       }
     },
     {
       "id": "block-contact-1",
       "type": "ContactForm",
-      "order": 5,
+      "order": 6,
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "Bakery2contact"
+        "variant": "Bakery2Contact"
       }
     },
     {
       "id": "block-footer-1",
       "type": "FooterDefault",
-      "order": 6,
+      "order": 7,
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "Bakery2footer"
+        "variant": "Bakery2Footer"
       }
     }
   ],

@@ -1,14 +1,14 @@
 {
   "id": "consultant-ocean-deep",
   "category": "Clothing Brand",
+  "view": "hero",
   "theme": {
-    "bg": "#081826",
-    "bg-second": "#ffffff",
-    "ink": "#e5f4ff",
-    "ink-second": "#000000",
-    "accent": "#38bdf8",
-    "surface": "#263440",
-    "fontHeading": "Space Grotesk",
+    "bg": "#064E4B",
+    "bg-second": "#0A6860",
+    "ink": "#FFF4C8",
+    "ink-second": "#B8D5C7",
+    "surface": "rgba(255,244,200,0.12)",
+    "accent": "#F2C94C",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "ClothingBrand3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-2"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-17"
+        "variant": "ClothingBrand3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-2"
+        "variant": "ClothingBrand3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "ClothingBrand3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-2"
+        "variant": "ClothingBrand3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-2"
+        "variant": "ClothingBrand3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-2"
+        "variant": "ClothingBrand3Footer"
       }
     }
   ],

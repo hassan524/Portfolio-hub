@@ -1,17 +1,17 @@
 {
   "id": "writer-mono-brutalist",
   "category": "Jewelry Brand",
+  "view": "hero",
   "theme": {
-    "bg": "#ffffff",
-    "bg-second": "#ffffff",
-    "ink": "#000000",
-    "ink-second": "#000000",
-    "accent": "#000000",
-    "surface": "#e0e0e0",
-    "fontHeading": "Space Grotesk",
-    "fontBody": "Inter",
-    "corners": "sharp",
-    "spacing": "compact"
+    "bg": "#FBF8F5",
+    "bg-second": "#F5ECE1",
+    "ink": "#1C1917",
+    "ink-second": "#78716C",
+    "accent": "#B48C56",
+    "surface": "#EBE3D8",
+    "fontBody": "Playfair Display",
+    "corners": "rounded",
+    "spacing": "cozy"
   },
   "blocks": [
     {
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "JewelryBrand1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-5"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-24"
+        "variant": "JewelryBrand1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-5"
+        "variant": "JewelryBrand1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "JewelryBrand1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-5"
+        "variant": "JewelryBrand1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-5"
+        "variant": "JewelryBrand1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-5"
+        "variant": "JewelryBrand1Footer"
       }
     }
   ],

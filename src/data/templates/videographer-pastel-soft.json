@@ -1,6 +1,7 @@
 {
   "id": "videographer-pastel-soft",
   "category": "Skincare Brand",
+  "view": "hero",
   "theme": {
     "bg": "#fff5f7",
     "bg-second": "#ffffff",
@@ -8,7 +9,6 @@
     "ink-second": "#000000",
     "accent": "#ff8fa3",
     "surface": "#e0d8d9",
-    "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "pill",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "SkincareBrand2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-10"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-1"
+        "variant": "SkincareBrand2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-10"
+        "variant": "SkincareBrand2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "SkincareBrand2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-10"
+        "variant": "SkincareBrand2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-10"
+        "variant": "SkincareBrand2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-10"
+        "variant": "SkincareBrand2Footer"
       }
     }
   ],

@@ -2,17 +2,17 @@
   "id": "architect-forest-calm",
   "name": "AMB·TIOUS Architecture",
   "category": "Architecture Studio",
+  "view": "hero",
   "theme": {
-    "bg": "#FAFAFA",
-    "bg-second": "#E9E9E7",
-    "surface": "#DEDEDC",
-    "ink": "#121212",
-    "ink-second": "#5C5C5C",
-    "accent": "#292929",
-    "fontHeading": "DM Sans",
+    "bg": "#09090B",
+    "bg-second": "#121215",
+    "surface": "#1A1A1E",
+    "ink": "#FFFFFF",
+    "ink-second": "#A1A1AA",
+    "accent": "#FFFFFF",
     "fontBody": "DM Sans",
-    "corners": "soft",
-    "spacing": "airy"
+    "corners": "sharp",
+    "spacing": "spacious"
   },
   "blocks": [
     {
@@ -36,25 +36,25 @@
       }
     },
     {
-      "id": "projects-3",
-      "type": "projects",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "variant": "ArchitectureStudio3Projects",
-        "items": []
-      }
-    },
-    {
       "id": "about-3",
       "type": "about",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "variant": "ArchitectureStudio3About",
         "paragraphs": [],
         "skills": [],
         "experience": []
+      }
+    },
+    {
+      "id": "projects-3",
+      "type": "projects",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "ArchitectureStudio3Projects",
+        "items": []
       }
     },
     {

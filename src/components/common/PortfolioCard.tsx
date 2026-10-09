@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { SiteData, Theme } from "@/types/builder.schema";
 import { getBlockComponent } from "@/lib/blockRegistry";
 import { usePortfolioViews30d } from "@/hooks/usePortfolios";
 import { timeAgo } from "@/utils/TimeAgo";
+import { resolveFont, ensureGoogleFontLoaded } from "@/lib/functions/fontUtils";
 
 const FALLBACK_THEME: Theme = {
   bg: "#ffffff",
@@ -19,6 +20,18 @@ const CANVAS_WIDTH = 1200;
 
 function truncate(text: string, max: number) {
   return text.length > max ? text.slice(0, max).trimEnd() + "…" : text;
+}
+
+class BlockErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch() {}
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
 }
 
 type PortfolioCardProps = {
@@ -77,8 +90,6 @@ export function PortfolioCard({
 
         {isCreated ? (
           <div className="mt-4 flex items-start justify-between border-t border-border pt-3">
-
-
             <div className="flex items-baseline gap-1.5">
               <span className="text-xs text-muted-foreground">
                 Edited
@@ -122,6 +133,13 @@ function CardView({ t }: { t: SiteData }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.25);
 
+  const fontRaw = theme.fontBody || t.theme?.fontBody;
+  const fontInfo = resolveFont(fontRaw);
+
+  useEffect(() => {
+    ensureGoogleFontLoaded(fontInfo.googleFontFamily);
+  }, [fontInfo.googleFontFamily]);
+
   useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
@@ -138,36 +156,88 @@ function CardView({ t }: { t: SiteData }) {
     return () => ro.disconnect();
   }, []);
 
-  const sorted = [...(t.blocks ?? [])].sort((a, b) => a.order - b.order);
+  let sorted = [...(t.blocks ?? [])].sort((a, b) => a.order - b.order);
+  if (!sorted.some((b) => b.props.kind === "experience")) {
+    const testIdx = sorted.findIndex((b) => b.props.kind === "testimonials");
+    const testOrder =
+      testIdx !== -1
+        ? sorted[testIdx].order
+        : sorted.length > 0
+          ? sorted[sorted.length - 1].order
+          : 4;
+    const refVariant = sorted.find((b) => (b.props as any)?.variant)?.props as any;
+    let expVariant = "";
+    if (refVariant?.variant) {
+      expVariant = refVariant.variant.replace(
+        /(Hero|About|Projects|Testimonials|Contact|Footer|Services|Stats|Spacer)$/,
+        "Experience",
+      );
+    }
+    const expBlock: any = {
+      id: "block-experience-auto",
+      type: "ExperienceDefault",
+      order: testOrder - 0.5,
+      props: {
+        kind: "experience",
+        variant: expVariant,
+      },
+    };
+    sorted.push(expBlock);
+    sorted.sort((a, b) => a.order - b.order);
+  }
+
+  // Section preview filtering based on t.view:
+  // "hero" | "about" | "projects" | "services" | "testimonials" | "contact" | etc.
+  const targetView = (t.view || "hero").toLowerCase().trim();
+
+  let blocksToRender = sorted;
+  if (targetView && targetView !== "all") {
+    const matching = sorted.filter(
+      (b) => b.props.kind?.toLowerCase() === targetView
+    );
+    if (matching.length > 0) {
+      if (targetView === "hero") {
+        const navBlock = sorted.find((b) => b.props.kind?.toLowerCase() === "navbar");
+        blocksToRender = navBlock ? [navBlock, ...matching] : matching;
+      } else {
+        blocksToRender = matching;
+      }
+    }
+  }
 
   return (
     <div
       ref={wrapperRef}
-      className="absolute inset-0 overflow-hidden pointer-events-none select-none opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+      className={`absolute inset-0 overflow-hidden pointer-events-none select-none opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${fontInfo.className}`}
     >
       <div
+        className={fontInfo.className}
         style={{
           width: CANVAS_WIDTH,
           transform: `scale(${scale})`,
           transformOrigin: "top left",
           background: theme.bg,
           color: theme.ink,
+          fontFamily: fontInfo.fontFamily,
+          ["--font-sans" as any]: fontInfo.fontFamily,
+          ["--font-display" as any]: fontInfo.fontFamily,
         }}
       >
-        {sorted.map((b) => {
+        {blocksToRender.map((b) => {
           const variant = (b.props as any).variant as string | undefined;
           const Cmp = getBlockComponent(b.props.kind, variant, t.category, t.id);
 
           if (!Cmp) return null;
 
           return (
-            <Cmp
-              key={b.id}
-              id={b.id}
-              props={b.props}
-              theme={theme}
-              onChange={() => { }}
-            />
+            <BlockErrorBoundary key={b.id}>
+              <Cmp
+                id={b.id}
+                props={b.props}
+                theme={theme}
+                onChange={() => { }}
+              />
+            </BlockErrorBoundary>
           );
         })}
       </div>

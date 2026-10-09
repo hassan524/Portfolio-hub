@@ -2,6 +2,7 @@
   "id": "architect-editorial-serif",
   "name": "Sagent Architecture",
   "category": "Architecture Studio",
+  "view": "hero",
   "theme": {
     "bg": "#E8EEEB",
     "bg-second": "#DFE6E2",
@@ -9,7 +10,6 @@
     "ink": "#111417",
     "ink-second": "#566166",
     "accent": "#D92335",
-    "fontHeading": "Cormorant Garamond",
     "fontBody": "DM Sans",
     "corners": "sharp",
     "spacing": "airy"
@@ -36,25 +36,25 @@
       }
     },
     {
-      "id": "projects-1",
-      "type": "projects",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "variant": "ArchitectureStudio1Projects",
-        "items": []
-      }
-    },
-    {
       "id": "about-1",
       "type": "about",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "variant": "ArchitectureStudio1About",
         "paragraphs": [],
         "skills": [],
         "experience": []
+      }
+    },
+    {
+      "id": "projects-1",
+      "type": "projects",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "ArchitectureStudio1Projects",
+        "items": []
       }
     },
     {

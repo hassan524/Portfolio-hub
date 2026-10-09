@@ -1,16 +1,16 @@
 {
   "id": "illustrator-editorial-serif",
   "category": "Food Brand",
+  "view": "hero",
   "theme": {
-    "bg": "#fdfcf9",
-    "bg-second": "#ffffff",
-    "ink": "#111111",
-    "ink-second": "#000000",
-    "accent": "#8a1f11",
-    "surface": "#dfdedb",
-    "fontHeading": "Fraunces",
+    "bg": "#1c1917",
+    "bg-second": "#faf6f0",
+    "ink": "#ffffff",
+    "ink-second": "#1c1917",
+    "accent": "#df4d26",
+    "surface": "#292524",
     "fontBody": "Inter",
-    "corners": "sharp",
+    "corners": "rounded",
     "spacing": "airy"
   },
   "blocks": [
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "FoodBrand2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-10"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-20"
+        "variant": "FoodBrand2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-10"
+        "variant": "FoodBrand2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "FoodBrand2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-10"
+        "variant": "FoodBrand2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-10"
+        "variant": "FoodBrand2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-10"
+        "variant": "FoodBrand2Footer"
       }
     }
   ],

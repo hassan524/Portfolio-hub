@@ -1,98 +1,167 @@
 // @ts-nocheck
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Editable } from "@/components/editor/ui/Editable";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check, Cpu, Layers, Maximize, ShieldCheck } from "lucide-react";
 
 export function ArchitectureStudio3Services({ props = {}, theme, onChange }: any) {
-  const bg = theme?.bg || "#0A0A0C";
-  const bgSecond = theme?.["bg-second"] || bg;
-  const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#3B82F6";
-  const fontHeading = theme?.fontHeading || "Cormorant Garamond";
+  const bg = theme?.["bg-second"] || "#121215";
+  const ink = theme?.ink || "#FFFFFF";
   const fontBody = theme?.fontBody || "DM Sans";
+  const [activeTab, setActiveTab] = useState(0);
 
-  const services = [
+  const disciplines = [
     {
       num: "01",
-      title: "Architecture",
-      desc: "Homes and spaces with an unmistakable sense of place.",
+      title: "Monumental Architecture",
+      subtitle: "Civic Arenas, Cultural Centers & High-Density Towers",
+      desc: "We originate audacious sculptural forms designed to anchor urban masterplans. From seismic engineering to parametric glass diagrids, our buildings celebrate the sheer power of volume.",
+      deliverables: ["Full architectural design", "Computational solar envelope", "Municipal permit filing", "On-site construction direction"],
+      icon: Maximize,
     },
     {
       num: "02",
-      title: "Interior design",
-      desc: "The details, materials and moments that make a space yours.",
+      title: "Ecological Engineering",
+      subtitle: "Carbon-Neutral Envelope Design & Geothermal Integration",
+      desc: "Architecture that produces more energy than it consumes. We weave subterranean heat exchangers, low-temperature hydronics, and hygroscopic timber structures into every commission.",
+      deliverables: ["Net-zero energy modeling", "Embodied carbon audit", "Passivhaus envelope testing", "Life-cycle cost optimization"],
+      icon: Cpu,
     },
     {
       num: "03",
-      title: "Creative direction",
-      desc: "A complete vision, considered from every angle.",
+      title: "Adaptive Regeneration",
+      subtitle: "Transforming Industrial Monoliths into Cultural Venues",
+      desc: "Respectful intervention within heritage fabrics. We juxtapose raw historical brickwork and cast-iron frames with razor-sharp contemporary glass insertions.",
+      deliverables: ["Historic fabric analysis", "Structural underpinning", "Heritage authority liaison", "Contemporary interior fitout"],
+      icon: Layers,
+    },
+    {
+      num: "04",
+      title: "BIM Level 3 Coordination",
+      subtitle: "Computational Precision & Digital Twin Handover",
+      desc: "Zero discrepancy between virtual design and physical construction. Every bolt, conduit, and facade panel is coordinated within a millimeter-precise digital twin.",
+      deliverables: ["Clash detection modeling", "4D schedule sequencing", "CNC fabrication data dispatch", "Full digital asset twin"],
+      icon: ShieldCheck,
     },
   ];
 
   return (
     <section
       id="services"
-      className="px-6 md:px-14 lg:px-20 py-24 md:py-32 transition-colors w-full"
-      style={{ backgroundColor: bg, color: ink }}
+      className="w-full px-6 md:px-12 lg:px-16 py-24 md:py-36 transition-colors border-b"
+      style={{
+        backgroundColor: bg,
+        borderColor: "rgba(255, 255, 255, 0.12)",
+        color: ink,
+        fontFamily: fontBody,
+      }}
     >
-      <div className="max-w-6xl mx-auto mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <span
-            className="text-[10px] font-bold uppercase tracking-widest block mb-4"
-            style={{ color: accent }}
-          >
-            <Editable value="WHAT WE DO" />
-          </span>
-          <Editable
-            as="h2"
-            className="text-4xl sm:text-5xl md:text-6xl font-medium leading-none font-sans tracking-tight"
-            style={{ color: ink }}
-            value="Ideas made tangible"
-          />
-        </div>
-        <Editable
-          as="p"
-          className="text-xs md:text-sm max-w-xs leading-relaxed opacity-70"
-          style={{ color: inkSecond }}
-          value="From first conversation to the final built detail."
-        />
-      </div>
-
-      <div
-        className="max-w-6xl mx-auto border-t"
-        style={{ borderColor: `${ink}1A` }}
-      >
-        {services.map((s) => (
-          <div
-            key={s.num}
-            className="group grid grid-cols-[40px_1fr] md:grid-cols-[70px_1fr_1fr_24px] items-center gap-4 md:gap-6 py-7 md:py-8 border-b transition-all duration-300 hover:translate-x-2"
-            style={{ borderColor: `${ink}1A` }}
-          >
-            <span
-              className="text-xs font-bold uppercase tracking-wider opacity-60"
-              style={{ color: accent }}
-            >
-              <Editable value={s.num} />
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-white/12">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/70 block mb-3">
+              <Editable value="03 // CAPABILITIES & DISCIPLINES" />
             </span>
             <Editable
-              as="h3"
-              className="text-2xl md:text-3xl font-medium font-sans"
-              style={{ color: ink }}
-              value={s.title}
-            />
-            <Editable
-              className="col-span-2 md:col-span-1 text-xs md:text-sm leading-relaxed opacity-75"
-              style={{ color: inkSecond }}
-              value={s.desc}
-            />
-            <ArrowUpRight
-              size={20}
-              className="hidden md:block opacity-60 group-hover:opacity-100 group-hover:rotate-45 transition-all duration-300 shrink-0"
-              style={{ color: accent }}
+              as="h2"
+              className="text-4xl sm:text-6xl md:text-7xl font-bold uppercase tracking-tight leading-none text-white"
+              value={props?.title || "Radical technical depth."}
             />
           </div>
-        ))}
+
+          <div className="font-mono text-xs text-white/60">
+            <span>METHOD: EXPERIMENTAL COMPUTATION</span>
+          </div>
+        </div>
+
+        {/* 4 Interactive Disciplines Grid with Rich Animations */}
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Tab Selectors */}
+          <div className="lg:col-span-5 space-y-3">
+            {disciplines.map((d, i) => {
+              const Icon = d.icon;
+              const isSelected = activeTab === i;
+              return (
+                <motion.div
+                  key={d.num}
+                  onClick={() => setActiveTab(i)}
+                  whileHover={{ x: 4 }}
+                  className="p-6 border cursor-pointer transition-all flex items-center justify-between"
+                  style={{
+                    backgroundColor: isSelected ? "rgba(255,255,255,0.08)" : "#09090B",
+                    borderColor: isSelected ? "#FFFFFF" : "rgba(255,255,255,0.12)",
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono text-sm font-bold text-white/60">{d.num}</span>
+                    <div>
+                      <h3 className="text-base font-bold uppercase tracking-wider text-white">
+                        {d.title}
+                      </h3>
+                      <p className="text-[11px] font-mono text-white/50">{d.subtitle}</p>
+                    </div>
+                  </div>
+                  <Icon size={18} className={isSelected ? "text-white" : "text-white/30"} />
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Right Column: Active Discipline Deep Dive */}
+          <div className="lg:col-span-7">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.35 }}
+                className="p-8 md:p-12 border border-white/20 bg-[#09090B] shadow-2xl flex flex-col justify-between min-h-[420px]"
+              >
+                <div>
+                  <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/12 font-mono text-xs">
+                    <span className="text-white/60">DISCIPLINE FILE // {disciplines[activeTab].num}</span>
+                    <span className="text-white font-bold uppercase">METHODOLOGY SPECIFICATION</span>
+                  </div>
+
+                  <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white mb-4">
+                    {disciplines[activeTab].title}
+                  </h3>
+
+                  <p className="text-sm md:text-base leading-relaxed text-white/80 font-light mb-8">
+                    {disciplines[activeTab].desc}
+                  </p>
+
+                  <div className="mb-8">
+                    <span className="text-xs font-mono uppercase tracking-widest block mb-4 text-white font-bold">
+                      CORE DELIVERABLES & TECHNICAL SCOPE:
+                    </span>
+                    <div className="grid sm:grid-cols-2 gap-3 text-xs font-mono">
+                      {disciplines[activeTab].deliverables.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-white/80">
+                          <Check size={14} className="text-white shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/12 flex items-center justify-between font-mono text-xs">
+                  <span className="text-white/50">REQUEST DETAILED SCOPE PDF</span>
+                  <a
+                    href="#contact"
+                    className="inline-flex items-center gap-2 font-bold text-white uppercase hover:underline"
+                  >
+                    <span>INITIATE COMMISSION</span>
+                    <ArrowUpRight size={14} />
+                  </a>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </section>
   );

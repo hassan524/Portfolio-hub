@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Editable } from "@/components/editor/ui/Editable";
+import { motion } from "framer-motion";
 import { FaInstagram, FaFacebook, FaPinterest } from "react-icons/fa";
 
 const ICONS: Record<string, any> = { instagram: FaInstagram, facebook: FaFacebook, pinterest: FaPinterest };
@@ -13,35 +14,66 @@ export function Bakery1Contact({ props = {}, theme, onChange }: any) {
   const fontBody = theme?.fontBody || "Inter";
 
   return (
-    <section id="contact" className="scroll-mt-20 py-24 md:py-32" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="grid gap-16 md:grid-cols-2 md:items-start">
-          {/* Left: info */}
-          <div>
-            <Editable as="p" className="text-xs font-bold uppercase tracking-widest" value="05 — Find us" />
-            <Editable
-              as="h2"
-              className="mt-4 text-4xl md:text-5xl"
-              style={{ fontFamily: fontHeading }}
-              value={props.contactTitle || "Come say hello."}
-              onChange={(contactTitle) => onChange?.({ contactTitle })}
-            />
-            <div className="mt-10 space-y-6 text-sm opacity-70">
-              <div>
-                <p className="font-semibold uppercase tracking-wider text-xs mb-1" style={{ color: accent }}>Address</p>
-                <Editable as="p" value={props.address || "14 Mill Lane, Cotswolds GL54 1AB"} onChange={(address) => onChange?.({ address })} />
-              </div>
-              <div>
-                <p className="font-semibold uppercase tracking-wider text-xs mb-1" style={{ color: accent }}>Hours</p>
-                <Editable as="p" value="Mon – Sat: 7am – 4pm · Sun: 8am – 2pm" />
-              </div>
-              <div>
-                <p className="font-semibold uppercase tracking-wider text-xs mb-1" style={{ color: accent }}>Email</p>
-                <Editable as="p" value={props.email || "hello@thepantry.co"} onChange={(email) => onChange?.({ email })} />
-              </div>
-            </div>
+    <section id="contact" className="scroll-mt-20 py-24 md:py-32 relative overflow-hidden" style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}>
+      <div className="mx-auto max-w-7xl px-6 md:px-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="max-w-2xl mb-16 border-b pb-10"
+          style={{ borderColor: surface }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill={accent}><circle cx="12" cy="12" r="6" /></svg>
+            <Editable as="p" className="text-xs font-bold uppercase tracking-widest" style={{ color: accent }} value="05 — Visit Our Bakery" />
+          </div>
+          <Editable
+            as="h2"
+            className="text-4xl md:text-6xl font-light tracking-tight"
+            style={{ fontFamily: fontHeading }}
+            value={props.contactTitle || "Come taste the tradition in person."}
+            onChange={(contactTitle) => onChange?.({ contactTitle })}
+          />
+        </motion.div>
+
+        <div className="grid gap-12 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x" style={{ borderColor: surface }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="lg:px-8 first:pl-0 pt-8 lg:pt-0"
+          >
+            <p className="font-semibold uppercase tracking-wider text-xs mb-3" style={{ color: accent }}>Location</p>
+            <Editable as="p" className="text-xl font-medium leading-relaxed" style={{ fontFamily: fontHeading }} value={props.address || "14 Mill Lane, Cotswolds GL54 1AB"} onChange={(address) => onChange?.({ address })} />
+            <p className="mt-6 text-sm opacity-60">Free parking available in the rear courtyard for all patrons.</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="lg:px-8 pt-8 lg:pt-0"
+          >
+            <p className="font-semibold uppercase tracking-wider text-xs mb-3" style={{ color: accent }}>Opening Hours</p>
+            <Editable as="p" className="text-xl font-medium leading-relaxed" style={{ fontFamily: fontHeading }} value={props.hours || "Mon – Sat: 7am – 4pm · Sun: 8am – 2pm"} onChange={(hours) => onChange?.({ hours })} />
+            <p className="mt-6 text-sm opacity-60">Fresh bakes emerge hourly from dawn every single morning.</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="lg:px-8 pt-8 lg:pt-0"
+          >
+            <p className="font-semibold uppercase tracking-wider text-xs mb-3" style={{ color: accent }}>Direct Inquiries</p>
+            <Editable as="p" className="text-xl font-medium leading-relaxed" style={{ fontFamily: fontHeading }} value={props.email || "hello@thepantry.co"} onChange={(email) => onChange?.({ email })} />
+
             {props.socials && props.socials.length > 0 && (
-              <div className="mt-8 flex gap-4">
+              <div className="mt-8 flex gap-3">
                 {props.socials.map((s: any, i: number) => {
                   const Icon = ICONS[s.platform?.toLowerCase()] ?? FaInstagram;
                   return (
@@ -52,20 +84,7 @@ export function Bakery1Contact({ props = {}, theme, onChange }: any) {
                 })}
               </div>
             )}
-          </div>
-
-          {/* Right: form */}
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <input className="w-full border border-current/20 px-4 py-3 text-sm outline-none focus:border-current/50 bg-transparent" placeholder="Name" style={{ color: ink }} />
-              <input type="email" className="w-full border border-current/20 px-4 py-3 text-sm outline-none focus:border-current/50 bg-transparent" placeholder="Email" style={{ color: ink }} />
-            </div>
-            <input className="w-full border border-current/20 px-4 py-3 text-sm outline-none focus:border-current/50 bg-transparent" placeholder="Subject" style={{ color: ink }} />
-            <textarea rows={5} className="w-full border border-current/20 px-4 py-3 text-sm outline-none focus:border-current/50 bg-transparent resize-none" placeholder="Your message…" style={{ color: ink }} />
-            <button type="submit" className="px-8 py-3 text-sm font-semibold transition-opacity hover:opacity-80" style={{ backgroundColor: accent, color: "#fff" }}>
-              Send message
-            </button>
-          </form>
+          </motion.div>
         </div>
       </div>
     </section>

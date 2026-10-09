@@ -61,18 +61,20 @@ function PreviewIframe({
       doc.documentElement.className = document.documentElement.className;
     }
 
+    let iframeCleanup: (() => void) | null = null;
+
     function handleLoad() {
       const doc = iframe?.contentDocument;
       if (!doc) return;
+      if (iframeCleanup) {
+        iframeCleanup();
+        iframeCleanup = null;
+      }
       doc.body.style.margin = "0";
-      // Don't set min-height on body — doing so causes elements with h-full/min-h-full
-      // (like navbars) to stretch to the full iframe height instead of their natural height.
       doc.documentElement.style.minHeight = "100%";
       copyHeadAssets();
 
-      // Hide the iframe's own native scrollbar — otherwise it eats ~15px
-      // of the simulated device width and shows a mismatched gray bar that
-      // doesn't look anything like real mobile device chrome.
+      // Hide the iframe's own native scrollbar and configure clean single-container scrolling
       if (!doc.getElementById("preview-iframe-scrollbar-reset")) {
         const style = doc.createElement("style");
         style.id = "preview-iframe-scrollbar-reset";
@@ -82,20 +84,72 @@ function PreviewIframe({
             -ms-overflow-style: none;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            min-height: 100%;
-            scroll-behavior: smooth;
+            height: 100%;
           }
           body {
             scrollbar-width: none;
             -ms-overflow-style: none;
-            overflow-y: auto !important;
+            overflow-y: visible !important;
             overflow-x: hidden !important;
-            scroll-behavior: smooth;
+            min-height: 100%;
+            margin: 0;
           }
           html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
         `;
         doc.head.appendChild(style);
       }
+
+      // Wheel listener ensures that mouse wheel anywhere inside the iframe scrolls immediately
+      const handleIframeWheel = (e: WheelEvent) => {
+        const target = doc.scrollingElement || doc.documentElement || doc.body;
+        if (target) {
+          target.scrollTop += e.deltaY;
+        }
+      };
+
+      // Pointer drag-to-scroll emulation for mobile responsive preview
+      let isPointerDown = false;
+      let startPointerY = 0;
+      let startScrollTop = 0;
+
+      const handlePointerDown = (e: PointerEvent | MouseEvent) => {
+        if (editMode || e.button !== 0) return;
+        const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (targetTag === "input" || targetTag === "textarea" || targetTag === "select") return;
+        const scrollTarget = doc.scrollingElement || doc.documentElement || doc.body;
+        if (!scrollTarget) return;
+
+        isPointerDown = true;
+        startPointerY = e.clientY;
+        startScrollTop = scrollTarget.scrollTop;
+      };
+
+      const handlePointerMove = (e: PointerEvent | MouseEvent) => {
+        if (!isPointerDown || editMode) return;
+        const dy = e.clientY - startPointerY;
+        const scrollTarget = doc.scrollingElement || doc.documentElement || doc.body;
+        if (scrollTarget) {
+          scrollTarget.scrollTop = startScrollTop - dy;
+        }
+      };
+
+      const handlePointerUp = () => {
+        isPointerDown = false;
+      };
+
+      doc.addEventListener("wheel", handleIframeWheel, { passive: true });
+      doc.addEventListener("pointerdown", handlePointerDown);
+      doc.addEventListener("pointermove", handlePointerMove);
+      doc.addEventListener("pointerup", handlePointerUp);
+      doc.addEventListener("pointercancel", handlePointerUp);
+
+      iframeCleanup = () => {
+        doc.removeEventListener("wheel", handleIframeWheel);
+        doc.removeEventListener("pointerdown", handlePointerDown);
+        doc.removeEventListener("pointermove", handlePointerMove);
+        doc.removeEventListener("pointerup", handlePointerUp);
+        doc.removeEventListener("pointercancel", handlePointerUp);
+      };
 
       setMountNode(doc.body);
       if (mountNode === doc.body && typeof cleanupRef.current === "function") {
@@ -118,10 +172,14 @@ function PreviewIframe({
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     return () => {
+      if (iframeCleanup) {
+        iframeCleanup();
+        iframeCleanup = null;
+      }
       iframe.removeEventListener("load", handleLoad);
       observer.disconnect();
     };
-  }, [iframeRef, mountNode]);
+  }, [iframeRef, mountNode, editMode]);
 
   // Re-run whenever onDocumentReady changes (its deps include editMode, blocks,
   // site, device etc.). This replaces stale event-listener closures — e.g. the

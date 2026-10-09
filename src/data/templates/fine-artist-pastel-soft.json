@@ -1,14 +1,14 @@
 {
   "id": "fine-artist-pastel-soft",
   "category": "Wedding Website",
+  "view": "hero",
   "theme": {
-    "bg": "#fff5f7",
+    "bg": "#FFF5F7",
     "bg-second": "#ffffff",
-    "ink": "#2e2a2c",
-    "ink-second": "#000000",
-    "accent": "#ff8fa3",
-    "surface": "#e0d8d9",
-    "fontHeading": "Fraunces",
+    "ink": "#361D24",
+    "ink-second": "#E11D48",
+    "accent": "#F472B6",
+    "surface": "#FFE4E8",
     "fontBody": "Inter",
     "corners": "pill",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "WeddingWebsite1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-4"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-13"
+        "variant": "WeddingWebsite1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-4"
+        "variant": "WeddingWebsite1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "WeddingWebsite1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-4"
+        "variant": "WeddingWebsite1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-4"
+        "variant": "WeddingWebsite1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-4"
+        "variant": "WeddingWebsite1Footer"
       }
     }
   ],

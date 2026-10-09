@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { SpacerProps } from "@/types/builder.schema";
 
 export function SpacerBlock({ props, theme }: any) {

@@ -1,6 +1,8 @@
 {
   "id": "fine-artist-forest-calm",
+  "name": "Liza Product Design",
   "category": "Creative Portfolio",
+  "view": "hero",
   "theme": {
     "bg": "#FFF4F8",
     "bg-second": "#F9DDE8",
@@ -8,82 +10,87 @@
     "ink-second": "#7A5362",
     "surface": "rgba(83,29,51,.14)",
     "accent": "#F03D87",
-    "fontHeading": "Fraunces",
-    "fontBody": "Inter",
+    "fontBody": "DM Sans",
     "corners": "soft",
     "spacing": "airy"
   },
   "blocks": [
     {
-      "id": "nav-rih1z",
+      "id": "nav-creative-2",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar2",
-        "links": [],
+        "variant": "CreativePortfolio2Navbar",
+        "links": [
+          {
+            "label": "Clients",
+            "href": "#about"
+          },
+          {
+            "label": "Work",
+            "href": "#projects"
+          },
+          {
+            "label": "Say hello",
+            "href": "#contact"
+          }
+        ],
         "sticky": true
       }
     },
     {
-      "id": "block-hero-1",
+      "id": "block-hero-2",
       "type": "HeroCentered",
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-5"
+        "variant": "CreativePortfolio2Hero"
       }
     },
     {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
+      "id": "block-about-2",
+      "type": "AboutSimple",
       "order": 2,
       "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-10"
+        "kind": "about",
+        "variant": "CreativePortfolio2About"
       }
     },
     {
-      "id": "block-about-1",
-      "type": "AboutSimple",
+      "id": "block-projects-2",
+      "type": "ProjectsGrid",
       "order": 3,
       "props": {
-        "kind": "about",
-        "paragraphs": [],
-        "skills": [],
-        "experience": [],
-        "variant": "about-5"
+        "kind": "projects",
+        "variant": "CreativePortfolio2Projects"
       }
     },
     {
-      "id": "block-testimonials-1",
+      "id": "block-testimonials-2",
       "type": "TestimonialsDefault",
       "order": 4,
       "props": {
         "kind": "testimonials",
-        "items": [],
-        "variant": "testimonials-5"
+        "variant": "CreativePortfolio2Testimonials"
       }
     },
     {
-      "id": "block-contact-1",
+      "id": "block-contact-2",
       "type": "ContactForm",
       "order": 5,
       "props": {
         "kind": "contact",
-        "socials": [],
-        "variant": "contact-5"
+        "variant": "CreativePortfolio2Contact"
       }
     },
     {
-      "id": "block-footer-1",
+      "id": "block-footer-2",
       "type": "FooterDefault",
       "order": 6,
       "props": {
         "kind": "footer",
-        "socials": [],
-        "variant": "footer-5"
+        "variant": "CreativePortfolio2Footer"
       }
     }
   ],

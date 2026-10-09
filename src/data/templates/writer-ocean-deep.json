@@ -1,16 +1,16 @@
 {
   "id": "writer-ocean-deep",
   "category": "Jewelry Brand",
+  "view": "hero",
   "theme": {
-    "bg": "#081826",
-    "bg-second": "#ffffff",
-    "ink": "#e5f4ff",
-    "ink-second": "#000000",
-    "accent": "#38bdf8",
-    "surface": "#263440",
-    "fontHeading": "Space Grotesk",
-    "fontBody": "Inter",
-    "corners": "soft",
+    "bg": "#06130E",
+    "bg-second": "#0E241B",
+    "ink": "#F0FDF4",
+    "ink-second": "#86A795",
+    "accent": "#10B981",
+    "surface": "#132E22",
+    "fontBody": "Plus Jakarta Sans",
+    "corners": "sharp",
     "spacing": "cozy"
   },
   "blocks": [
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar2",
+        "variant": "JewelryBrand3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-8"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-10"
+        "variant": "JewelryBrand3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-8"
+        "variant": "JewelryBrand3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "JewelryBrand3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-8"
+        "variant": "JewelryBrand3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-8"
+        "variant": "JewelryBrand3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-8"
+        "variant": "JewelryBrand3Footer"
       }
     }
   ],

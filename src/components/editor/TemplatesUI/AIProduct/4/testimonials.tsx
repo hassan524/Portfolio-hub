@@ -1,69 +1,69 @@
 // @ts-nocheck
 import { Editable } from "@/components/editor/ui/Editable";
-import { Quote, Sparkles } from "lucide-react";
+import { Quote, CheckCircle } from "lucide-react";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
 type Props = BlockComponentProps<any>;
 
 export function AIProduct4Testimonials({ props = {}, theme }: Props) {
-  const bg = theme?.bg || "#060813";
-  const bgSecond = theme?.["bg-second"] || bg;
-  const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#8B5CF6";
+  const bg = theme?.bg || "#05070E";
+  const ink = theme?.ink || "#FFFFFF";
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.05)";
+  const accent = theme?.accent || "#6366F1";
 
   return (
-    <section id="testimonials" className="py-28 px-4 sm:px-6 transition-colors" style={{ backgroundColor: bg, color: ink }}>
+    <section id="testimonials" className="py-28 px-4 sm:px-6 transition-colors border-t border-white/5" style={{ backgroundColor: bg, color: ink }}>
       <div className="max-w-7xl mx-auto">
-        
+
         <div className="max-w-3xl mb-16">
           <div className="text-xs font-mono font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: accent }}>
-            <span className="w-2.5 h-2.5 rounded-full inline-block animate-pulse" style={{ backgroundColor: accent }} />
-            03 // EXECUTIVE VALIDATION
+            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: accent }} />
+            03 // TECHNICAL BENCHMARKS & VALIDATION
           </div>
           <Editable
             as="h2"
-            value={props?.heading || "Endorsed by Engineering Leaders"}
-            onChange={() => {}}
+            value={props?.heading || "Endorsed by Engineering Leadership"}
+            onChange={() => { }}
             className="text-3xl sm:text-5xl font-extrabold tracking-tight"
             style={{ color: ink }}
           />
         </div>
 
-        <div 
-          className="relative rounded-3xl border p-8 sm:p-14 overflow-hidden backdrop-blur-2xl shadow-2xl transition-all duration-500" 
-          style={{ backgroundColor: surface, borderColor: surface }}
+        <div
+          className="relative rounded-2xl border border-white/10 p-8 sm:p-12 overflow-hidden backdrop-blur-2xl shadow-2xl"
+          style={{ backgroundColor: surface }}
         >
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20" style={{ backgroundColor: accent }} />
+          <div className="grid lg:grid-cols-12 gap-8 items-center relative z-10">
 
-          <div className="grid lg:grid-cols-12 gap-10 items-center relative z-10">
-            
-            <div className="lg:col-span-4 relative rounded-2xl overflow-hidden border h-80" style={{ borderColor: surface }}>
-              <img
-                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&auto=format&fit=crop&q=80"
-                alt="Alexander Wolfe"
-                className="w-full h-full object-cover object-top opacity-90"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 p-3 rounded-xl backdrop-blur-md border flex items-center gap-2 text-[10px] font-mono" style={{ backgroundColor: `${bg}F0`, borderColor: surface, color: accent }}>
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>CTO // FinTech Enterprise</span>
-              </div>
-            </div>
-
-            <div className="lg:col-span-8 flex flex-col justify-center">
-              <Quote className="h-10 w-10 mb-6 opacity-40" style={{ color: accent }} />
+            <div className="lg:col-span-8">
+              <Quote className="h-8 w-8 mb-6 opacity-30" style={{ color: accent }} />
               <Editable
                 as="p"
-                value="The architectural depth delivered was extraordinary. Instead of wrapping basic API endpoints, we received a fully customized RAG pipeline with determinism controls that cut operational latency by 65% while maintaining zero data leakage."
-                onChange={() => {}}
+                value="The architectural depth provided was exceptional. Rather than delivering boilerplate model scripts, we received a hardened RAG pipeline with determinism guardrails that cut query latency by 65% while guaranteeing single-tenant isolation."
+                onChange={() => { }}
                 className="text-lg sm:text-2xl font-medium leading-relaxed mb-8"
                 style={{ color: ink }}
               />
               <div>
-                <Editable as="div" value="Alexander Wolfe" onChange={() => {}} className="text-xl font-bold mb-1" style={{ color: ink }} />
-                <Editable as="div" value="Chief Technology Officer, Global Finance Systems" onChange={() => {}} className="text-xs font-mono font-semibold" style={{ color: accent }} />
+                <Editable as="div" value="Alexander Wolfe" onChange={() => { }} className="text-lg font-bold mb-0.5" style={{ color: ink }} />
+                <Editable as="div" value="VP of Engineering // Global Financial Systems" onChange={() => { }} className="text-xs font-mono font-semibold" style={{ color: accent }} />
+              </div>
+            </div>
+
+            {/* Performance Impact Metrics Box */}
+            <div className="lg:col-span-4 p-6 rounded-xl border border-white/10 bg-black/40 space-y-4 font-mono text-xs">
+              <div className="text-white/50 text-[10px] uppercase tracking-widest mb-2 font-bold">DEPLOYMENT IMPACT</div>
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="text-white/70">Latency Cut</span>
+                <span className="text-emerald-400 font-bold">-65%</span>
+              </div>
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="text-white/70">Hallucination Rate</span>
+                <span className="text-emerald-400 font-bold">&lt; 0.1%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Compliance Audit</span>
+                <span className="text-emerald-400 font-bold">PASSED</span>
               </div>
             </div>
 

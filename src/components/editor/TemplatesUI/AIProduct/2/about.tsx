@@ -1,131 +1,73 @@
 // @ts-nocheck
+import { motion } from "framer-motion";
+import { ShieldCheck, Zap, LineChart, Globe2 } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-type Props = BlockComponentProps<any>;
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
 
-export function AIProduct2About({ props = {}, theme, onChange }: Props) {
-  const bg = theme?.bg || "#0A0A0C";
-  const bgSecond = theme?.["bg-second"] || bg;
+const FEATURES = [
+  { icon: ShieldCheck, title: "Bank-grade security", body: "Cold storage for 95% of assets, multi-sig custody and real-time threat monitoring protect every deposit." },
+  { icon: Zap, title: "Lightning execution", body: "Orders match in under 10ms across spot and derivatives, even during peak market volatility." },
+  { icon: LineChart, title: "Unbiased insights", body: "On-chain analytics and transparent market data, so you decide with facts, not hype." },
+  { icon: Globe2, title: "Truly decentralized", body: "Self-custody wallets and cross-chain swaps put you in control of your keys and your assets." },
+];
+const STATS = [
+  { v: "$2.4B", l: "Monthly volume" },
+  { v: "2M+", l: "Active investors" },
+  { v: "150+", l: "Listed assets" },
+  { v: "99.99%", l: "Uptime" },
+];
+
+export function AIProduct2About({ theme }: BlockComponentProps<any>) {
+  const bg = theme?.bg || "#050505";
   const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#3B82F6";
-
-  const experience = props?.experience?.length > 0 ? props.experience : [
-    { role: "Principal Engineer", co: "Acme Corp", yr: "2021—Present", desc: "Leading frontend architecture and core platform scaling." },
-    { role: "Senior Developer", co: "TechFlow", yr: "2018—2021", desc: "Built robust microservices and design systems." }
-  ];
-
-  const updateExperience = (index: number, patch: Partial<(typeof experience)[0]>) => {
-    const next = [...experience];
-    next[index] = { ...next[index], ...patch };
-    onChange?.({ experience: next });
-  };
-
-  const updateSkill = (index: number, value: string) => {
-    const next = [...(props?.skills ?? [])];
-    next[index] = value;
-    onChange?.({ skills: next });
-  };
+  const accent = theme?.accent || "#F7931A";
+  const line = mix(ink, 12);
+  const fade = (d = 0) => ({
+    initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-60px" }, transition: { duration: 0.55, delay: d },
+  });
 
   return (
-    <section id="about" className="w-full px-6 py-28 transition-colors" style={{ backgroundColor: bg, color: ink }}>
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16 items-start">
-        <div className="lg:col-span-6">
-          <Editable
-            as="span"
-            value={props?.heading || "About Me"}
-            onChange={(v) => onChange?.({ heading: v })}
-            className="text-xs font-bold tracking-widest uppercase px-3.5 py-1.5 rounded-lg inline-block mb-6"
-            style={{ color: accent, background: `${accent}15` }}
-          />
-          <Editable
-            as="h2"
-            value="Engineering with purpose and precision."
-            className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8 leading-tight"
-            style={{ color: ink }}
-          />
+    <section id="about" className="relative w-full px-6 py-28 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full blur-[140px] pointer-events-none" style={{ background: accent, opacity: 0.07 }} />
 
-          <div className="space-y-5 text-base md:text-lg leading-relaxed" style={{ color: ink, opacity: 0.75 }}>
-            {props?.paragraphs?.length > 0 ? (
-              props.paragraphs.map((p, i) => (
-                <Editable
-                  key={i}
-                  as="p"
-                  value={p}
-                  onChange={(v) => {
-                    const next = [...(props.paragraphs ?? [])];
-                    next[i] = v;
-                    onChange?.({ paragraphs: next });
-                  }}
-                />
-              ))
-            ) : (
-              <Editable as="p" value="I focus on building performant web applications with clean architecture and exceptional user interfaces. Every line of code is written with scalability and readability in mind." />
-            )}
-          </div>
+      <div className="relative z-10 max-w-6xl mx-auto">
+        <motion.div {...fade()} className="text-center max-w-2xl mx-auto mb-16">
+          <Editable as="span" className="inline-block px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border mb-5" style={{ borderColor: line, color: mix(ink, 75), backgroundColor: mix(ink, 5) }}>About Us</Editable>
+          <Editable as="h2" className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.1]" style={{ color: ink }}>Built for the next generation of investors</Editable>
+          <Editable as="p" className="mt-5 text-sm md:text-base leading-relaxed" style={{ color: mix(ink, 62) }}>
+            We combine institutional-grade infrastructure with a simple, honest experience, so anyone can step into Web3 with confidence.
+          </Editable>
+        </motion.div>
 
-          {props?.skills?.length > 0 && (
-            <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${surface}` }}>
-              <Editable as="h3" value="Expertise" className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: ink, opacity: 0.75 }} />
-              <div className="flex flex-wrap gap-2.5">
-                {props.skills.map((s, i) => (
-                  <Editable
-                    key={i}
-                    as="span"
-                    value={s}
-                    onChange={(v) => updateSkill(i, v)}
-                    className="px-4 py-2 text-xs font-semibold rounded-xl"
-                    style={{ backgroundColor: surface, color: ink, border: `1px solid ${surface}` }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="lg:col-span-6">
-          <div className="p-8 sm:p-10 rounded-3xl" style={{ backgroundColor: surface, border: `1px solid ${surface}` }}>
-            <Editable as="h3" value="Experience Timeline" className="text-xl font-bold mb-8" style={{ color: ink }} />
-            <div className="space-y-8">
-              {experience.map((item, i) => (
-                <div key={i} className="p-6 rounded-2xl transition-all hover:translate-x-1" style={{ backgroundColor: `${bg}90`, border: `1px solid ${surface}` }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <Editable
-                      as="span"
-                      value={item.yr}
-                      onChange={(v) => updateExperience(i, { yr: v })}
-                      className="text-xs font-bold px-2.5 py-1 rounded-md"
-                      style={{ background: `${accent}15`, color: accent }}
-                    />
-                    <Editable
-                      as="span"
-                      value={item.co}
-                      onChange={(v) => updateExperience(i, { co: v })}
-                      className="text-xs font-semibold"
-                      style={{ color: ink, opacity: 0.75 }}
-                    />
-                  </div>
-                  <Editable
-                    as="h4"
-                    value={item.role}
-                    onChange={(v) => updateExperience(i, { role: v })}
-                    className="text-lg font-bold mb-1"
-                    style={{ color: ink }}
-                  />
-                  <Editable
-                    as="p"
-                    value={item.desc}
-                    onChange={(v) => updateExperience(i, { desc: v })}
-                    className="text-sm"
-                    style={{ color: ink, opacity: 0.75 }}
-                  />
+        <div className="grid md:grid-cols-2 gap-5">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div key={f.title} {...fade(i * 0.08)}
+                className="group relative p-8 rounded-3xl border overflow-hidden transition-colors hover:border-white/25"
+                style={{ borderColor: line, backgroundColor: mix(ink, 4) }}>
+                <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity" style={{ background: accent }} />
+                <div className="h-12 w-12 rounded-2xl grid place-items-center mb-6 border" style={{ borderColor: line, backgroundColor: mix(ink, 6) }}>
+                  <Icon className="h-5 w-5" style={{ color: accent }} />
                 </div>
-              ))}
-            </div>
-          </div>
+                <Editable as="h3" className="text-xl font-semibold tracking-tight mb-2.5" style={{ color: ink }}>{f.title}</Editable>
+                <Editable as="p" className="text-sm leading-relaxed" style={{ color: mix(ink, 62) }}>{f.body}</Editable>
+              </motion.div>
+            );
+          })}
         </div>
+
+        <motion.div {...fade(0.1)} className="mt-5 grid grid-cols-2 md:grid-cols-4 rounded-3xl border overflow-hidden" style={{ borderColor: line }}>
+          {STATS.map((s, i) => (
+            <div key={s.l} className="p-7 text-center" style={{ borderLeft: i % 2 === 1 || i > 0 ? `1px solid ${line}` : "none", borderTop: i > 1 ? `1px solid ${line}` : "none" }}>
+              <Editable as="div" className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: ink }}>{s.v}</Editable>
+              <Editable as="div" className="mt-1.5 text-xs font-medium uppercase tracking-wider" style={{ color: mix(ink, 50) }}>{s.l}</Editable>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

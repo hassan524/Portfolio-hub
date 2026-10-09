@@ -2,6 +2,7 @@
   "id": "writer-glass-gradient",
   "name": "Atelier Obsidian Parfums",
   "category": "Perfume Brand",
+  "view": "hero",
   "theme": {
     "bg": "#0A090D",
     "bg-second": "#14121B",
@@ -9,7 +10,6 @@
     "ink-second": "#9E96A6",
     "accent": "#D4AF37",
     "surface": "rgba(255, 255, 255, 0.05)",
-    "fontHeading": "Cinzel",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"

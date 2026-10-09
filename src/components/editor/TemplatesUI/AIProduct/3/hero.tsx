@@ -1,351 +1,181 @@
 // @ts-nocheck
-import { Sparkles, TrendingUp, ArrowRight, Bot, Cpu, MessageSquare, Bell, ThumbsUp, Heart, Smile } from "lucide-react";
+import { useId } from "react";
+import { motion } from "framer-motion";
+import { ArrowDownRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-type Props = BlockComponentProps<any>;
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
+const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+const SKILLS = ["Machine Learning", "Product Design", "LLM Agents", "Computer Vision", "Design Systems", "RAG Pipelines", "Prototyping", "TypeScript"];
+const FACTS = [
+  { v: "6+", l: "Years building" },
+  { v: "40", l: "Products shipped" },
+  { v: "12", l: "AI launches" },
+];
 
-export function AIProduct3Hero({ props = {}, theme, onChange }: Props) {
+function OrbitScene({ ink, accent, bg }: { ink: string; accent: string; bg: string }) {
+  const id = useId();
+  const rings = [
+    { r: 110, d: 26, dir: 1, dots: [[0, 1], [180, 0.7]] },
+    { r: 170, d: 40, dir: -1, dots: [[60, 1], [250, 0.7]] },
+    { r: 228, d: 58, dir: 1, dots: [[130, 1], [320, 0.7]] },
+  ];
+  return (
+    <svg viewBox="-260 -260 520 520" className="w-full h-full" aria-hidden>
+      <defs>
+        <radialGradient id={`${id}c`} cx="35%" cy="30%" r="80%">
+          <stop offset="0" stopColor="#FF9DB8" /><stop offset="0.55" stopColor={accent} /><stop offset="1" stopColor="#8E1840" />
+        </radialGradient>
+        <radialGradient id={`${id}g`}>
+          <stop offset="0" stopColor={accent} stopOpacity=".55" /><stop offset="1" stopColor={accent} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor={accent} stopOpacity="0" /><stop offset="1" stopColor={accent} stopOpacity=".9" />
+        </linearGradient>
+      </defs>
+
+      <circle r="150" fill={`url(#${id}g)`} />
+      {/* crosshair */}
+      <line x1="-250" x2="250" y1="0" y2="0" stroke={ink} strokeOpacity=".08" />
+      <line y1="-250" y2="250" x1="0" x2="0" stroke={ink} strokeOpacity=".08" />
+
+      {rings.map((g, i) => (
+        <motion.g key={i} animate={{ rotate: 360 * g.dir }} transition={{ repeat: Infinity, duration: g.d, ease: "linear" }}>
+          <circle r={g.r} fill="none" stroke={ink} strokeOpacity={0.18 - i * 0.03} strokeDasharray={i === 1 ? "2 7" : "none"} />
+          {g.dots.map(([a, o], k) => {
+            const x = Math.cos((a * Math.PI) / 180) * g.r, y = Math.sin((a * Math.PI) / 180) * g.r;
+            return (
+              <g key={k}>
+                <circle cx={x} cy={y} r={k ? 4 : 7} fill={k ? ink : accent} opacity={o} />
+                {!k && <circle cx={x} cy={y} r="14" fill="none" stroke={accent} strokeOpacity=".4" />}
+              </g>
+            );
+          })}
+        </motion.g>
+      ))}
+
+      {/* radar sweep */}
+      <motion.g animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 9, ease: "linear" }}>
+        <path d="M0,0 L228,0 A228,228 0 0 0 190,-126 Z" fill={`url(#${id}s)`} opacity=".22" />
+        <line x1="0" y1="0" x2="228" y2="0" stroke={accent} strokeOpacity=".7" />
+      </motion.g>
+
+      {/* core */}
+      <motion.circle r="62" fill={`url(#${id}c)`} animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} />
+      <circle r="62" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1.5" />
+      <text y="14" textAnchor="middle" fontSize="40" fontWeight="800" fill="#fff" fontFamily="Inter, system-ui, sans-serif">AI</text>
+      <ellipse cx="-22" cy="-30" rx="26" ry="11" fill="#fff" opacity=".22" transform="rotate(-25 -22 -30)" />
+    </svg>
+  );
+}
+
+export function AIProduct3Hero({ theme }: BlockComponentProps<any>) {
   const bg = theme?.bg || "#140C12";
-  const bgSecond = theme?.["bg-second"] || "#FFF5F8";
   const ink = theme?.ink || "#FFFFFF";
-  const inkSecond = theme?.["ink-second"] || "#1E0C17";
-  const surface = theme?.surface || "#231420";
   const accent = theme?.accent || "#FF3B76";
+  const line = mix(ink, 12);
+
+  const rise = (d = 0) => ({
+    initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, delay: d, ease: [0.22, 1, 0.36, 1] },
+  });
+  const chip = "absolute px-3.5 py-1.5 rounded-full text-[11px] font-semibold backdrop-blur-md border";
 
   return (
-    <section className="relative w-full pt-14 pb-28 px-4 sm:px-6 overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
+    <section id="home" className="relative w-full overflow-hidden transition-colors" style={{ backgroundColor: bg, color: ink }}>
+      <div className="absolute -top-24 right-0 w-[760px] h-[760px] rounded-full blur-[170px] pointer-events-none" style={{ background: accent, opacity: 0.2 }} />
+      <div className="absolute bottom-0 -left-32 w-[420px] h-[420px] rounded-full blur-[150px] pointer-events-none" style={{ background: "#7E183E", opacity: 0.35 }} />
 
-      {/* Layered Luxury Ambient Glows */}
-      <div
-        className="absolute top-20 left-1/2 -translate-x-1/2 w-[650px] sm:w-[900px] h-[350px] sm:h-[450px] opacity-35 rounded-full blur-[160px] pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at 50% 50%, ${accent} 0%, #7E183E 50%, transparent 75%)` }}
-      />
-      <div
-        className="absolute top-64 right-10 w-[350px] h-[350px] opacity-20 rounded-full blur-[130px] pointer-events-none"
-        style={{ background: accent }}
-      />
+      {/* vertical rail text */}
+      <div className="hidden xl:block absolute left-5 top-1/2 -translate-y-1/2 -rotate-90 origin-left text-[10px] font-mono tracking-[0.35em] uppercase whitespace-nowrap" style={{ color: mix(ink, 40) }}>
+        <Editable className="inline">Portfolio — {new Date().getFullYear()}</Editable>
+      </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto text-center flex flex-col items-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 pt-14 pb-16 lg:pt-20 grid lg:grid-cols-12 gap-10 items-center">
+        {/* left: copy, left-aligned */}
+        <div className="lg:col-span-7">
+          <motion.div {...rise(0)} className="flex items-center gap-4 mb-8">
+            <span className="h-px w-12" style={{ background: accent }} />
+            <Editable as="span" className="text-xs font-mono tracking-[0.25em] uppercase" style={{ color: accent }}>AI engineer & product designer</Editable>
+          </motion.div>
 
-        {/* Top Badge */}
-        <div
-          className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full mb-8 text-xs font-semibold backdrop-blur-xl transition-all duration-300 hover:scale-105 border shadow-sm"
-          style={{
-            backgroundColor: `${surface}CC`,
-            borderColor: `${accent}35`,
-            color: accent
-          }}
-        >
-          <Sparkles className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: "6s", color: accent }} />
-          <Editable
-            value={props?.badgeText || "WideApp raises $120M to fuel Next-Gen AI Growth"}
-            onChange={(v) => onChange?.({ badgeText: v })}
-            className="inline tracking-wide"
-          />
-        </div>
+          <motion.h1 {...rise(0.08)} className="font-extrabold tracking-tight leading-[0.95] text-[2.75rem] sm:text-7xl xl:text-[5.5rem]" style={{ color: ink }}>
+            <Editable className="block">I build AI</Editable>
+            <Editable className="block">products that</Editable>
+            <span className="block relative w-fit">
+              <Editable className="inline" style={{ color: accent }}>feel human.</Editable>
+              <svg className="absolute left-0 -bottom-2 w-full h-3" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden>
+                <motion.path d="M2 8 Q 75 1 150 6 T 298 5" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round"
+                  initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1, delay: 0.8, ease: "easeOut" }} />
+              </svg>
+            </span>
+          </motion.h1>
 
-        {/* Headline */}
-        <Editable
-          as="h1"
-          value={props?.headline || "Experience smarter, faster and more engaging AI portfolios"}
-          onChange={(v) => onChange?.({ headline: v })}
-          className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.07] mb-6 max-w-4xl"
-          style={{ color: ink }}
-        />
+          <motion.div {...rise(0.18)}>
+            <Editable as="p" className="mt-9 max-w-lg text-base sm:text-lg leading-relaxed" style={{ color: mix(ink, 70) }}>
+              Designer and engineer turning machine learning into calm, useful interfaces. From first sketch to production model, I own the whole journey.
+            </Editable>
+          </motion.div>
 
-        {/* Subheadline */}
-        <Editable
-          as="p"
-          value={props?.subheadline || "WideApp GO gives you free access to enterprise AI models and autonomous business communication."}
-          onChange={(v) => onChange?.({ subheadline: v })}
-          className="text-sm sm:text-base lg:text-lg max-w-2xl mb-10 leading-relaxed font-normal opacity-85"
-          style={{ color: ink }}
-        />
-
-        {/* CTA Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-          <a
-            href="#portfolio"
-            className="px-8 py-4 rounded-xl font-bold text-sm shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 group cursor-pointer"
-            style={{
-              background: `linear-gradient(135deg, ${accent}, #E0265F)`,
-              color: ink,
-              boxShadow: `0 0 35px ${accent}60`
-            }}
-          >
-            <span>Explore AI Portfolio</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1.5" />
-          </a>
-          <a
-            href="#demo"
-            className="px-8 py-4 rounded-xl font-bold text-sm border backdrop-blur-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-            style={{
-              backgroundColor: `${surface}B3`,
-              borderColor: `${accent}30`,
-              color: ink
-            }}
-          >
-            View Live Demos
-          </a>
-        </div>
-
-        {/* Dynamic Interactive Mockups */}
-        <div className="relative w-full max-w-7xl min-h-[480px] sm:min-h-[520px] flex justify-center items-center mt-6">
-
-          <div
-            className="absolute w-[380px] sm:w-[460px] h-[380px] sm:h-[460px] rounded-full border pointer-events-none animate-ping opacity-25"
-            style={{ borderColor: accent, animationDuration: "9s" }}
-          />
-
-          {/* Floating Metric Card (Left Top) */}
-          <div
-            className="hidden lg:block absolute left-4 xl:left-[4%] top-4 w-[240px] p-5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1"
-            style={{
-              backgroundColor: `${surface}F2`,
-              borderColor: `${accent}30`,
-              color: ink
-            }}
-          >
-            <div className="text-3xl font-extrabold flex items-center gap-2" style={{ color: ink }}>
-              48% <TrendingUp className="h-5 w-5 animate-bounce" style={{ color: accent }} />
-            </div>
-            <div className="text-xs font-medium mt-1 mb-3" style={{ color: ink, opacity: 0.75 }}>
-              Increase in AI Automation
-            </div>
-            <div className="space-y-1.5">
-              <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: `${accent}25` }}>
-                <div className="w-[75%] h-full rounded-full transition-all duration-1000" style={{ background: `linear-gradient(to right, ${accent}, #FF759F)` }} />
-              </div>
-              <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${bg}90` }}>
-                <div className="w-[45%] h-full rounded-full" style={{ background: `${accent}70` }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Floating Chat Card (Left Bottom) */}
-          <div
-            className="hidden lg:block absolute left-4 xl:left-[4%] bottom-4 w-[280px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-            style={{
-              backgroundColor: `${surface}F2`,
-              borderColor: `${accent}30`,
-              color: ink
-            }}
-          >
-            <div className="flex items-center gap-2.5 mb-3">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="AI Lead"
-                className="w-7 h-7 rounded-full object-cover border"
-                style={{ borderColor: `${accent}40` }}
-              />
-              <span className="text-xs font-bold" style={{ color: ink }}>Janet Cooper</span>
-              <span className="text-[10px] ml-auto font-mono" style={{ color: ink, opacity: 0.65 }}>10:15am</span>
-            </div>
-            <div className="p-3 rounded-xl text-xs mb-2 leading-relaxed border" style={{ backgroundColor: `${bg}80`, borderColor: `${accent}20`, color: ink }}>
-              Neural model training is complete across all cluster nodes.
-            </div>
-            <div
-              className="p-3 rounded-xl text-xs ml-auto max-w-[85%] font-medium shadow-md mb-3"
-              style={{
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`,
-                color: ink,
-                boxShadow: `0 4px 15px ${accent}40`
-              }}
-            >
-              Deploying autonomous inference agent now!
-            </div>
-            <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: `${surface}` }}>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border" style={{ backgroundColor: `${bg}70`, borderColor: `${accent}20`, color: ink }}>
-                <ThumbsUp className="h-3 w-3" style={{ color: accent }} /> 2
-              </div>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border" style={{ backgroundColor: `${bg}70`, borderColor: `${accent}20`, color: ink }}>
-                <Heart className="h-3 w-3" style={{ color: accent }} /> 4
-              </div>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border" style={{ backgroundColor: `${bg}70`, borderColor: `${accent}20`, color: ink }}>
-                <Smile className="h-3 w-3 text-amber-400" /> 1
-              </div>
-            </div>
-          </div>
-
-          {/* Center Mobile Mockup with Responsive Neural Image */}
-          <div
-            className="relative z-30 w-[275px] sm:w-[300px] rounded-[46px] p-3 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85),0_0_35px_rgba(255,59,118,0.18)] border-[5px] transition-all duration-500 hover:scale-[1.02]"
-            style={{
-              backgroundColor: surface,
-              borderColor: `${accent}35`
-            }}
-          >
-            {/* Dynamic Island Speaker Notch */}
-            <div className="w-24 h-4 bg-black/90 mx-auto rounded-b-xl mb-3 flex items-center justify-center gap-1 border-b border-white/10">
-              <div className="w-2.5 h-2.5 rounded-full bg-black/80 border border-white/10" />
-              <div className="w-8 h-1 bg-gray-700 rounded-full" />
-            </div>
-
-            <div className="rounded-[32px] p-4 text-left min-h-[440px] overflow-hidden flex flex-col justify-between" style={{ backgroundColor: `${bg}F2`, color: ink }}>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-5 h-0.5 bg-gray-500 relative before:content-[''] before:absolute before:-top-1.5 before:w-5 before:h-0.5 before:bg-gray-500 after:content-[''] after:absolute after:top-1.5 after:w-3 after:h-0.5 after:bg-gray-500" />
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: `${accent}30`, color: accent }}>
-                      <Sparkles className="h-3 w-3" />
-                    </div>
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                      alt="User Profile"
-                      className="w-6 h-6 rounded-full object-cover border"
-                      style={{ borderColor: `${accent}40` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Responsive Image Inside Mobile Frame */}
-                <div className="relative w-full h-28 rounded-2xl overflow-hidden mb-3 shadow-md border group" style={{ borderColor: `${accent}30` }}>
-                  <img
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80"
-                    alt="Neural AI Visual"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5">
-                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">Active Neural Stream</span>
-                  </div>
-                </div>
-
-                <div className="text-[10px] uppercase font-bold tracking-wider" style={{ color: accent }}>AI Insights</div>
-                <div className="text-lg font-extrabold mb-3" style={{ color: ink }}>Overview</div>
-
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="p-2.5 rounded-xl border shadow-sm" style={{ backgroundColor: surface, borderColor: `${accent}20` }}>
-                    <div className="text-[10px]" style={{ color: ink, opacity: 0.75 }}>Inferences</div>
-                    <div className="text-sm font-extrabold" style={{ color: ink }}>815,479</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl border shadow-sm" style={{ backgroundColor: surface, borderColor: `${accent}20` }}>
-                    <div className="text-[10px]" style={{ color: ink, opacity: 0.75 }}>Models</div>
-                    <div className="text-sm font-extrabold" style={{ color: ink }}>102</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-2">
-                <div className="p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold shadow-sm transition-all hover:border-pink-500/50" style={{ backgroundColor: surface, borderColor: `${accent}25`, color: ink }}>
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Agent Hub
-                  </span>
-                  <span style={{ color: accent }}>›</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating Agent Card (Right Top) */}
-          <div
-            className="hidden lg:block absolute right-4 xl:right-[4%] top-4 w-[270px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border z-20 backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-            style={{
-              backgroundColor: `${surface}F2`,
-              borderColor: `${accent}30`,
-              color: ink
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: `${accent}25`, color: accent }}>
-                <Bot className="h-3.5 w-3.5" />
-              </div>
-              <span className="text-xs font-bold" style={{ color: ink }}>Shelter AI Agent</span>
-            </div>
-            <div className="text-xs leading-normal mb-3" style={{ color: ink, opacity: 0.8 }}>
-              I am optimizing your neural data pipelines... <span className="underline font-semibold cursor-pointer" style={{ color: accent }}>Learn more</span>
-            </div>
-            <button
-              className="w-full py-2.5 px-3 rounded-xl font-semibold text-xs text-center shadow-md transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-              style={{
-                background: `linear-gradient(135deg, ${accent}, #E0265F)`,
-                color: ink,
-                boxShadow: `0 4px 15px ${accent}40`
-              }}
-            >
-              <span>Optimize Latency Now</span>
-              <ArrowRight className="h-3 w-3" />
+          <motion.div {...rise(0.26)} className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <button onClick={() => go("projects")} className="group inline-flex items-center gap-3 pl-7 pr-3 py-3 rounded-full text-sm font-bold cursor-pointer transition-transform hover:scale-[1.03] active:scale-95"
+              style={{ background: `linear-gradient(135deg, ${accent}, #E0265F)`, color: "#fff", boxShadow: `0 10px 36px ${mix(accent, 45)}` }}>
+              <Editable className="inline">See selected work</Editable>
+              <span className="h-9 w-9 rounded-full grid place-items-center bg-white/20 transition-transform group-hover:translate-y-0.5"><ArrowDownRight className="h-4 w-4" /></span>
             </button>
-          </div>
+            <button onClick={() => go("contact")} className="relative text-sm font-semibold cursor-pointer group" style={{ color: ink }}>
+              <Editable className="inline">Say hello</Editable>
+              <span className="absolute -bottom-1 left-0 h-px w-full transition-all group-hover:h-0.5" style={{ background: accent }} />
+            </button>
+          </motion.div>
 
-          {/* Floating Architect Card & Tools (Right Bottom) */}
-          <div className="hidden lg:flex absolute right-4 xl:right-[4%] bottom-6 items-center z-20">
-            <div
-              className="w-[260px] p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left border backdrop-blur-2xl transition-all duration-500 hover:scale-105"
-              style={{
-                backgroundColor: `${surface}F2`,
-                borderColor: `${accent}30`,
-                color: ink
-              }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <img
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                  alt="Architect"
-                  className="w-6 h-6 rounded-full object-cover border"
-                  style={{ borderColor: `${accent}40` }}
-                />
-                <span className="text-xs font-bold" style={{ color: ink }}>Jack Cooper</span>
+          {/* inline facts divided by hairlines, no boxes */}
+          <motion.div {...rise(0.34)} className="mt-14 flex items-stretch">
+            {FACTS.map((f, i) => (
+              <div key={f.l} className="pr-8 mr-8" style={{ borderRight: i < FACTS.length - 1 ? `1px solid ${line}` : "none" }}>
+                <Editable as="div" className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: ink }}>{f.v}</Editable>
+                <Editable as="div" className="mt-1 text-[11px] uppercase tracking-widest" style={{ color: mix(ink, 50) }}>{f.l}</Editable>
               </div>
-              <div className="text-xs font-bold mb-1" style={{ color: ink }}>Model Synthesis Verified</div>
-              <p className="text-[11px] leading-tight" style={{ color: ink, opacity: 0.75 }}>
-                Multimodal AI pipeline achieved 99.8% precision rate.
-              </p>
-            </div>
-
-            <div
-              className="ml-2 backdrop-blur-2xl p-1.5 rounded-xl flex flex-col gap-2 shadow-xl border"
-              style={{
-                backgroundColor: `${surface}F2`,
-                borderColor: `${accent}30`,
-                color: ink
-              }}
-            >
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-sm" style={{ backgroundColor: accent, color: ink }}>
-                <Cpu className="h-3.5 w-3.5" />
-              </div>
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:opacity-100" style={{ color: ink, opacity: 0.75 }}>
-                <MessageSquare className="h-3 w-3" />
-              </div>
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:opacity-100" style={{ color: ink, opacity: 0.75 }}>
-                <Bell className="h-3 w-3" />
-              </div>
-            </div>
-          </div>
-
+            ))}
+          </motion.div>
         </div>
 
+        {/* right: orbit illustration */}
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.2 }}
+          className="lg:col-span-5 relative aspect-square w-full max-w-[520px] mx-auto lg:ml-auto">
+          <OrbitScene ink={ink} accent={accent} bg={bg} />
+
+          <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+            className={`${chip} top-[10%] left-[2%]`} style={{ borderColor: mix(accent, 40), backgroundColor: mix(bg, 60), color: ink }}>
+            <Editable className="inline">Vision models</Editable>
+          </motion.span>
+          <motion.span animate={{ y: [0, 9, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+            className={`${chip} top-[28%] right-[0%]`} style={{ borderColor: mix(accent, 40), backgroundColor: mix(bg, 60), color: ink }}>
+            <Editable className="inline">Autonomous agents</Editable>
+          </motion.span>
+          <motion.span animate={{ y: [0, -7, 0] }} transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
+            className={`${chip} bottom-[14%] left-[6%]`} style={{ borderColor: mix(accent, 40), backgroundColor: mix(bg, 60), color: ink }}>
+            <Editable className="inline">RAG systems</Editable>
+          </motion.span>
+          <motion.span animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
+            className={`${chip} bottom-[6%] right-[8%]`} style={{ backgroundColor: accent, borderColor: accent, color: "#fff" }}>
+            <Editable className="inline">Interface design</Editable>
+          </motion.span>
+        </motion.div>
       </div>
 
-      {/* Partner Brand Bar */}
-      <div
-        className="w-full mt-20 pt-8 pb-4 border-t backdrop-blur-md"
-        style={{
-          borderColor: `${accent}20`,
-          backgroundColor: `${surface}80`
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-6">
-          <div
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-bold tracking-wide"
-            style={{
-              backgroundColor: `${bg}90`,
-              borderColor: `${accent}30`,
-              color: accent
-            }}
-          >
-            <span>INNOVATORS WE SERVE</span>
-          </div>
-          <div className="flex items-center gap-8 sm:gap-14 font-bold tracking-widest text-xs uppercase" style={{ color: ink, opacity: 0.75 }}>
-            <span className="hover:opacity-100 transition-opacity">SCENELAND</span>
-            <span className="hover:opacity-100 transition-opacity">NORNOLE</span>
-            <span className="font-serif capitalize text-sm tracking-normal hover:opacity-100 transition-opacity">Panasonic</span>
-            <span className="hover:opacity-100 transition-opacity">Hard Rock</span>
-            <span className="hover:opacity-100 transition-opacity">WALKER</span>
-          </div>
-        </div>
+      {/* marquee of skills */}
+      <div className="relative border-y overflow-hidden py-5" style={{ borderColor: line }}>
+        <motion.div className="flex w-max items-center gap-10 whitespace-nowrap" animate={{ x: ["0%", "-50%"] }} transition={{ repeat: Infinity, duration: 34, ease: "linear" }}>
+          {[...SKILLS, ...SKILLS].map((s, i) => (
+            <span key={i} className="flex items-center gap-10 text-lg sm:text-2xl font-bold tracking-tight uppercase" style={{ color: i % 2 ? mix(ink, 85) : "transparent", WebkitTextStroke: i % 2 ? "0" : `1px ${mix(ink, 55)}` }}>
+              <Editable className="inline">{s}</Editable>
+              <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden><path d="M10 0l2.4 7.6L20 10l-7.6 2.4L10 20l-2.4-7.6L0 10l7.6-2.4z" fill={accent} /></svg>
+            </span>
+          ))}
+        </motion.div>
       </div>
-    </section >
+    </section>
   );
 }

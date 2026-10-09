@@ -12,20 +12,9 @@ import {
   getPreviewBlockWrapperStyle,
 } from "@/lib/functions/livePreview/blockWrapper";
 
-// JSON font name -> CSS class suffix
-const FONT_CLASS: Record<string, string> = {
-  "Poppins": "poppins",
-  "Inter": "inter",
-  "Fraunces": "fraunces",
-  "Space Grotesk": "space-grotesk",
-  "Cormorant Garamond": "cormorant",
-  "DM Sans": "dm-sans",
-  "Instrument Serif": "instrument",
-  "Outfit": "outfit",
-  "Comic Relief": "comic",
-  "Open Sans": "open-sans",
-  "Roboto": "roboto",
-};
+import { useEffect } from "react";
+import { resolveFont, ensureGoogleFontLoaded } from "@/lib/functions/fontUtils";
+
 
 export function PreviewLoadingState({ bg, ink }: { bg: string; ink: string }) {
   return (
@@ -64,8 +53,11 @@ export function PreviewBlock({
 
   if (!Cmp) return null;
 
+  const componentProps = getPreviewBlockComponentProps(block, site);
+  const blockTheme = getPreviewBlockTheme(theme, block);
+
   try {
-    const probe = Cmp({ ...block.props, theme });
+    const probe = Cmp({ props: componentProps, theme: blockTheme, ...block.props });
     if (probe === null || probe === undefined || probe === false) return null;
   } catch {
     // If component uses hooks, it will throw outside render which indicates real component logic
@@ -84,14 +76,16 @@ export function PreviewBlock({
     isSpacer
   );
 
-  const componentProps = getPreviewBlockComponentProps(block, site);
-  const blockTheme = getPreviewBlockTheme(theme, block);
   const wrapperClassName = getPreviewBlockWrapperClasses(block, { isActive });
   const innerClassName = getPreviewBlockInnerClasses(block);
 
-  const fontClasses = FONT_CLASS[theme.fontBody] ? `tb-${FONT_CLASS[theme.fontBody]}` : "";
+  const fontRaw = theme?.fontBody || site?.theme?.fontBody;
+  const fontInfo = resolveFont(fontRaw);
+  const fontClasses = fontInfo.className;
 
-  console.log('font classes ', fontClasses)
+  useEffect(() => {
+    ensureGoogleFontLoaded(fontInfo.googleFontFamily);
+  }, [fontInfo.googleFontFamily]);
 
   const hasFreePositioned = Boolean(
     site.previewEdits?.elements &&
@@ -122,7 +116,12 @@ export function PreviewBlock({
         data-has-custom-bg={hasCustomBg ? "true" : undefined}
         data-has-free-positioned={hasFreePositioned ? "true" : undefined}
         className={`${wrapperClassName} ${fontClasses}`}
-        style={wrapperStyle}
+        style={{
+          ...wrapperStyle,
+          fontFamily: fontInfo.fontFamily,
+          ["--font-sans" as any]: fontInfo.fontFamily,
+          ["--font-display" as any]: fontInfo.fontFamily,
+        }}
       >
         <ResizeHandle
           isActive={isActive}

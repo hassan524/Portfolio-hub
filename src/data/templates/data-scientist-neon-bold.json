@@ -1,6 +1,7 @@
 {
   "id": "data-scientist-neon-bold",
   "category": "Personal Brand",
+  "view": "hero",
   "theme": {
     "bg": "#0d0d14",
     "bg-second": "#ffffff",
@@ -8,7 +9,6 @@
     "ink-second": "#000000",
     "accent": "#ff2fd4",
     "surface": "#2a2a30",
-    "fontHeading": "Space Grotesk",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "PersonalBrand3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-9"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-28"
+        "variant": "PersonalBrand3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-9"
+        "variant": "PersonalBrand3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "PersonalBrand3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-9"
+        "variant": "PersonalBrand3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-9"
+        "variant": "PersonalBrand3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-9"
+        "variant": "PersonalBrand3Footer"
       }
     }
   ],

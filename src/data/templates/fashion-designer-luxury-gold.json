@@ -1,6 +1,7 @@
 {
   "id": "fashion-designer-luxury-gold",
   "category": "Streetwear Brand",
+  "view": "hero",
   "theme": {
     "bg": "#111111",
     "bg-second": "#ffffff",
@@ -8,7 +9,6 @@
     "ink-second": "#000000",
     "accent": "#c9a35b",
     "surface": "#2e2e2e",
-    "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "sharp",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "StreetwearBrand2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-6"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-3"
+        "variant": "StreetwearBrand2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-6"
+        "variant": "StreetwearBrand2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "StreetwearBrand2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-6"
+        "variant": "StreetwearBrand2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-6"
+        "variant": "StreetwearBrand2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-6"
+        "variant": "StreetwearBrand2Footer"
       }
     }
   ],

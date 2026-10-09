@@ -76,3 +76,6 @@ export function Editable({
     </Tag>
   );
 }
+
+export default Editable;
+

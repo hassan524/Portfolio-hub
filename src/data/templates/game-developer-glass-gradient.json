@@ -1,15 +1,14 @@
 {
   "id": "game-developer-glass-gradient",
   "category": "Developer Portfolio",
+  "view": "hero",
   "theme": {
-    "bg": "#101018",
-    "bg-second": "#ffffff",
-    "ink": "#eef0ff",
-    "ink-second": "#000000",
-    "accent": "#7c9dff",
-    "surface": "#2d2d34",
-    "fontHeading": "Space Grotesk",
-    "fontBody": "Inter",
+    "bg": "#171817",
+    "bg-second": "#20221F",
+    "ink": "#F4F0E6",
+    "ink-second": "#B9B8AD",
+    "surface": "rgba(244, 240, 230, 0.15)",
+    "accent": "#E87555",
     "corners": "rounded",
     "spacing": "cozy"
   },
@@ -20,7 +19,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "DeveloperPortfolio8Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +30,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-12"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-7"
+        "variant": "DeveloperPortfolio8Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-12"
+        "variant": "DeveloperPortfolio8About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "DeveloperPortfolio8Projects"
       }
     },
     {
@@ -63,7 +62,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-12"
+        "variant": "DeveloperPortfolio8Testimonials"
       }
     },
     {
@@ -73,7 +72,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-12"
+        "variant": "DeveloperPortfolio8Contact"
       }
     },
     {
@@ -83,7 +82,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-12"
+        "variant": "DeveloperPortfolio8Footer"
       }
     }
   ],

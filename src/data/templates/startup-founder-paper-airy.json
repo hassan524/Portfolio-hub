@@ -1,6 +1,7 @@
 {
   "id": "startup-founder-paper-airy",
   "category": "AI Product",
+  "view": "hero",
   "theme": {
     "bg": "#140C12",
     "bg-second": "#FFF5F8",
@@ -8,7 +9,6 @@
     "ink-second": "#1E0C17",
     "accent": "#FF3B76",
     "surface": "#231420",
-    "fontHeading": "Fraunces",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "AIProduct3Navbar",
         "links": []
       }
     },
@@ -30,26 +30,26 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-3"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "variant": "projects-26",
-        "items": []
+        "variant": "AIProduct3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
-        "variant": "about-3"
+        "variant": "AIProduct3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "AIProduct3Projects",
+        "items": []
       }
     },
     {
@@ -58,7 +58,7 @@
       "order": 4,
       "props": {
         "kind": "testimonials",
-        "variant": "testimonials-3",
+        "variant": "AIProduct3Testimonials",
         "items": []
       }
     },
@@ -68,7 +68,7 @@
       "order": 5,
       "props": {
         "kind": "contact",
-        "variant": "contact-3"
+        "variant": "AIProduct3Contact"
       }
     },
     {
@@ -77,7 +77,7 @@
       "order": 6,
       "props": {
         "kind": "footer",
-        "variant": "footer-3"
+        "variant": "AIProduct3Footer"
       }
     }
   ],

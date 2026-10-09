@@ -1,14 +1,14 @@
 {
   "id": "photographer-retro-terminal",
   "category": "Content Creator",
+  "view": "hero",
   "theme": {
-    "bg": "#0b1a0f",
-    "bg-second": "#ffffff",
-    "ink": "#c8ffcf",
-    "ink-second": "#000000",
-    "accent": "#39ff6a",
-    "surface": "#28352c",
-    "fontHeading": "Space Grotesk",
+    "bg": "#E7E0D4",
+    "bg-second": "#F1EBE1",
+    "ink": "#171717",
+    "ink-second": "#66615A",
+    "surface": "rgba(23,23,23,.08)",
+    "accent": "#D7472E",
     "fontBody": "Space Grotesk",
     "corners": "sharp",
     "spacing": "compact"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar5",
+        "variant": "ContentCreator4Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-20"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-2"
+        "variant": "ContentCreator4Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-20"
+        "variant": "ContentCreator4About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "ContentCreator4Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-20"
+        "variant": "ContentCreator4Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-20"
+        "variant": "ContentCreator4Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-20"
+        "variant": "ContentCreator4Footer"
       }
     }
   ],

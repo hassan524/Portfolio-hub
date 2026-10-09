@@ -1,15 +1,15 @@
 {
   "id": "chef-corporate-blue",
   "category": "Restaurant",
+  "view": "hero",
   "theme": {
-    "bg": "#f4f6fa",
-    "bg-second": "#ffffff",
-    "ink": "#0f1f3d",
-    "ink-second": "#000000",
-    "accent": "#2563eb",
-    "surface": "#d7d8dc",
-    "fontHeading": "Inter",
-    "fontBody": "Inter",
+    "bg": "#C8391F",
+    "bg-second": "#F6E9D2",
+    "ink": "#FFF3E0",
+    "ink-second": "#2B150D",
+    "surface": "rgba(255, 243, 224, 0.16)",
+    "accent": "#FFB938",
+    "fontBody": "Playfair Display",
     "corners": "soft",
     "spacing": "cozy"
   },
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "Restaurant1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-18"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-3"
+        "variant": "Restaurant1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-18"
+        "variant": "Restaurant1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "Restaurant1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-18"
+        "variant": "Restaurant1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-18"
+        "variant": "Restaurant1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-18"
+        "variant": "Restaurant1Footer"
       }
     }
   ],

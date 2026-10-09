@@ -1,6 +1,7 @@
 {
   "id": "videographer-corporate-blue",
   "category": "Beauty & Cosmetics",
+  "view": "hero",
   "theme": {
     "bg": "#FAF5EC",
     "bg-second": "#EDE4D0",
@@ -8,7 +9,6 @@
     "ink-second": "#5C6B62",
     "surface": "rgba(255,255,255,.6)",
     "accent": "#B58B4",
-    "fontHeading": "Inter",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "BeautyCosmetics3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-12"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-27"
+        "variant": "BeautyCosmetics3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-12"
+        "variant": "BeautyCosmetics3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "BeautyCosmetics3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-12"
+        "variant": "BeautyCosmetics3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-12"
+        "variant": "BeautyCosmetics3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-12"
+        "variant": "BeautyCosmetics3Footer"
       }
     }
   ],

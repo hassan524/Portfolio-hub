@@ -1,68 +1,88 @@
 // @ts-nocheck
 import { Editable } from "@/components/editor/ui/Editable";
-import { FaInstagram, FaLinkedin, FaBehance } from "react-icons/fa";
+import { FaInstagram, FaPinterest, FaFacebook } from "react-icons/fa";
+import { ArrowUpRight } from "lucide-react";
 
-const ICONS: Record<string, any> = { instagram: FaInstagram, linkedin: FaLinkedin, behance: FaBehance };
 const year = new Date().getFullYear();
 
 export function Bakery2Footer({ props = {}, theme }: any) {
   const bg = theme?.ink || "#242023";
-  const ink = theme?.bg || "#ffffff";
-  const surface = "rgba(255,255,255,0.1)";
-  const accent = theme?.accent || "#882b8b"; const fontHeading = theme?.fontHeading || "Fraunces"; const fontBody = theme?.fontBody || "Inter";
+  const ink = "#ffffff";
+  const accent = theme?.accent || "#b23b68";
+  const fontHeading = theme?.fontHeading || "Fraunces";
+  const fontBody = theme?.fontBody || "Inter";
 
-  const links = ["Work", "Studio", "People", "Process", "Contact"];
+  const links = [
+    { label: "Bakes", href: "#work" },
+    { label: "Story", href: "#about" },
+    { label: "Craft", href: "#services" },
+    { label: "Reviews", href: "#testimonials" },
+    { label: "Atelier", href: "#contact" },
+  ];
 
   return (
-    <footer className="py-16 px-6 md:px-12" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
+    <footer
+      className="pt-24 pb-12 px-6 md:px-12 transition-colors relative overflow-hidden"
+      style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}
+    >
       <div className="mx-auto max-w-7xl">
-        <div className="border-b pb-12 flex flex-col gap-10 md:flex-row md:items-end md:justify-between" style={{ borderColor: surface }}>
-          {/* Brand */}
-          <div>
-            {props?.logo && (
-              <img src={props.logo} alt="Logo" className="mb-4 h-9 w-auto max-w-[140px] object-contain" />
-            )}
-            <Editable
-              as="div"
-              className="text-4xl font-bold uppercase"
-              style={{ fontFamily: fontHeading }}
-            >
-              {props.heading || "Bread Studio"}
-            </Editable>
-            <Editable as="p" className="mt-3 text-sm opacity-50">
-              {props.message || "An independent creative practice."}
-            </Editable>
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-12 pb-16 border-b border-white/10">
+          {/* Brand & Mission */}
+          <div className="max-w-md">
+            <span className="text-3xl sm:text-4xl font-light tracking-tight block mb-4" style={{ fontFamily: fontHeading }}>
+              <Editable value={props?.heading || "Levain Atelier"} />
+            </span>
+            <p className="text-sm opacity-70 font-light leading-relaxed">
+              {props?.message || "Natural leavening, stone-milled heritage grains, and unhurried fermentation. Baked fresh every morning at dawn."}
+            </p>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-6">
-            {links.map((l) => (
-              <a key={l} href="#" className="text-xs font-bold uppercase tracking-widest opacity-40 transition-opacity hover:opacity-100" style={{ color: ink }}>
-                {l}
+          {/* Navigation Links */}
+          <div className="flex flex-wrap gap-8 text-sm font-light">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="opacity-70 hover:opacity-100 transition-opacity"
+              >
+                {link.label}
               </a>
             ))}
           </div>
 
           {/* Socials */}
-          {props.socials && props.socials.length > 0 && (
-            <div className="flex gap-3">
-              {props.socials.map((s: any, i: number) => {
-                const Icon = ICONS[s.platform?.toLowerCase()] ?? FaInstagram;
-                return (
-                  <a key={i} href={s.url || "#"} className="h-10 w-10 grid place-items-center border transition-opacity hover:opacity-60" style={{ borderColor: surface, color: ink }}>
-                    <Icon className="h-4 w-4" />
-                  </a>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {[FaInstagram, FaPinterest, FaFacebook].map((Icon, idx) => (
+              <a
+                key={idx}
+                href="#"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                <Icon size={15} />
+              </a>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2 text-xs opacity-30 md:flex-row md:justify-between">
-          <Editable as="p">© {year} {props.heading || "Bread Studio"}. All rights reserved.</Editable>
-          <Editable as="p">Independent. Original. Intentional.</Editable>
+        {/* Bottom Giant Brandmark Statement */}
+        <div className="py-12 select-none pointer-events-none opacity-10 text-center">
+          <span
+            className="text-6xl sm:text-8xl md:text-9xl font-light uppercase tracking-widest block whitespace-nowrap overflow-hidden text-ellipsis"
+            style={{ fontFamily: fontHeading }}
+          >
+            LEVAIN ATELIER
+          </span>
+        </div>
+
+        {/* Copyright Bar */}
+        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-light opacity-50">
+          <span>© {year} Levain Atelier. All rights reserved.</span>
+          <span>Slow Wild Fermentation • 100% Organic Grains</span>
         </div>
       </div>
     </footer>
   );
 }
+
+export const Footer = Bakery2Footer;
+export default Bakery2Footer;

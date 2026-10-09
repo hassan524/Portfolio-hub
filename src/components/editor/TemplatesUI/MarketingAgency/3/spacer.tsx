@@ -1,35 +1,32 @@
-import type { SpacerProps } from "@/types/builder.schema";
+// @ts-nocheck
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { Editable } from "@/components/editor/ui/Editable";
 
-export function SpacerBlock({ props, theme }: any) {
-  const bg = props.backgroundColor || theme.bg;
-  const bgImage = (props as Record<string, unknown>).backgroundImage as string | undefined;
-  const bgSize = (props as Record<string, unknown>).backgroundSize as string | undefined;
-  const bgPosition = (props as Record<string, unknown>).backgroundPosition as string | undefined;
-  const bgRepeat = (props as Record<string, unknown>).backgroundRepeat as string | undefined;
-  const isBlended = Boolean((props as Record<string, unknown>).isBlended);
-
+export function Spacer({ props = {}, theme, onChange }: any) {
+  const bg = theme?.bg || "#0A0A0C";
+  const bgSecond = theme?.["bg-second"] || bg;
+  const ink = theme?.ink || "#ffffff";
+  const inkSecond = theme?.["ink-second"] || ink;
+  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
+  const accent = theme?.accent || "#3B82F6";
+  const words = props?.words || ["Simple", "Smart", "Effective", "Fearless"];
   return (
-    <section
-      className={`w-full relative flex items-center justify-center p-8 transition-all min-h-[140px] ${isBlended ? "" : "border border-dashed border-border/40 rounded-lg"
-        }`}
-      style={{
-        backgroundColor: bg,
-        backgroundImage: bgImage && bgImage !== "none" ? bgImage : undefined,
-        backgroundSize: bgSize,
-        backgroundPosition: bgPosition,
-        backgroundRepeat: bgRepeat,
-        transition: "none",
-        animation: "none",
-      }}
-    >
-      <div className="text-center select-none py-4 opacity-70 hover:opacity-100 transition-opacity">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft/70">
-          Spacer Block
-        </p>
-        <p className="text-[11px] text-ink-soft/50 mt-1">
-          {isBlended ? "Blended seamlessly with neighboring blocks" : "Click to edit block properties"}
-        </p>
+    <div className="overflow-hidden py-6">
+      <div className="-rotate-1 scale-105 overflow-hidden border-y-2 py-3" style={{ background: accent, borderColor: bg, color: bg }}>
+        <motion.div animate={{ x: ["-50%", "0%"] }} transition={{ duration: 22, repeat: Infinity, ease: "linear" }} className="flex w-max whitespace-nowrap">
+          {[0, 1].map((r) => (
+            <div key={r} className="flex items-center gap-6 pr-6">
+              {words.map((w, i) => (
+                <span key={i} className="flex items-center gap-6 font-serif text-3xl font-black uppercase italic">
+                  {r === 0 ? <Editable as="span" value={w} onChange={(v) => onChange?.({ words: words.map((x, j) => (j === i ? v : x)) })} /> : <Editable as="span" value={w} />}
+                  <Star size={20} fill={bg} />
+                </span>
+              ))}
+            </div>
+          ))}
+        </motion.div>
       </div>
-    </section>
+    </div>
   );
 }

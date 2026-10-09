@@ -77,8 +77,10 @@ import PreviewIframe from "./PreviewIframe";
 import { GuideOverlay } from "./GuideOverlay";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { PreviewLoadingState, PreviewBlock } from "../live-preview/PreviewBlock";
+import { resolveFont, ensureGoogleFontLoaded } from "@/lib/functions/fontUtils";
 
 type Device = "desktop" | "responsive";
+
 
 // Responsive Editing is on. These are just convenient starting points —
 type ConfirmOptions = Partial<ConfirmationCopy> & { type?: ConfirmationType };
@@ -403,13 +405,43 @@ export function TemplateLivePreview({
     };
   }, [handleDragMove, handleDragEnd]);
 
-  const sorted = [...blocks].sort((a, b) => a.order - b.order);
+  const sorted = useMemo(() => {
+    let list = [...blocks];
+    if (!list.some((b) => b.props.kind === "experience")) {
+      const testimonialsIdx = list.findIndex((b) => b.props.kind === "testimonials");
+      const testOrder =
+        testimonialsIdx !== -1
+          ? list[testimonialsIdx].order
+          : list.length > 0
+            ? list[list.length - 1].order
+            : 4;
+      const refVariant = list.find((b) => (b.props as any)?.variant)?.props as any;
+      let expVariant = "";
+      if (refVariant?.variant) {
+        expVariant = refVariant.variant.replace(
+          /(Hero|About|Projects|Testimonials|Contact|Footer|Services|Stats|Spacer)$/,
+          "Experience",
+        );
+      }
+      const expBlock: Block = {
+        id: "block-experience-auto",
+        type: "ExperienceDefault",
+        order: testOrder - 0.5,
+        props: {
+          kind: "experience" as any,
+          variant: expVariant,
+        } as any,
+      };
+      list.push(expBlock);
+    }
+    return list.sort((a, b) => a.order - b.order);
+  }, [blocks]);
 
   useLayoutEffect(() => {
     if (contentRef.current) {
       tagAndApplyPreviewStyles(
         contentRef.current,
-        blocks,
+        sorted,
         selectedElementId,
         site.previewEdits,
         device,
@@ -423,7 +455,7 @@ export function TemplateLivePreview({
       iframeDoc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
       tagAndApplyPreviewStyles(
         iframeDoc.body,
-        blocks,
+        sorted,
         selectedElementId,
         site.previewEdits,
         device,
@@ -431,7 +463,7 @@ export function TemplateLivePreview({
       );
     }
   }, [
-    blocks,
+    sorted,
     contentRef,
     selectedElementId,
     site.previewEdits,
@@ -553,6 +585,16 @@ export function TemplateLivePreview({
       doc.documentElement.style.backgroundColor = bg;
       body.style.setProperty("--preview-editor-accent", theme.accent);
       doc.documentElement.style.setProperty("--preview-editor-accent", theme.accent);
+      const fontInfo = resolveFont(theme.fontBody || site?.theme?.fontBody);
+      if (fontInfo.fontFamily) {
+        body.style.fontFamily = fontInfo.fontFamily;
+        body.style.setProperty("--font-sans", fontInfo.fontFamily);
+        body.style.setProperty("--font-display", fontInfo.fontFamily);
+        doc.documentElement.style.fontFamily = fontInfo.fontFamily;
+        doc.documentElement.style.setProperty("--font-sans", fontInfo.fontFamily);
+        doc.documentElement.style.setProperty("--font-display", fontInfo.fontFamily);
+        ensureGoogleFontLoaded(fontInfo.googleFontFamily, doc);
+      }
       tagAndApplyPreviewStyles(body, blocks, selectedElementId, site.previewEdits, device, effectiveBreakpoint);
       requestAnimationFrame(() => {
         if (body.isConnected) {
@@ -591,6 +633,8 @@ export function TemplateLivePreview({
       site,
       device,
       theme.accent,
+      theme.fontBody,
+      site?.theme?.fontBody,
       editMode,
       moveMode,
       scale,
@@ -675,7 +719,13 @@ export function TemplateLivePreview({
       ref={contentRef}
       className={`relative min-h-full w-full max-w-full overflow-x-hidden preview-edit-canvas ${editMode ? "edit-active" : ""
         } ${moveMode ? "move-active" : ""}`}
-      style={{ background: bg, color: ink }}
+      style={{
+        background: bg,
+        color: ink,
+        fontFamily: resolveFont(theme.fontBody || site?.theme?.fontBody).fontFamily,
+        ["--font-sans" as any]: resolveFont(theme.fontBody || site?.theme?.fontBody).fontFamily,
+        ["--font-display" as any]: resolveFont(theme.fontBody || site?.theme?.fontBody).fontFamily,
+      }}
       onClick={handlePreviewClick}
       onMouseDown={handleContentMouseDown}
       onMouseMove={handlePreviewMouseMove}
@@ -1083,9 +1133,13 @@ export function TemplateLivePreview({
           data-lenis-prevent="true"
           className="flex-1 min-h-0 overflow-hidden flex items-center justify-center select-none p-1 sm:p-3"
           onWheel={(e) => {
-            const win = responsiveFrameRef.current?.contentWindow;
-            if (win) {
-              win.scrollBy({
+            const iframe = responsiveFrameRef.current;
+            const doc = iframe?.contentDocument;
+            const target = doc?.scrollingElement || doc?.documentElement || doc?.body;
+            if (target) {
+              target.scrollTop += e.deltaY;
+            } else if (iframe?.contentWindow) {
+              iframe.contentWindow.scrollBy({
                 top: e.deltaY,
                 left: 0,
                 behavior: "auto",

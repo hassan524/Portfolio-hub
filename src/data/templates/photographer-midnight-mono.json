@@ -1,14 +1,14 @@
 {
   "id": "photographer-midnight-mono",
   "category": "Photography Portfolio",
+  "view": "hero",
   "theme": {
-    "bg": "#0a0a0a",
-    "bg-second": "#ffffff",
-    "ink": "#ffffff",
-    "ink-second": "#000000",
-    "accent": "#6ee7b7",
-    "surface": "#272727",
-    "fontHeading": "Space Grotesk",
+    "bg": "#0a0b0e",
+    "bg-second": "#13151a",
+    "ink": "#f3f4f6",
+    "ink-second": "#9ca3af",
+    "accent": "#e53e3e",
+    "surface": "#1e222a",
     "fontBody": "Inter",
     "corners": "sharp",
     "spacing": "compact"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar2",
+        "variant": "PhotographyPortfolio4Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,59 +31,68 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-5"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-12"
+        "variant": "PhotographyPortfolio4Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-5"
+        "variant": "PhotographyPortfolio4About"
+      }
+    },
+    {
+      "id": "block-services-1",
+      "type": "services",
+      "order": 3,
+      "props": {
+        "kind": "services",
+        "variant": "PhotographyPortfolio4Services"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 4,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "PhotographyPortfolio4Projects"
       }
     },
     {
       "id": "block-testimonials-1",
       "type": "TestimonialsDefault",
-      "order": 4,
+      "order": 5,
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-5"
+        "variant": "PhotographyPortfolio4Testimonials"
       }
     },
     {
       "id": "block-contact-1",
       "type": "ContactForm",
-      "order": 5,
+      "order": 6,
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-5"
+        "variant": "PhotographyPortfolio4Contact"
       }
     },
     {
       "id": "block-footer-1",
       "type": "FooterDefault",
-      "order": 6,
+      "order": 7,
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-5"
+        "variant": "PhotographyPortfolio4Footer"
       }
     }
   ],

@@ -1,14 +1,14 @@
 {
   "id": "chef-sunset-warm",
   "category": "Event / Conference",
+  "view": "hero",
   "theme": {
-    "bg": "#1c1210",
-    "bg-second": "#ffffff",
-    "ink": "#fff1e6",
-    "ink-second": "#000000",
-    "accent": "#ff7a45",
-    "surface": "#372e2d",
-    "fontHeading": "Space Grotesk",
+    "bg": "#FFFFFF",
+    "bg-second": "#F8FAFC",
+    "ink": "#111827",
+    "ink-second": "#6B7280",
+    "accent": "#1D4ED8",
+    "surface": "#F3F4F6",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar2",
+        "variant": "EventConference1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-12"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-11"
+        "variant": "EventConference1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-12"
+        "variant": "EventConference1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "EventConference1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-12"
+        "variant": "EventConference1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-12"
+        "variant": "EventConference1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-12"
+        "variant": "EventConference1Footer"
       }
     }
   ],

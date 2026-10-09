@@ -1,14 +1,14 @@
 {
   "id": "photographer-paper-airy",
   "category": "Content Creator",
+  "view": "hero",
   "theme": {
-    "bg": "#faf9f6",
-    "bg-second": "#ffffff",
-    "ink": "#1a1a1a",
-    "ink-second": "#000000",
-    "accent": "#e85d3d",
-    "surface": "#dcdbd8",
-    "fontHeading": "Fraunces",
+    "bg": "#123C35",
+    "bg-second": "#184C43",
+    "ink": "#F1F7E8",
+    "ink-second": "#B6C8B2",
+    "surface": "rgba(241,247,232,.12)",
+    "accent": "#D6FF4B",
     "fontBody": "Inter",
     "corners": "soft",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar1",
+        "variant": "ContentCreator3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-5"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-6"
+        "variant": "ContentCreator3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-5"
+        "variant": "ContentCreator3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "ContentCreator3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-5"
+        "variant": "ContentCreator3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-5"
+        "variant": "ContentCreator3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-5"
+        "variant": "ContentCreator3Footer"
       }
     }
   ],

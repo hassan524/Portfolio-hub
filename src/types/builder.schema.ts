@@ -4,6 +4,7 @@ export type BlockKind =
   | "projects"
   | "about"
   | "services"
+  | "experience"
   | "testimonials"
   | "contact"
   | "footer"
@@ -214,6 +215,15 @@ export type ServicesProps = {
   [key: string]: any;
 };
 
+export type ExperienceProps = {
+  kind: "experience";
+  variant?: string;
+  heading?: string;
+  eyebrow?: string;
+  items?: ExperienceItem[];
+  [key: string]: any;
+};
+
 /* =========================
    Block Union
 ========================= */
@@ -224,6 +234,7 @@ export type BlockProps =
   | ProjectsProps
   | AboutProps
   | ServicesProps
+  | ExperienceProps
   | TestimonialsProps
   | ContactProps
   | FooterProps
@@ -259,5 +270,7 @@ export type SiteData = {
   logo: string | null;
   theme: Theme;
   blocks: Block[];
+  view?: "hero" | "about" | "projects" | "services" | "experience" | "testimonials" | "contact" | "footer" | string;
   previewEdits?: PreviewEditState;
 };
+

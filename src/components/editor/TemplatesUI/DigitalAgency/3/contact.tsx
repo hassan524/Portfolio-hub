@@ -1,214 +1,52 @@
 // @ts-nocheck
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Copy, Check, ArrowUpRight, Compass } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
 export function DigitalAgency3Contact({ props = {}, theme, onChange }: any) {
+  const bg = theme?.bg || "#FFFFFF";
+  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || theme?.surface || "#F5F4F2";
+  const ink = theme?.text || theme?.ink || "#0F0F10";
+  const inkSecond = theme?.["text-second"] || theme?.["ink-second"] || "#6B6B70";
+  const accent = theme?.accent || "#2F5BFF";
+  const onAccent = theme?.["on-accent"] || bg; // text colour on accent buttons
+  const email = props.email || "hello@yourcompany.com";
+  const types = props.projectTypes || ["Startup MVP", "Web or mobile app", "AI automation", "Extend my team", "Modernize software"];
   const [copied, setCopied] = useState(false);
-
-  const bg = theme?.bg || "#F9F7F2";
-  const bgSecond = theme?.["bg-second"] || "#F3EFE6";
-  const ink = theme?.ink || "#1C1917";
-  const inkSecond = theme?.["ink-second"] || "#78716C";
-  const surface = theme?.surface || "#FFFFFF";
-  const accent = theme?.accent || "#C2410C";
-
-  const email = "director@studioeditorial.com";
-
-  const handleCopyEmail = () => {
-    navigator.clipboard?.writeText(email);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const [f, setF] = useState({ name: "", email: "", type: types[0], message: "" });
+  const copy = () => { navigator.clipboard?.writeText(email); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const send = (e: any) => {
+    e.preventDefault();
+    const body = `${f.message}\n\nProject type: ${f.type}\nReply to: ${f.email}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent("Project enquiry from " + f.name)}&body=${encodeURIComponent(body)}`;
   };
-
-  const offerings = [
-    {
-      title: "Full Campaign Production",
-      desc: "End-to-end art direction, high-definition cinematography, casting, location scouting, and multi-channel launch rollouts.",
-      timeline: "6-8 weeks",
-    },
-    {
-      title: "Brand Identity & Editorial Design",
-      desc: "Typography creation, editorial publication books, packaging engineering, and interactive web standards.",
-      timeline: "4-6 weeks",
-    },
-    {
-      title: "Growth & Retention Architecture",
-      desc: "High-LTV customer retention flows, bespoke e-commerce storytelling, and quantitative attribution modeling.",
-      timeline: "Ongoing Sprint",
-    },
-  ];
+  const inp = "w-full px-5 py-3.5 rounded-xl text-sm sm:text-base outline-none";
+  const st = { background: bgSecond, color: ink };
 
   return (
-    <section
-      id="contact"
-      className="py-24 transition-colors"
-      style={{ backgroundColor: bg, color: ink }}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
-            <span>✦</span>
-            <span>Direct Inquiries</span>
+    <section id="contact" className="relative overflow-hidden py-16 sm:py-24" style={{ background: bgSecond, color: ink }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(50% 50% at 50% 100%, ${accent}1a, transparent 70%)` }} />
+      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <h2 className="font-medium tracking-tight leading-[1.1] text-[clamp(2rem,5vw,3.5rem)]"><Editable value={props.contactTitle || "Start your project"} onChange={(v) => onChange?.({ contactTitle: v })} /></h2>
+        <p className="mt-3 text-sm sm:text-base" style={{ color: inkSecond }}><Editable value={props.contactSubtitle || "Tell us what you are building and we will help you find the fastest path from idea to launch."} onChange={(v) => onChange?.({ contactSubtitle: v })} /></p>
+
+        <form onSubmit={send} className="mt-10 rounded-3xl p-5 sm:p-8 text-left space-y-4" style={{ background: bg }}>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="Your name" aria-label="Your name" className={inp} style={st} />
+            <input required type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="Work email" aria-label="Work email" className={inp} style={st} />
           </div>
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-serif">
-            <Editable
-              value={props?.contactTitle || "Commission Your Next Editorial Campaign"}
-              onChange={(v) => onChange?.({ contactTitle: v })}
-            />
-          </h2>
-          <p className="text-base sm:text-lg leading-relaxed max-w-xl mx-auto" style={{ color: inkSecond }}>
-            <Editable
-              value={props?.contactSubtitle || "Connect directly with our creative directors. We welcome bespoke commissions and private retainers."}
-              onChange={(v) => onChange?.({ contactSubtitle: v })}
-            />
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12">
-          
-          {/* Left Column: Direct Inquiries */}
-          <div className="lg:col-span-6 space-y-6">
-            
-            {/* Email Card with 1-Click Copy */}
-            <div
-              className="p-8 rounded-3xl border transition-all"
-              style={{
-                backgroundColor: surface,
-                borderColor: "rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold uppercase tracking-widest font-mono" style={{ color: accent }}>
-                  Director Desk
-                </span>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-stone-100 text-stone-700 font-medium">
-                  Direct Response &lt; 24h
-                </span>
-              </div>
-
-              <div className="text-xl sm:text-2xl font-serif font-black tracking-tight mb-6" style={{ color: ink }}>
-                {email}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold tracking-wide transition-all shadow-sm cursor-pointer"
-                  style={{
-                    backgroundColor: ink,
-                    color: "#FFFFFF",
-                  }}
-                >
-                  {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                  <span>{copied ? "Director Email Copied!" : "Copy Direct Email"}</span>
-                </button>
-
-                <a
-                  href={`mailto:${email}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold border transition-colors cursor-pointer"
-                  style={{ borderColor: "rgba(0,0,0,0.12)", color: ink }}
-                >
-                  <span>Compose Mail</span>
-                  <ArrowUpRight size={13} />
-                </a>
-              </div>
-            </div>
-
-            {/* Direct Studio Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div
-                className="p-6 rounded-3xl border"
-                style={{
-                  backgroundColor: surface,
-                  borderColor: "rgba(0,0,0,0.08)",
-                }}
-              >
-                <div className="flex items-center gap-2.5 mb-2">
-                  <Phone size={15} style={{ color: accent }} />
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: inkSecond }}>
-                    Studio Line
-                  </span>
-                </div>
-                <div className="text-base font-serif font-bold" style={{ color: ink }}>
-                  +33 (0)1 53 29 40 10
-                </div>
-                <div className="text-xs mt-1" style={{ color: inkSecond }}>
-                  Paris & London Consultations
-                </div>
-              </div>
-
-              <div
-                className="p-6 rounded-3xl border"
-                style={{
-                  backgroundColor: surface,
-                  borderColor: "rgba(0,0,0,0.08)",
-                }}
-              >
-                <div className="flex items-center gap-2.5 mb-2">
-                  <MapPin size={15} style={{ color: accent }} />
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: inkSecond }}>
-                    Atelier Location
-                  </span>
-                </div>
-                <div className="text-base font-serif font-bold" style={{ color: ink }}>
-                  Le Marais, Paris
-                </div>
-                <div className="text-xs mt-1" style={{ color: inkSecond }}>
-                  18 Rue de Turenne, 75004
-                </div>
-              </div>
-            </div>
-
+          <div className="flex flex-wrap gap-2">
+            {types.map((t: string) => <button key={t} type="button" onClick={() => setF({ ...f, type: t })} className="px-4 py-2 rounded-full text-xs sm:text-sm font-medium cursor-pointer" style={{ background: f.type === t ? ink : bgSecond, color: f.type === t ? bg : inkSecond }}>{t}</button>)}
           </div>
+          <textarea required rows={4} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} placeholder="What are you building, and by when?" aria-label="Project details" className={inp} style={st} />
+          <button type="submit" className="w-full py-3.5 rounded-full text-sm sm:text-base font-semibold cursor-pointer transition-transform hover:-translate-y-0.5" style={{ background: accent, color: onAccent }}>{props.submitLabel || "Send message"}</button>
+        </form>
 
-          {/* Right Column: Offerings */}
-          <div className="lg:col-span-6 space-y-4">
-            <h3 className="text-lg font-bold font-serif tracking-tight mb-2" style={{ color: ink }}>
-              Commission Formats
-            </h3>
-
-            {offerings.map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="p-6 rounded-2xl border flex flex-col justify-between"
-                style={{
-                  backgroundColor: surface,
-                  borderColor: "rgba(0,0,0,0.08)",
-                }}
-              >
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <h4 className="text-base font-bold font-serif" style={{ color: ink }}>
-                    {item.title}
-                  </h4>
-                  <span
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-full uppercase"
-                    style={{ backgroundColor: `${accent}20`, color: accent }}
-                  >
-                    {item.timeline}
-                  </span>
-                </div>
-                <p className="text-xs leading-relaxed" style={{ color: inkSecond }}>
-                  {item.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-
-        </div>
-
+        <button type="button" onClick={copy} className="mt-6 inline-flex items-center gap-2 text-sm font-medium cursor-pointer" style={{ color: inkSecond }}>
+          {copied ? <Check size={14} style={{ color: accent }} /> : <Copy size={14} />}{copied ? "Email copied" : `Or email us: ${email}`}
+        </button>
       </div>
     </section>
   );
 }
-
 export default DigitalAgency3Contact;

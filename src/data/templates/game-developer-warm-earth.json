@@ -1,17 +1,17 @@
 {
   "id": "game-developer-warm-earth",
   "category": "Wedding Website",
+  "view": "hero",
   "theme": {
-    "bg": "#f6efe6",
+    "bg": "#F5EEFD",
     "bg-second": "#ffffff",
-    "ink": "#3b2a1a",
-    "ink-second": "#000000",
-    "accent": "#b3592a",
-    "surface": "#d8d2ca",
-    "fontHeading": "Fraunces",
-    "fontBody": "Inter",
-    "corners": "soft",
-    "spacing": "cozy"
+    "ink": "#2E1065",
+    "ink-second": "#6D28D9",
+    "accent": "#7C3AED",
+    "surface": "#EDE4FC",
+    "fontBody": "Playfair Display",
+    "corners": "pill",
+    "spacing": "airy"
   },
   "blocks": [
     {
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar5",
+        "variant": "WeddingWebsite2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-17"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-15"
+        "variant": "WeddingWebsite2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-17"
+        "variant": "WeddingWebsite2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "WeddingWebsite2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-17"
+        "variant": "WeddingWebsite2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-17"
+        "variant": "WeddingWebsite2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-17"
+        "variant": "WeddingWebsite2Footer"
       }
     }
   ],

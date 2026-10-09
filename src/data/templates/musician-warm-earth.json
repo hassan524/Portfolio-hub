@@ -1,16 +1,16 @@
 {
   "id": "musician-warm-earth",
   "category": "Event / Conference",
+  "view": "hero",
   "theme": {
-    "bg": "#f6efe6",
-    "bg-second": "#ffffff",
-    "ink": "#3b2a1a",
-    "ink-second": "#000000",
-    "accent": "#b3592a",
-    "surface": "#d8d2ca",
-    "fontHeading": "Fraunces",
+    "bg": "#0A0A0D",
+    "bg-second": "#121218",
+    "ink": "#FFFFFF",
+    "ink-second": "#9CA3AF",
+    "accent": "#FFFFFF",
+    "surface": "#181822",
     "fontBody": "Inter",
-    "corners": "soft",
+    "corners": "rounded",
     "spacing": "cozy"
   },
   "blocks": [
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar5",
+        "variant": "EventConference3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-15"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-9"
+        "variant": "EventConference3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-15"
+        "variant": "EventConference3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "EventConference3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-15"
+        "variant": "EventConference3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-15"
+        "variant": "EventConference3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-15"
+        "variant": "EventConference3Footer"
       }
     }
   ],

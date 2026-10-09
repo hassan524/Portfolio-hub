@@ -1,224 +1,101 @@
 // @ts-nocheck
-import { Star, Award, Briefcase, Users, Zap, Mail, UserCheck, MessageCircle, Share2, LineChart, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-type Props = BlockComponentProps<any>;
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
 
-export function AIProduct3About({ props = {}, theme, onChange }: Props) {
-  const bg = theme?.bg || "#140C12";
-  const bgSecond = theme?.["bg-second"] || "#FFF5F8";
-  const ink = theme?.ink || "#FFFFFF";
-  const inkSecond = theme?.["ink-second"] || "#1E0C17";
-  const surface = theme?.surface || "#231420";
+const DISCIPLINES = [
+  { n: "01", t: "Applied machine learning", d: "Training, fine-tuning and evaluating models that hold up outside the notebook." },
+  { n: "02", t: "Interface & interaction design", d: "Calm, legible interfaces that make probabilistic systems feel trustworthy." },
+  { n: "03", t: "Agentic workflows", d: "Multi-step agents with guardrails, memory and a human always in the loop." },
+  { n: "04", t: "Full-stack delivery", d: "Typed APIs, data pipelines and production deploys, shipped by one person." },
+];
+const TIMELINE = [
+  { y: "2023 — now", r: "Lead AI Product Engineer", o: "Sceneland Labs" },
+  { y: "2020 — 2023", r: "Senior Product Designer", o: "Nornole" },
+  { y: "2018 — 2020", r: "Machine Learning Engineer", o: "Walker Tech" },
+];
+
+export function AIProduct3About({ theme }: BlockComponentProps<any>) {
+  const bg2 = theme?.["bg-second"] || "#FFF5F8";
+  const ink2 = theme?.["ink-second"] || "#1E0C17";
   const accent = theme?.accent || "#FF3B76";
+  const line = mix(ink2, 14);
+  const fade = (d = 0) => ({
+    initial: { opacity: 0, y: 26 }, whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-70px" }, transition: { duration: 0.6, delay: d },
+  });
 
   return (
-    <section className="py-24 px-4 sm:px-6 transition-colors" style={{ backgroundColor: bgSecond, color: inkSecond }}>
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Ratings Pill */}
-        <div className="flex items-center justify-center gap-6 mb-8 text-xs font-bold" style={{ color: inkSecond, opacity: 0.75 }}>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-transform hover:scale-105" style={{ backgroundColor: "#FFFFFF", borderColor: `${accent}20` }}>
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400 animate-spin" style={{ animationDuration: "10s" }} />
-            <Editable>4.9 on AppStore</Editable>
-          </div>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-transform hover:scale-105" style={{ backgroundColor: "#FFFFFF", borderColor: `${accent}20` }}>
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            <Editable>4.8 on PlayStore</Editable>
-          </div>
-        </div>
+    <section id="about" className="relative w-full overflow-hidden transition-colors" style={{ backgroundColor: bg2, color: ink2 }}>
+      {/* oversized ghost numeral */}
+      <div className="absolute -top-10 right-4 sm:right-12 text-[16rem] sm:text-[24rem] font-black leading-none select-none pointer-events-none" style={{ color: mix(accent, 7) }} aria-hidden>01</div>
 
-        {/* Main Section Header */}
-        <div className="max-w-4xl mx-auto text-center mb-16">
-          <Editable
-            as="h2"
-            className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-snug"
-            style={{ color: inkSecond }}
-          >{props?.heading || "WideApp GO stands at the forefront of AI innovation, bridging the digital divide between your team and autonomous agents."}</Editable>
-        </div>
-
-        {/* 4 Feature Cards Grid with Fully Editable Content */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-28">
-          {[
-            { icon: Award, defaultTitle: "Decades of AI Research", defaultDesc: "Enterprise grade neural models designed for modern scalability." },
-            { icon: Briefcase, defaultTitle: "Deep Industry Expertise", defaultDesc: "Tailored AI workflows engineered specifically for autonomous operations." },
-            { icon: Users, defaultTitle: "Human-in-the-Loop Sync", defaultDesc: "Keep human teams and autonomous AI agents perfectly synchronized." },
-            { icon: Zap, defaultTitle: "Elevates Human Potential", defaultDesc: "Automate complex analytical workflows with sub-second inference speeds." },
-          ].map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={index}
-                className="p-8 rounded-3xl border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group cursor-pointer"
-                style={{ 
-                  backgroundColor: surface, 
-                  borderColor: `${accent}25`,
-                  boxShadow: "0 15px 35px rgba(0,0,0,0.25)"
-                }}
-              >
-                <div 
-                  className="h-12 w-12 rounded-2xl border shadow-sm flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6" 
-                  style={{ 
-                    backgroundColor: `${bg}90`, 
-                    borderColor: `${accent}35`, 
-                    color: accent 
-                  }}
-                >
-                  <IconComponent className="h-5 w-5" />
-                </div>
-                <Editable
-                  as="h3"
-                  className="text-base font-bold mb-2.5 leading-snug"
-                  style={{ color: ink }}
-                >{item.defaultTitle}</Editable>
-                <Editable
-                  as="p"
-                  className="text-xs leading-relaxed"
-                  style={{ color: ink, opacity: 0.75 }}
-                >{item.defaultDesc}</Editable>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Ecosystem Feature Showcase */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-[11px] font-extrabold uppercase tracking-widest block mb-3" style={{ color: accent }}>
-            INTRODUCING WIDEAPP AI ECOSYSTEM
-          </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style={{ color: inkSecond }}>
-            Harnessing AI for seamless communication
-          </h2>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          
-          {/* Ecosystem Card 1 */}
-          <div 
-            className="p-8 sm:p-10 rounded-3xl border shadow-xl flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:-translate-y-1" 
-            style={{ 
-              backgroundColor: surface, 
-              borderColor: `${accent}25` 
-            }}
-          >
-            <div className="mb-8">
-              <span className="text-[10px] font-bold uppercase tracking-wider block mb-2" style={{ color: accent }}>
-                CREATE YOUR NETWORK
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: ink }}>
-                Get started in minutes with a professional communication hub
-              </h3>
-              <div className="flex flex-wrap gap-3 mb-8">
-                <a 
-                  href="#demo" 
-                  className="px-6 py-3 rounded-xl text-xs font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-1.5" 
-                  style={{ 
-                    background: `linear-gradient(135deg, ${accent}, #E0265F)`, 
-                    color: ink,
-                    boxShadow: `0 4px 20px ${accent}40` 
-                  }}
-                >
-                  <span>Explore Models</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-                <a 
-                  href="#learn" 
-                  className="px-6 py-3 rounded-xl text-xs font-bold border transition-colors hover:opacity-90" 
-                  style={{ 
-                    backgroundColor: `${bg}90`, 
-                    color: ink, 
-                    borderColor: `${accent}30` 
-                  }}
-                >
-                  Learn More
-                </a>
-              </div>
-            </div>
-
-            <div className="rounded-2xl p-6 border grid grid-cols-2 gap-4 shadow-sm" style={{ backgroundColor: bgSecond, borderColor: `${accent}20` }}>
-              <div>
-                <div className="text-3xl font-extrabold" style={{ color: accent }}>48%</div>
-                <Editable className="text-[11px] font-medium" style={{ color: inkSecond, opacity: 0.75 }}>Based in communication</Editable>
-              </div>
-              <div>
-                <div className="text-3xl font-extrabold" style={{ color: accent }}>15min</div>
-                <Editable className="text-[11px] font-medium" style={{ color: inkSecond, opacity: 0.75 }}>Average Setup Time</Editable>
-              </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 py-28 sm:py-36">
+        <div className="grid lg:grid-cols-12 gap-14">
+          {/* sticky label column */}
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-28">
+              <motion.div {...fade()} className="flex items-center gap-3 mb-6">
+                <span className="h-px w-10" style={{ background: accent }} />
+                <Editable as="span" className="text-xs font-mono tracking-[0.25em] uppercase" style={{ color: accent }}>(01) About</Editable>
+              </motion.div>
+              <motion.div {...fade(0.08)}>
+                <Editable as="p" className="text-sm leading-relaxed max-w-xs" style={{ color: mix(ink2, 65) }}>
+                  Based remotely, working with teams and founders who care about the details behind intelligent products.
+                </Editable>
+              </motion.div>
+              <motion.svg {...fade(0.16)} viewBox="0 0 160 160" className="mt-10 w-40 h-40" aria-hidden>
+                <circle cx="80" cy="80" r="70" fill="none" stroke={accent} strokeOpacity=".35" strokeDasharray="3 6" />
+                <circle cx="80" cy="80" r="46" fill="none" stroke={ink2} strokeOpacity=".15" />
+                <circle cx="80" cy="80" r="20" fill={accent} />
+                <circle cx="132" cy="48" r="5" fill={ink2} />
+                <circle cx="34" cy="112" r="4" fill={accent} />
+              </motion.svg>
             </div>
           </div>
 
-          {/* Ecosystem Card 2 */}
-          <div 
-            className="p-8 sm:p-10 rounded-3xl border shadow-xl flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:-translate-y-1" 
-            style={{ 
-              backgroundColor: surface, 
-              borderColor: `${accent}25` 
-            }}
-          >
-            <div className="mb-8">
-              <span className="text-[10px] font-bold uppercase tracking-wider block mb-2" style={{ color: accent }}>
-                CONNECT EVERYONE
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-6" style={{ color: ink }}>
-                Bring your entire ecosystem into one platform
-              </h3>
+          {/* content column */}
+          <div className="lg:col-span-8">
+            <motion.h2 {...fade()} className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.15]" style={{ color: ink2 }}>
+              <Editable className="inline">I sit between </Editable>
+              <Editable className="inline" style={{ color: accent }}>research</Editable>
+              <Editable className="inline"> and </Editable>
+              <Editable className="inline" style={{ color: accent }}>craft</Editable>
+              <Editable className="inline">, shaping machine intelligence into products people actually want to use, trust and come back to.</Editable>
+            </motion.h2>
 
-              <div className="space-y-3.5 text-xs font-medium mb-8" style={{ color: ink, opacity: 0.85 }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}20`, color: accent }}>
-                    <Mail className="h-3.5 w-3.5" />
-                  </div>
-                  <Editable as="span">Send invitations via link, email or text</Editable>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}20`, color: accent }}>
-                    <UserCheck className="h-3.5 w-3.5" />
-                  </div>
-                  <Editable as="span">Assign different roles and permissions</Editable>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}20`, color: accent }}>
-                    <MessageCircle className="h-3.5 w-3.5" />
-                  </div>
-                  <Editable as="span">Communicate through direct messages & team chats</Editable>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}20`, color: accent }}>
-                    <Share2 className="h-3.5 w-3.5" />
-                  </div>
-                  <Editable as="span">Connect external partners with limited access</Editable>
+            {/* disciplines as ruled rows */}
+            <div className="mt-20">
+              {DISCIPLINES.map((d, i) => (
+                <motion.div key={d.n} {...fade(i * 0.05)} className="group grid grid-cols-12 gap-4 items-baseline py-7 transition-colors" style={{ borderTop: `1px solid ${line}`, borderBottom: i === DISCIPLINES.length - 1 ? `1px solid ${line}` : "none" }}>
+                  <span className="col-span-2 sm:col-span-1 font-mono text-sm transition-colors" style={{ color: accent }}>{d.n}</span>
+                  <Editable as="h3" className="col-span-10 sm:col-span-5 text-xl sm:text-2xl font-bold tracking-tight transition-transform duration-300 group-hover:translate-x-1.5" style={{ color: ink2 }}>{d.t}</Editable>
+                  <Editable as="p" className="col-span-12 sm:col-span-6 text-sm leading-relaxed sm:pl-4" style={{ color: mix(ink2, 65) }}>{d.d}</Editable>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* timeline: a single line with nodes */}
+            <div className="mt-24">
+              <Editable as="div" className="text-xs font-mono tracking-[0.25em] uppercase mb-8" style={{ color: mix(ink2, 50) }}>Experience</Editable>
+              <div className="relative">
+                <div className="absolute left-0 right-0 top-[7px] h-px" style={{ background: line }} />
+                <div className="grid sm:grid-cols-3 gap-10">
+                  {TIMELINE.map((t, i) => (
+                    <motion.div key={t.y} {...fade(i * 0.08)} className="relative pt-9">
+                      <span className="absolute top-0 left-0 h-[15px] w-[15px] rounded-full border-2" style={{ backgroundColor: i === 0 ? accent : bg2, borderColor: accent }} />
+                      <Editable as="div" className="text-xs font-mono mb-2" style={{ color: accent }}>{t.y}</Editable>
+                      <Editable as="div" className="font-bold text-base leading-snug" style={{ color: ink2 }}>{t.r}</Editable>
+                      <Editable as="div" className="text-sm mt-1" style={{ color: mix(ink2, 60) }}>{t.o}</Editable>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
             </div>
-
-            <div className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: bgSecond, borderColor: `${accent}20` }}>
-              <div className="flex items-center justify-between mb-3 text-xs font-bold" style={{ color: inkSecond }}>
-                <span className="flex items-center gap-1.5">
-                  <LineChart className="h-4 w-4" style={{ color: accent }} /> User Growth Analytics
-                </span>
-                <span className="text-[10px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full font-bold border border-rose-200">
-                  +24% vs last week
-                </span>
-              </div>
-              <div className="h-20 w-full flex items-end gap-2 pt-2">
-                {[35, 45, 30, 60, 75, 50, 90, 100].map((val, idx) => (
-                  <div
-                    key={idx}
-                    style={{ 
-                      height: `${val}%`, 
-                      background: `linear-gradient(to top, ${accent}, #FF759F)` 
-                    }}
-                    className="flex-1 rounded-t-md opacity-85 hover:opacity-100 transition-all duration-300 hover:scale-y-105 shadow-sm"
-                  />
-                ))}
-              </div>
-            </div>
-
           </div>
-
         </div>
-
       </div>
     </section>
   );

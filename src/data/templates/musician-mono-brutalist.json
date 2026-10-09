@@ -1,14 +1,14 @@
 {
   "id": "musician-mono-brutalist",
   "category": "Music Artist / Band",
+  "view": "hero",
   "theme": {
-    "bg": "#ffffff",
-    "bg-second": "#ffffff",
-    "ink": "#000000",
-    "ink-second": "#000000",
-    "accent": "#000000",
-    "surface": "#e0e0e0",
-    "fontHeading": "Space Grotesk",
+    "bg": "#0B0705",
+    "bg-second": "#160B07",
+    "ink": "#FFF4EC",
+    "ink-second": "#C9A596",
+    "surface": "rgba(255, 110, 40, 0.09)",
+    "accent": "#FF4D1A",
     "fontBody": "Inter",
     "corners": "sharp",
     "spacing": "compact"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "MusicArtistBand1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-7"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-21"
+        "variant": "MusicArtistBand1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-7"
+        "variant": "MusicArtistBand1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "MusicArtistBand1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-7"
+        "variant": "MusicArtistBand1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-7"
+        "variant": "MusicArtistBand1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-7"
+        "variant": "MusicArtistBand1Footer"
       }
     }
   ],

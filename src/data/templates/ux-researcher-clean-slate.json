@@ -1,14 +1,14 @@
 {
   "id": "ux-researcher-clean-slate",
   "category": "Digital Agency",
+  "view": "hero",
   "theme": {
-    "bg": "#ffffff",
-    "bg-second": "#ffffff",
-    "ink": "#18181b",
-    "ink-second": "#000000",
-    "accent": "#7c3aed",
-    "surface": "#e0e0e0",
-    "fontHeading": "Inter",
+    "bg": "#07140F",
+    "bg-second": "#0E2A1F",
+    "ink": "#FFFFFF",
+    "ink-second": "#B7D6C6",
+    "surface": "rgba(255, 255, 255, 0.08)",
+    "accent": "#3DDC84",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "DigitalAgency1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,59 +31,68 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-3"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-29"
+        "variant": "DigitalAgency1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-3"
+        "variant": "DigitalAgency1About"
+      }
+    },
+    {
+      "id": "block-services-1",
+      "type": "ServicesDefault",
+      "order": 3,
+      "props": {
+        "kind": "services",
+        "variant": "DigitalAgency1Services"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 4,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "DigitalAgency1Projects"
       }
     },
     {
       "id": "block-testimonials-1",
       "type": "TestimonialsDefault",
-      "order": 4,
+      "order": 5,
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-3"
+        "variant": "DigitalAgency1Testimonials"
       }
     },
     {
       "id": "block-contact-1",
       "type": "ContactForm",
-      "order": 5,
+      "order": 6,
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-3"
+        "variant": "DigitalAgency1Contact"
       }
     },
     {
       "id": "block-footer-1",
       "type": "FooterDefault",
-      "order": 6,
+      "order": 7,
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-3"
+        "variant": "DigitalAgency1Footer"
       }
     }
   ],

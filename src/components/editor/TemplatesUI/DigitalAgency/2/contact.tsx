@@ -1,119 +1,75 @@
 // @ts-nocheck
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Copy, Check, ArrowUpRight, Calendar } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
 export function DigitalAgency2Contact({ props = {}, theme, onChange }: any) {
-  const [copied, setCopied] = useState(false);
-
-  // Dynamic theme colors
-  const bg = theme?.bg || theme?.bgPrimary || "#0C0C0E";
-  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || "#16161A";
+  const bg = theme?.bg || "#0B0B0D";
+  const bgSecond = theme?.["bg-second"] || "#131316";
   const text = theme?.text || theme?.ink || "#FFFFFF";
-  const textSecond = theme?.["text-second"] || theme?.["ink-second"] || theme?.textSecond || "#9CA3AF";
-  const surface = theme?.surface || "#1F1F24";
-  const accent = theme?.accent || "#CCFF00";
-
-  const email = "david@growthcatalysts.com";
-
-  const handleCopyEmail = () => {
-    navigator.clipboard?.writeText(email);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const textSecond = theme?.["text-second"] || theme?.["ink-second"] || "#A1A1AA";
+  const accent = theme?.accent || "#F5559E";
+  const email = props.email || "hello@yourstudio.com";
+  const types = props.projectTypes || ["New product", "Replace workflows", "Modernize", "Ongoing support"];
+  const offices = props.offices || [{ n: "United States", a: "123 Main Street, Portland, OR", p: "+1 (555) 010-1234" }, { n: "Pakistan", a: "Blue Area, Islamabad", p: "+92 300 0000000" }];
+  const [copied, setCopied] = useState(false);
+  const [f, setF] = useState({ name: "", email: "", type: types[0], message: "" });
+  const copy = () => { navigator.clipboard?.writeText(email); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const send = (e: any) => {
+    e.preventDefault();
+    const body = `${f.message}\n\nProject type: ${f.type}\nReply to: ${f.email}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent("Project enquiry from " + f.name)}&body=${encodeURIComponent(body)}`;
   };
+  const line = `${textSecond}30`;
+  const inp = "w-full bg-transparent py-3.5 text-sm sm:text-base outline-none";
+  const ist = { borderBottom: `1px solid ${textSecond}60`, color: text };
 
   return (
-    <section
-      id="contact"
-      className="py-24 transition-colors relative"
-      style={{ backgroundColor: bg, color: text }}
-    >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header - NO BOX CARDS */}
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${accent}20`, color: accent }}>
-            <Calendar size={13} />
-            <span>Direct Principal Engagement</span>
+    <section id="contact" className="py-20 sm:py-28" style={{ background: bgSecond, color: text }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 items-end mb-12 sm:mb-16">
+          <div className="lg:col-span-7">
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: accent }}>{props.contactEyebrow || "Contact"}</span>
+            <h2 className="font-extrabold tracking-tighter leading-[1.05] text-[clamp(2rem,4.5vw,3.25rem)] mt-3"><Editable value={props.contactTitle || "Tell us what you want to build."} onChange={(v) => onChange?.({ contactTitle: v })} /></h2>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-            Schedule a Confidential Consultation
-          </h2>
-          <p className="text-sm sm:text-base leading-relaxed" style={{ color: textSecond }}>
-            Connect directly with David Harrison. All initial strategic diagnostics are conducted under strict mutual non-disclosure agreements.
-          </p>
+          <p className="lg:col-span-5 text-sm sm:text-base leading-relaxed" style={{ color: textSecond }}><Editable value={props.contactSubtitle || "Share a few details and a senior member of the team will reply within one working day."} onChange={(v) => onChange?.({ contactSubtitle: v })} /></p>
         </div>
 
-        {/* Unified Direct Communication Dock - NO BOX CARDS */}
-        <div
-          className="p-8 sm:p-12 rounded-3xl"
-          style={{
-            backgroundColor: surface,
-            border: `1px solid ${textSecond}25`,
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-            
-            <div className="md:col-span-7 space-y-4">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest" style={{ color: accent }}>
-                Direct Desk Email
-              </span>
-              <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight" style={{ color: text }}>
-                {email}
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: textSecond }}>
-                Direct line for board members, venture partners, and prospective founders. Response guaranteed within 12 business hours.
-              </p>
-            </div>
-
-            <div className="md:col-span-5 flex flex-col sm:flex-row md:flex-col gap-3">
-              <button
-                type="button"
-                onClick={handleCopyEmail}
-                className="w-full py-3.5 px-6 rounded-full text-xs font-bold tracking-wide transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                style={{
-                  backgroundColor: accent,
-                  color: "#000000",
-                }}
-              >
-                {copied ? <Check size={15} /> : <Copy size={15} />}
-                <span>{copied ? "Direct Email Copied!" : "Copy Principal Email"}</span>
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <div style={{ borderTop: `1px solid ${line}` }} className="py-5">
+              <div className="text-[11px] uppercase tracking-wider mb-2" style={{ color: textSecond }}>Email</div>
+              <button type="button" onClick={copy} className="flex items-center gap-2 text-lg sm:text-xl font-bold cursor-pointer text-left break-all">
+                {email}{copied ? <Check size={16} style={{ color: accent }} /> : <Copy size={16} style={{ color: accent }} />}
               </button>
-
-              <a
-                href={`mailto:${email}`}
-                className="w-full py-3.5 px-6 rounded-full text-xs font-bold text-center border transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                style={{ borderColor: `${textSecond}30`, color: text }}
-              >
-                <span>Launch Mail App</span>
-                <ArrowUpRight size={14} />
-              </a>
+              <div className="text-xs mt-1" style={{ color: textSecond }}>{copied ? "Copied to clipboard" : "Click to copy"}</div>
             </div>
-
+            {offices.map((o: any) => (
+              <div key={o.n} className="py-5" style={{ borderTop: `1px solid ${line}` }}>
+                <div className="text-[11px] uppercase tracking-wider mb-2" style={{ color: textSecond }}>{o.n}</div>
+                <div className="text-sm font-semibold">{o.a}</div><div className="text-sm" style={{ color: textSecond }}>{o.p}</div>
+              </div>
+            ))}
+            <div style={{ borderTop: `1px solid ${line}` }} />
           </div>
 
-          {/* Secondary Coordinates Strip */}
-          <div className="mt-10 pt-8 border-t grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs" style={{ borderColor: `${textSecond}20` }}>
-            <div>
-              <span className="font-bold block mb-1" style={{ color: text }}>Private Hotline</span>
-              <span style={{ color: textSecond }}>+1 (415) 890-5542</span>
+          <form onSubmit={send} className="lg:col-span-7 space-y-6">
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+              <input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="Your name" aria-label="Your name" className={inp} style={ist} />
+              <input required type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="Work email" aria-label="Work email" className={inp} style={ist} />
             </div>
             <div>
-              <span className="font-bold block mb-1" style={{ color: text }}>Executive Offices</span>
-              <span style={{ color: textSecond }}>San Francisco • Zurich • Singapore</span>
+              <p className="text-xs font-bold mb-3" style={{ color: textSecond }}>What do you need?</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {types.map((t: string) => <button key={t} type="button" onClick={() => setF({ ...f, type: t })} className="pb-1 text-sm font-bold cursor-pointer" style={{ color: f.type === t ? text : textSecond, borderBottom: `2px solid ${f.type === t ? accent : "transparent"}` }}>{t}</button>)}
+              </div>
             </div>
-            <div>
-              <span className="font-bold block mb-1" style={{ color: text }}>Capacity Status</span>
-              <span style={{ color: accent }}>Accepting 2 Private Retainers</span>
-            </div>
-          </div>
-
+            <textarea required rows={4} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} placeholder="Describe your product, users and timeline" aria-label="Project details" className={inp} style={ist} />
+            <button type="submit" className="px-8 py-3.5 rounded-xl text-sm sm:text-base font-bold cursor-pointer transition-transform hover:-translate-y-0.5" style={{ background: accent, color: bg }}>{props.submitLabel || "Discuss Your Product"}</button>
+          </form>
         </div>
-
       </div>
     </section>
   );
 }
-
 export default DigitalAgency2Contact;

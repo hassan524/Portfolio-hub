@@ -1,6 +1,8 @@
 {
   "id": "fine-artist-corporate-blue",
+  "name": "Abiola Creative Studio",
   "category": "Creative Portfolio",
+  "view": "hero",
   "theme": {
     "bg": "#0A0A0C",
     "bg-second": "#111218",
@@ -8,20 +10,32 @@
     "ink-second": "#A7A9B3",
     "surface": "rgba(255,255,255,.09)",
     "accent": "#3B82F6",
-    "fontHeading": "Inter",
-    "fontBody": "Inter",
+    "fontBody": "DM Sans",
     "corners": "soft",
     "spacing": "cozy"
   },
   "blocks": [
     {
-      "id": "nav-bdsv7",
+      "id": "nav-creative-1",
       "type": "navbar",
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar2",
-        "links": [],
+        "variant": "CreativePortfolio1Navbar",
+        "links": [
+          {
+            "label": "About",
+            "href": "#about"
+          },
+          {
+            "label": "Projects",
+            "href": "#projects"
+          },
+          {
+            "label": "Contact",
+            "href": "#contact"
+          }
+        ],
         "sticky": true
       }
     },
@@ -31,29 +45,25 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-10"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-20"
+        "variant": "CreativePortfolio1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
-        "paragraphs": [],
-        "skills": [],
-        "experience": [],
-        "variant": "about-10"
+        "variant": "CreativePortfolio1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "variant": "CreativePortfolio1Projects"
       }
     },
     {
@@ -62,8 +72,7 @@
       "order": 4,
       "props": {
         "kind": "testimonials",
-        "items": [],
-        "variant": "testimonials-10"
+        "variant": "CreativePortfolio1Testimonials"
       }
     },
     {
@@ -72,8 +81,7 @@
       "order": 5,
       "props": {
         "kind": "contact",
-        "socials": [],
-        "variant": "contact-10"
+        "variant": "CreativePortfolio1Contact"
       }
     },
     {
@@ -82,8 +90,7 @@
       "order": 6,
       "props": {
         "kind": "footer",
-        "socials": [],
-        "variant": "footer-10"
+        "variant": "CreativePortfolio1Footer"
       }
     }
   ],

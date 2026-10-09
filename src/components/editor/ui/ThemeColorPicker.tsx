@@ -49,25 +49,45 @@ export function ThemeCircleRow({
 
   const priorityOrder = ["bg", "bg-second", "accent", "surface", "accent2", "ink", "ink-second"];
 
-  // Check if active website actually uses dual backgrounds (e.g. AIProduct 3)
-  const usesDualBg = Boolean(
-    site?.id === "startup-founder-paper-airy" ||
-    site?.blocks?.some((b: any) => {
-      const v = String(b?.props?.variant || "");
-      return v === "AIProduct3About" || v === "AIProduct3" || v === "about-3";
-    })
+  // Check if active website or theme actually defines or uses dual backgrounds
+  const hasSecondBg = Boolean(
+    (theme as Record<string, any>)?.["bg-second"] ||
+    (theme as Record<string, any>)?.bgSecond ||
+    (site?.theme as Record<string, any>)?.["bg-second"] ||
+    (site?.theme as Record<string, any>)?.bgSecond
+  );
+
+  const hasSecondInk = Boolean(
+    (theme as Record<string, any>)?.["ink-second"] ||
+    (theme as Record<string, any>)?.inkSecond ||
+    (site?.theme as Record<string, any>)?.["ink-second"] ||
+    (site?.theme as Record<string, any>)?.inkSecond
+  );
+
+  const rawKeys = Array.from(
+    new Set([
+      ...Object.keys(theme || {}),
+      ...(hasSecondBg ? ["bg-second"] : []),
+      ...(hasSecondInk ? ["ink-second"] : []),
+    ])
   );
 
   // Dynamically extract all color keys from the theme object that are actually used
-  const colorKeys = Object.keys(theme || {})
+  const colorKeys = rawKeys
     .filter((key) => {
       if (NON_COLOR_KEYS.has(key)) return false;
       const lower = key.toLowerCase();
-      // If site does not use dual backgrounds, hide bg-second and ink-second
-      if (!usesDualBg && (lower === "bg-second" || lower === "bgsecond" || lower === "ink-second" || lower === "inksecond")) {
+      // If site/theme does not use dual backgrounds, hide bg-second and ink-second
+      if (!hasSecondBg && (lower === "bg-second" || lower === "bgsecond")) {
         return false;
       }
-      const val = (theme as Record<string, any>)[key];
+      if (!hasSecondInk && (lower === "ink-second" || lower === "inksecond")) {
+        return false;
+      }
+      const val =
+        (theme as Record<string, any>)[key] ??
+        (lower === "bg-second" ? (theme as any)?.bgSecond ?? (site?.theme as any)?.["bg-second"] : undefined) ??
+        (lower === "ink-second" ? (theme as any)?.inkSecond ?? (site?.theme as any)?.["ink-second"] : undefined);
       return (
         typeof val === "string" &&
         (isHexColor(val) || val.startsWith("#") || priorityOrder.includes(key))
@@ -86,8 +106,11 @@ export function ThemeCircleRow({
     <div className={showLabels ? "flex flex-wrap items-start gap-3" : "flex items-center gap-2"}>
       {colorKeys.map((key) => {
         const { label, shortLabel } = formatThemeKeyLabel(key);
-        const raw = (theme as Record<string, any>)[key];
-        const fallback = key === "bg" ? "#ffffff" : "#000000";
+        const raw =
+          (theme as Record<string, any>)[key] ??
+          (key === "bg-second" ? (theme as any)?.bgSecond ?? (site?.theme as any)?.["bg-second"] : undefined) ??
+          (key === "ink-second" ? (theme as any)?.inkSecond ?? (site?.theme as any)?.["ink-second"] : undefined);
+        const fallback = key === "bg" || key === "bg-second" ? "#ffffff" : "#000000";
         const value = typeof raw === "string" && isHexColor(raw) ? raw : fallback;
         return (
           <ThemeCircle
@@ -98,7 +121,13 @@ export function ThemeCircleRow({
             isOpen={activeKey === key}
             onOpenChange={(open) => setActiveKey(open ? key : null)}
             showLabel={showLabels}
-            onChange={(next) => onThemeChange?.({ [key]: next } as Partial<Theme>)}
+            onChange={(next) =>
+              onThemeChange?.({
+                [key]: next,
+                ...(key === "bg-second" ? { bgSecond: next, "bg-second": next } : {}),
+                ...(key === "ink-second" ? { inkSecond: next, "ink-second": next } : {}),
+              } as Partial<Theme>)
+            }
           />
         );
       })}

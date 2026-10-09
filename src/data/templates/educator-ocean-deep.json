@@ -1,17 +1,17 @@
 {
   "id": "educator-ocean-deep",
   "category": "Fitness Brand / Gym",
+  "view": "hero",
   "theme": {
-    "bg": "#081826",
-    "bg-second": "#ffffff",
-    "ink": "#e5f4ff",
-    "ink-second": "#000000",
-    "accent": "#38bdf8",
-    "surface": "#263440",
-    "fontHeading": "Space Grotesk",
+    "bg": "#080808",
+    "bg-second": "#121212",
+    "ink": "#FFFFFF",
+    "ink-second": "#A1A1AA",
+    "accent": "#FF2E2E",
+    "surface": "#1C1C1E",
     "fontBody": "Inter",
-    "corners": "soft",
-    "spacing": "cozy"
+    "corners": "sharp",
+    "spacing": "compact"
   },
   "blocks": [
     {
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "FitnessBrandGym2Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-18"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-1"
+        "variant": "FitnessBrandGym2Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-18"
+        "variant": "FitnessBrandGym2About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "FitnessBrandGym2Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-18"
+        "variant": "FitnessBrandGym2Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-18"
+        "variant": "FitnessBrandGym2Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-18"
+        "variant": "FitnessBrandGym2Footer"
       }
     }
   ],

@@ -1,14 +1,14 @@
 {
   "id": "consultant-clean-slate",
   "category": "Business / Company",
+  "view": "hero",
   "theme": {
-    "bg": "#ffffff",
-    "bg-second": "#ffffff",
-    "ink": "#18181b",
-    "ink-second": "#000000",
-    "accent": "#7c3aed",
-    "surface": "#e0e0e0",
-    "fontHeading": "Inter",
+    "bg": "#F5F8F2",
+    "bg-second": "#E9F1E4",
+    "ink": "#10261A",
+    "ink-second": "#4A6455",
+    "surface": "rgba(16, 38, 26, 0.06)",
+    "accent": "#1F9D55",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar3",
+        "variant": "BusinessCompany1Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-14"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-25"
+        "variant": "BusinessCompany1Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-14"
+        "variant": "BusinessCompany1About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "BusinessCompany1Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-14"
+        "variant": "BusinessCompany1Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-14"
+        "variant": "BusinessCompany1Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-14"
+        "variant": "BusinessCompany1Footer"
       }
     }
   ],

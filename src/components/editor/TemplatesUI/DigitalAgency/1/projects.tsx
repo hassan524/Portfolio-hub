@@ -1,150 +1,76 @@
 // @ts-nocheck
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Box, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
+const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=80`;
+
 export function DigitalAgency1Projects({ props = {}, theme, onChange }: any) {
-  const [activeIdx, setActiveIdx] = useState(0);
-
-  // Dynamic theme colors - NO manual tailwind color classes!
-  const bg = theme?.bg || theme?.bgPrimary || "#F7F8F9";
-  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || "#FFFFFF";
-  const text = theme?.text || theme?.ink || "#111827";
-  const textSecond = theme?.["text-second"] || theme?.["ink-second"] || theme?.textSecond || "#6B7280";
-  const surface = theme?.surface || "#FFFFFF";
+  const bg = theme?.["bg-second"] || "#FFFFFF";
+  const ink = theme?.ink || "#111827";
+  const ink2 = theme?.["ink-second"] || "#5B6472";
   const accent = theme?.accent || "#87D53C";
-
-  const projects = [
-    {
-      title: "Citrus & Clay Fruit System",
-      client: "Kinfolk Organics",
-      desc: "A tactile 3D brand world sculpted with 48 bespoke rendered clay assets, yielding a 3.4x lift in checkout conversions.",
-      tag: "Cinema 4D • Clay Shaders",
-      impact: "3.4x Conversion Increase",
-      image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "NeoBank Bubble Finance",
-      client: "NeoSphere",
-      desc: "Interactive WebGL clay coins and floating wallets that turned mundane financial onboarding into a playful game.",
-      tag: "Three.js • Interaction",
-      impact: "840K Mobile Activations",
-      image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Zenith Studio Visual Identity",
-      client: "Zenith Hardware",
-      desc: "Physical-meets-digital brand ecosystem with custom tactile typography, 3D guidelines, and animated store micro-sites.",
-      tag: "Brand Architecture",
-      impact: "Awwwards Site of the Day",
-      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-    },
+  const surface = theme?.surface || "#FFFFFF";
+  const projects = props.projects || [
+    { title: "Citrus & Clay fruit system", client: "Kinfolk Organics", category: "3D", result: "3.4x checkout conversion", year: "2026", desc: "48 custom clay-rendered assets for packaging, web and social.", tags: ["Cinema 4D", "Packaging"], image: U("photo-1550684848-fac1c5b4e853") },
+    { title: "Bubble finance onboarding", client: "NeoSphere", category: "Web", result: "840K mobile activations", year: "2026", desc: "Interactive 3D coins and wallets that turned sign-up into a game.", tags: ["Three.js", "App"], image: U("photo-1618005182384-a83a8bd57fbe") },
+    { title: "Zenith visual identity", client: "Zenith Hardware", category: "Branding", result: "Awwwards Site of the Day", year: "2025", desc: "Brand system, 3D guidelines and an animated store microsite.", tags: ["Identity", "Web"], image: U("photo-1600585154340-be6161a56a0c") },
+    { title: "Pulse fitness app", client: "Pulse", category: "UI", result: "4.9 App Store rating", year: "2025", desc: "A friendly interface and illustration set for a workout tracker.", tags: ["UI", "Illustration"], image: U("photo-1558655146-9f40138edfeb") },
   ];
-
-  const current = projects[activeIdx];
-
-  const handleSmoothScroll = (e: React.MouseEvent, href: string) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const cats = ["All", ...Array.from(new Set(projects.map((p: any) => p.category)))];
+  const [cat, setCat] = useState("All");
+  const list = useMemo(() => projects.filter((p: any) => cat === "All" || p.category === cat), [cat, projects]);
+  const [ref, api] = useEmblaCarousel({ align: "start", dragFree: false });
+  const [sel, setSel] = useState(0);
+  useEffect(() => { api?.reInit(); api?.scrollTo(0); setSel(0); }, [cat, api]);
+  useEffect(() => { const f = () => setSel(api.selectedScrollSnap()); api?.on("select", f); return () => api?.off("select", f); }, [api]);
+  const nb = "w-11 h-11 rounded-full border-2 flex items-center justify-center cursor-pointer transition-transform hover:-translate-y-0.5";
 
   return (
-    <section
-      id="projects"
-      className="py-24 transition-colors"
-      style={{ backgroundColor: bg, color: text }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header & Interactive Selector */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pb-8 border-b" style={{ borderColor: `${textSecond}25` }}>
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${accent}25`, color: text }}>
-              <Box size={14} />
-              <span>Tactile Works</span>
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-              Selected 3D Sculptures & Launches
-            </h2>
-          </div>
-
-          {/* Interactive Project Switcher (NO CARDS!) */}
-          <div className="flex flex-wrap items-center gap-2">
-            {projects.map((p, idx) => (
-              <button
-                key={p.title}
-                type="button"
-                onClick={() => setActiveIdx(idx)}
-                className="px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer"
-                style={{
-                  backgroundColor: activeIdx === idx ? text : surface,
-                  color: activeIdx === idx ? bg : textSecond,
-                  border: `1px solid ${activeIdx === idx ? text : `${textSecond}30`}`,
-                }}
-              >
-                {p.client}
-              </button>
+    <section id="projects" className="py-20 sm:py-28 overflow-hidden" style={{ background: bg, color: ink }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
+          <h2 className="font-black tracking-tighter leading-none text-[clamp(2rem,6vw,4.5rem)]">
+            <Editable value={props.projectsTitle || "Selected work"} onChange={(v) => onChange?.({ projectsTitle: v })} />
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {cats.map((c: string) => (
+              <button key={c} type="button" onClick={() => setCat(c)} className="px-4 py-2 rounded-full text-xs sm:text-sm font-bold border-2 cursor-pointer" style={{ background: cat === c ? ink : "transparent", color: cat === c ? bg : ink, borderColor: ink }}>{c}</button>
             ))}
           </div>
         </div>
-
-        {/* Large Cinematic 3D Canvas Showcase (NO BOX CARDS!) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          <div className="lg:col-span-5 space-y-6">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest" style={{ color: accent }}>
-              {current.tag}
-            </span>
-
-            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {current.title}
-            </h3>
-
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: textSecond }}>
-              {current.desc}
-            </p>
-
-            <div className="p-4 rounded-2xl border" style={{ borderColor: `${textSecond}25`, backgroundColor: surface }}>
-              <span className="text-[11px] font-bold uppercase tracking-wider block mb-1" style={{ color: textSecond }}>
-                Verified Deliverable Metric
-              </span>
-              <span className="text-lg font-black" style={{ color: text }}>
-                {current.impact}
-              </span>
-            </div>
-
-            <div className="pt-2">
-              <a
-                href="#contact"
-                onClick={(e) => handleSmoothScroll(e, "#contact")}
-                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider underline underline-offset-4 cursor-pointer"
-                style={{ color: text }}
-              >
-                <span>Inquire About Similar 3D Assets</span>
-                <ArrowUpRight size={14} style={{ color: accent }} />
-              </a>
-            </div>
+        <div ref={ref} className="overflow-visible -mx-1 px-1 pb-3">
+          <div className="flex gap-4 sm:gap-6">
+            {list.map((p: any) => (
+              <article key={p.title} className="group flex-[0_0_88%] sm:flex-[0_0_60%] lg:flex-[0_0_42%] min-w-0 rounded-3xl border-2 overflow-hidden flex flex-col" style={{ background: surface, borderColor: ink, boxShadow: `5px 5px 0 ${ink}` }}>
+                <div className="relative aspect-[4/3] overflow-hidden border-b-2" style={{ borderColor: ink }}>
+                  <img src={p.image} alt={p.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full border-2 text-xs font-black" style={{ background: accent, borderColor: ink }}>{p.category}</span>
+                  <span className="absolute top-3 right-3 px-3 py-1 rounded-full border-2 text-xs font-bold" style={{ background: surface, borderColor: ink }}>{p.year}</span>
+                </div>
+                <div className="p-5 sm:p-6 flex flex-col gap-3 flex-1">
+                  <p className="text-xs font-bold" style={{ color: ink2 }}>{p.client}</p>
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">{p.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: ink2 }}>{p.desc}</p>
+                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap gap-1.5">{p.tags?.map((t: string) => <span key={t} className="px-2.5 py-0.5 rounded-full border text-[11px] font-semibold" style={{ borderColor: ink }}>{t}</span>)}</div>
+                    <span className="text-xs font-black">{p.result}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
-
-          <div className="lg:col-span-7">
-            <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden shadow-2xl border" style={{ borderColor: `${textSecond}30` }}>
-              <img
-                src={current.image}
-                alt={current.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
         </div>
-
+        <div className="flex items-center justify-between mt-8">
+          <span className="font-black text-lg">{String(Math.min(sel + 1, list.length)).padStart(2, "0")} / {String(list.length).padStart(2, "0")}</span>
+          <div className="flex gap-3">
+            <button type="button" aria-label="Previous project" onClick={() => api?.scrollPrev()} className={nb} style={{ borderColor: ink }}><ArrowLeft size={18} /></button>
+            <button type="button" aria-label="Next project" onClick={() => api?.scrollNext()} className={nb} style={{ background: accent, borderColor: ink }}><ArrowRight size={18} /></button>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
-
 export default DigitalAgency1Projects;

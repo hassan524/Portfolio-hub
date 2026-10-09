@@ -1,14 +1,14 @@
 {
   "id": "copywriter-luxury-gold",
   "category": "Marketing Agency",
+  "view": "hero",
   "theme": {
-    "bg": "#111111",
-    "bg-second": "#ffffff",
-    "ink": "#f2e9d8",
-    "ink-second": "#000000",
-    "accent": "#c9a35b",
-    "surface": "#2e2e2e",
-    "fontHeading": "Fraunces",
+    "bg": "#120404",
+    "bg-second": "#2A0707",
+    "ink": "#FFF4E0",
+    "ink-second": "#E8C9A0",
+    "surface": "rgba(255, 244, 224, 0.08)",
+    "accent": "#F01E1E",
     "fontBody": "Inter",
     "corners": "sharp",
     "spacing": "airy"
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "MarketingAgency3Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-16"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-23"
+        "variant": "MarketingAgency3Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-16"
+        "variant": "MarketingAgency3About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "MarketingAgency3Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-16"
+        "variant": "MarketingAgency3Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-16"
+        "variant": "MarketingAgency3Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-16"
+        "variant": "MarketingAgency3Footer"
       }
     }
   ],

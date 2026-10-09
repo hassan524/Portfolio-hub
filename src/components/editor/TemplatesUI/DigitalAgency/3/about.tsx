@@ -1,127 +1,54 @@
 // @ts-nocheck
-import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Rocket, Smartphone, Bot, Users, Workflow, Server, ArrowUpRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
-export function DigitalAgency3About({ props = {}, theme, onChange }: any) {
-  // Dynamic theme colors - strictly avoiding manual tailwind colors
-  const bg = theme?.bg || theme?.bgPrimary || "#F9F7F2";
-  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || "#F3EFE6";
-  const text = theme?.text || theme?.ink || "#1C1917";
-  const textSecond = theme?.["text-second"] || theme?.["ink-second"] || theme?.textSecond || "#78716C";
-  const surface = theme?.surface || "#FFFFFF";
-  const accent = theme?.accent || "#C2410C";
+const I = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=80`;
+const icons = { rocket: Rocket, phone: Smartphone, bot: Bot, team: Users, flow: Workflow, server: Server };
 
-  const stages = [
-    {
-      stage: "Discovery Stage",
-      steps: [
-        { num: "01", title: "Identify Client Goals and Objectives", desc: "Map business milestones, audience psychology, and specific commercial benchmarks." },
-        { num: "02", title: "Conduct Qualitative Research", desc: "Analyze competitor positioning, consumer sentiment, and cultural white space." },
-        { num: "03", title: "Develop Personas", desc: "Construct nuanced buyer archetypes based on genuine emotional drivers." },
-      ],
-    },
-    {
-      stage: "Strategy Stage",
-      steps: [
-        { num: "01", title: "Define Creative Strategy", desc: "Craft high-conviction creative blueprint outlining artistic tone and media mix." },
-        { num: "02", title: "Develop Creative Brief", desc: "Actionable compass for cinematographers, copywriters, and typography designers." },
-        { num: "03", title: "Conduct Content Strategy", desc: "Map out editorial narratives and interactive hooks for high-yield resonance." },
-      ],
-    },
-    {
-      stage: "Execution Stage",
-      steps: [
-        { num: "01", title: "Design and Development", desc: "Bespoke digital design, typography layout, and fluid frontend engineering." },
-        { num: "02", title: "Cinematography & Content Creation", desc: "High-end botanical photography, macro cinematography, and editorial scripts." },
-        { num: "03", title: "Testing and Quality Assurance", desc: "Cross-device typography checks and rigorous speed benchmarking." },
-      ],
-    },
-    {
-      stage: "Optimization Stage",
-      steps: [
-        { num: "01", title: "Performance Analytics", desc: "Real-time engagement velocity, retention cohorts, and conversion tracking." },
-        { num: "02", title: "Continuous Narrative Tuning", desc: "Micro-adjustments to typography layouts and CTA flows based on heatmaps." },
-        { num: "03", title: "Long-Term Growth Scaling", desc: "Expanding high-performing formats into permanent brand equity assets." },
-      ],
-    },
+export function DigitalAgency3About({ props = {}, theme, onChange }: any) {
+  const bg = theme?.bg || "#FFFFFF";
+  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || theme?.surface || "#F5F4F2";
+  const ink = theme?.text || theme?.ink || "#0F0F10";
+  const inkSecond = theme?.["text-second"] || theme?.["ink-second"] || "#6B6B70";
+  const accent = theme?.accent || "#2F5BFF";
+  const onAccent = theme?.["on-accent"] || bg; // text colour on accent buttons
+  const set = (k: string) => (v: string) => onChange?.({ [k]: v });
+  const go = () => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+
+  const columns = props.solutionColumns || [
+    [{ t: "Launch a startup", d: "Validate your idea, build an MVP and prepare for growth.", i: "rocket" }, { img: I("photo-1512941937669-90a1b58e7e9c"), h: "aspect-[4/5]" }, { t: "Replace manual work", d: "Turn spreadsheets and repetitive workflows into software your team owns.", i: "flow" }],
+    [{ t: "Build a web or mobile product", d: "Start with an MVP in 2–4 weeks, then grow it into a full product.", i: "phone" }, { t: "Extend your team", d: "Add senior designers, engineers, QA or DevOps exactly when you need them.", i: "team" }, { img: I("photo-1551650975-87deedd944c3"), h: "aspect-[4/5]" }],
+    [{ t: "Automate with AI where it makes sense", d: "Automate operations, build AI assistants and introduce practical AI features.", i: "bot" }, { img: I("photo-1555774698-0b77e0d5fac6"), h: "aspect-[4/5]" }, { t: "Modernize legacy software", d: "Upgrade existing systems without disrupting your business.", i: "server" }],
   ];
+  const Card = ({ c }: any) => {
+    if (c.img) return <div className={`rounded-2xl overflow-hidden ${c.h}`} style={{ background: bg }}><img src={c.img} alt="" loading="lazy" className="w-full h-full object-cover" /></div>;
+    const Icon = icons[c.i] || Rocket;
+    return (
+      <button type="button" onClick={go} className="group w-full text-left rounded-2xl p-6 flex flex-col gap-10 cursor-pointer transition-transform hover:-translate-y-1" style={{ background: bg }}>
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="text-lg sm:text-xl font-medium leading-snug max-w-[12rem]">{c.t}</h3>
+          <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: bgSecond }}><Icon size={16} /></span>
+        </div>
+        <div className="flex items-end justify-between gap-4">
+          <p className="text-sm leading-relaxed" style={{ color: inkSecond }}>{c.d}</p>
+          <ArrowUpRight size={18} className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" style={{ color: accent }} />
+        </div>
+      </button>
+    );
+  };
 
   return (
-    <section
-      id="about"
-      className="py-24 transition-colors"
-      style={{ backgroundColor: bgSecond, color: text }}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${accent}20`, color: accent }}>
-            <span>✦</span>
-            <span>Production Architecture</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-serif">
-            <Editable
-              value={props?.aboutTitle || "Our Four-Stage Campaign Blueprint"}
-              onChange={(v) => onChange?.({ aboutTitle: v })}
-            />
-          </h2>
-          <p className="text-base sm:text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: textSecond }}>
-            <Editable
-              value={
-                props?.aboutDescription ||
-                "A disciplined editorial process that bridges visceral aesthetic ambition with meticulous tactical execution."
-              }
-              onChange={(v) => onChange?.({ aboutDescription: v })}
-            />
-          </p>
+    <section id="about" className="py-16 sm:py-24" style={{ background: bgSecond, color: ink }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid lg:grid-cols-12 gap-4 lg:gap-12 items-end mb-10 sm:mb-14">
+          <h2 className="lg:col-span-8 font-medium tracking-tight leading-[1.1] text-[clamp(1.8rem,4vw,3rem)]"><Editable value={props.aboutTitle || "Solutions built around your goals"} onChange={set("aboutTitle")} /></h2>
+          <p className="lg:col-span-4 text-sm leading-relaxed" style={{ color: inkSecond }}><Editable value={props.aboutDescription || "Every business is different. That is why we start with the outcome you want to achieve, not the technology."} onChange={set("aboutDescription")} /></p>
         </div>
-
-        {/* 4 Stages Tree Layout matching Image 4 (NO BOX CARDS!) */}
-        <div className="space-y-16">
-          {stages.map((stage, idx) => (
-            <div
-              key={stage.stage}
-              className="pb-12 border-b"
-              style={{ borderColor: `${textSecond}30` }}
-            >
-              {/* Stage Header */}
-              <div className="flex items-center justify-between pb-4 mb-8 border-b" style={{ borderColor: `${textSecond}20` }}>
-                <div className="flex items-center gap-3">
-                  <h3 className="text-2xl sm:text-3xl font-extrabold font-serif tracking-tight" style={{ color: text }}>
-                    {stage.stage}
-                  </h3>
-                  <span className="text-amber-500 text-lg">✦</span>
-                </div>
-                <span className="text-xs font-mono font-bold uppercase tracking-widest" style={{ color: accent }}>
-                  Stage 0{idx + 1}
-                </span>
-              </div>
-
-              {/* 3 Steps in Stage matching Image 4 (Delicate editorial list with line dividers, NO BOX CARDS) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {stage.steps.map((step) => (
-                  <div key={step.title} className="space-y-2 border-l pl-4" style={{ borderColor: `${textSecond}40` }}>
-                    <span className="text-xs font-mono font-bold tracking-widest block" style={{ color: accent }}>
-                      {step.num}
-                    </span>
-                    <h4 className="text-base font-bold font-serif tracking-tight" style={{ color: text }}>
-                      {step.title}
-                    </h4>
-                    <p className="text-xs sm:text-sm leading-relaxed" style={{ color: textSecond }}>
-                      {step.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="grid md:grid-cols-3 gap-4">
+          {columns.map((col: any[], i: number) => <div key={i} className="flex flex-col gap-4">{col.map((c, k) => <Card key={k} c={c} />)}</div>)}
         </div>
-
       </div>
     </section>
   );
 }
-
 export default DigitalAgency3About;

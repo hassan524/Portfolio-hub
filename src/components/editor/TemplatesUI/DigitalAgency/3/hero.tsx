@@ -1,178 +1,68 @@
 // @ts-nocheck
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles, TrendingUp, Layers, CheckCircle2 } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
+const I = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=80`;
+
 export function DigitalAgency3Hero({ props = {}, theme, onChange }: any) {
-  const [toggleState, setToggleState] = useState(true);
-
-  const bg = theme?.bg || "#F9F7F2";
-  const bgSecond = theme?.["bg-second"] || "#F3EFE6";
-  const ink = theme?.ink || "#1C1917";
-  const inkSecond = theme?.["ink-second"] || "#78716C";
-  const surface = theme?.surface || "#FFFFFF";
-  const accent = theme?.accent || "#C2410C";
-
-  const handleSmoothScroll = (e: React.MouseEvent, href: string) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const bg = theme?.bg || "#FFFFFF";
+  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || theme?.surface || "#F5F4F2";
+  const ink = theme?.text || theme?.ink || "#0F0F10";
+  const inkSecond = theme?.["text-second"] || theme?.["ink-second"] || "#6B6B70";
+  const accent = theme?.accent || "#2F5BFF";
+  const onAccent = theme?.["on-accent"] || bg; // text colour on accent buttons
+  const set = (k: string) => (v: string) => onChange?.({ [k]: v });
+  const go = (e: any, id: string) => { e.preventDefault(); document.querySelector(id)?.scrollIntoView({ behavior: "smooth" }); };
+  const stats = props.stats || [{ n: "150+", l: "Products delivered" }, { n: "10M+", l: "Users reached" }, { n: "$25M+", l: "Raised by clients" }, { n: "4.8/5", l: "Average rating" }];
+  const images = props.heroImages || [I("photo-1551650975-87deedd944c3"), I("photo-1555774698-0b77e0d5fac6"), I("photo-1512941937669-90a1b58e7e9c")];
+  const tilt = [-4, 0, 4];
 
   return (
-    <section
-      id="home"
-      className="py-16 md:py-24 transition-colors"
-      style={{ backgroundColor: bg, color: ink }}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Monumental Headline matching Image 4: "✦ OUR WO[pill switch]RK RESULT" */}
-        <div className="text-center mb-12 sm:mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap"
-          >
-            {/* Golden Star Glyph ✦ */}
-            <span className="text-amber-500 text-3xl sm:text-4xl md:text-5xl select-none">
-              ✦
-            </span>
+    <section id="home" className="relative overflow-hidden" style={{ background: bg, color: ink }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(60% 50% at 50% 0%, ${accent}26, transparent 70%), radial-gradient(40% 40% at 0% 60%, ${accent}12, transparent 70%), radial-gradient(40% 40% at 100% 60%, ${accent}12, transparent 70%)` }} />
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight uppercase font-sans flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-              <span>OUR</span>
-
-              {/* "WORK" with interactive capsule switch in place of the "O" */}
-              <span className="inline-flex items-center">
-                <span>W</span>
-                
-                {/* Capsule Switch Pill inside the "O" */}
-                <button
-                  type="button"
-                  onClick={() => setToggleState(!toggleState)}
-                  className="mx-1.5 w-16 sm:w-20 md:w-24 h-8 sm:h-10 md:h-12 rounded-full p-1 border-2 transition-all cursor-pointer relative shadow-inner inline-flex items-center"
-                  style={{
-                    backgroundColor: toggleState ? "#1C1917" : "#E7E5E4",
-                    borderColor: ink,
-                  }}
-                  title="Toggle Visual Mode"
-                >
-                  <motion.div
-                    animate={{ x: toggleState ? "100%" : "0%" }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    className="w-6 sm:w-8 md:w-9 h-6 sm:h-8 md:h-9 rounded-full shadow-md flex items-center justify-center text-[10px]"
-                    style={{
-                      background: toggleState
-                        ? "linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)"
-                        : "linear-gradient(135deg, #10B981 0%, #3B82F6 100%)",
-                    }}
-                  >
-                    <span className="text-white font-bold select-none text-[9px]">✦</span>
-                  </motion.div>
-                </button>
-
-                <span>RK</span>
-              </span>
-
-              <span>RESULT</span>
-            </h1>
-          </motion.div>
-        </div>
-
-        {/* Central High-Impact Visual matching Image 4 (Floral Digital Marketing Campaign) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.2 }}
-          className="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl border mb-16 aspect-[16/9] max-h-[540px]"
-          style={{ borderColor: "rgba(0,0,0,0.08)" }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1600&q=80"
-            alt="Florist Digital Marketing Campaign"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-          {/* Floating Result Badge */}
-          <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-xl border border-white/50 text-neutral-900 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-              <TrendingUp size={20} />
-            </div>
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-neutral-500">Campaign Impact</div>
-              <div className="text-lg font-black tracking-tight">+70% Revenue ROI</div>
-            </div>
-          </div>
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-16 sm:pt-28 text-center">
+        <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-medium tracking-tight leading-[1.05] text-[clamp(2.4rem,6.5vw,5rem)]">
+          <Editable value={props.heroHeadline || "Your technical partner for products and business systems."} onChange={set("heroHeadline")} />
+        </motion.h1>
+        <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="mt-6 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: inkSecond }}>
+          <Editable value={props.heroSubtitle || "We help founders and business teams decide what to build, develop the software, and support it after launch."} onChange={set("heroSubtitle")} />
+        </motion.p>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="#contact" onClick={(e) => go(e, "#contact")} className="px-7 py-3.5 rounded-full text-sm sm:text-base font-semibold transition-transform hover:-translate-y-0.5" style={{ background: accent, color: onAccent }}>
+            <Editable value={props.primaryCta || "Contact us"} onChange={set("primaryCta")} />
+          </a>
+          <a href="#services" onClick={(e) => go(e, "#services")} className="px-7 py-3.5 rounded-full text-sm sm:text-base font-semibold transition-transform hover:-translate-y-0.5" style={{ background: bgSecond }}>
+            <Editable value={props.secondaryCta || "Explore services"} onChange={set("secondaryCta")} />
+          </a>
         </motion.div>
+      </div>
 
-        {/* Case Narrative & Metadata Breakdown matching Image 4 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-12 pt-4">
-          
-          {/* Left Title: "Florist Digital Marketing Campaign" */}
-          <div className="lg:col-span-4 space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-serif leading-tight">
-              <Editable
-                value={props?.caseTitle || "Florist Digital Marketing Campaign"}
-                onChange={(v) => onChange?.({ caseTitle: v })}
-              />
-            </h2>
-
-            <div className="pt-2">
-              <a
-                href="#projects"
-                onClick={(e) => handleSmoothScroll(e, "#projects")}
-                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider underline underline-offset-4 hover:opacity-75 transition-opacity cursor-pointer"
-                style={{ color: accent }}
-              >
-                <span>View Full Production Roadmap</span>
-                <ArrowUpRight size={14} />
-              </a>
-            </div>
-          </div>
-
-          {/* Center Metadata Columns matching Image 4 (SERVICES & RESULTS) */}
-          <div className="lg:col-span-8 space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pb-8 border-b" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: accent }}>
-                  SERVICES
-                </span>
-                <p className="text-sm font-semibold leading-relaxed" style={{ color: ink }}>
-                  Digital Marketing Campaign, Floral Photography Direction, Brand Identity Design, E-Commerce Strategy
-                </p>
-              </div>
-
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: accent }}>
-                  RESULTS
-                </span>
-                <p className="text-sm font-semibold leading-relaxed" style={{ color: ink }}>
-                  Raised 70% ROI, 3.8x Average Order Value, and 12,000+ New High-LTV Botanical Subscriptions
-                </p>
-              </div>
-            </div>
-
-            {/* Dual Paragraph Narrative matching Image 4 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm leading-relaxed" style={{ color: inkSecond }}>
-              <p>
-                Our team of designers and visual strategists built an ethereal botanical visual universe rooted in seasonal bloom cycles. We developed an omnichannel campaign architecture that balanced visceral emotional storytelling with strict performance attribution models.
-              </p>
-              <p>
-                From macro-lens floral cinematography to bespoke typographies and personalized retention flows, every touchpoint was engineered to position artisanal floral gifting as a luxury lifestyle ritual rather than a commodity transaction.
-              </p>
-            </div>
-          </div>
-
+      {/* Showcase: three product screens, centered */}
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 mt-14 sm:mt-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 items-end">
+          {images.map((src: string, i: number) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 + i * 0.12 }}
+              className={`rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl ${i === 1 ? "aspect-[4/5] sm:aspect-[3/4]" : "hidden sm:block aspect-[3/4]"}`}
+              style={{ background: bgSecond, border: `1px solid ${inkSecond}25`, transform: `rotate(${tilt[i] ?? 0}deg)` }}>
+              <img src={src} alt="Product preview" className="w-full h-full object-cover" />
+            </motion.div>
+          ))}
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style={{ background: `linear-gradient(to top, ${bg}, transparent)` }} />
+      </div>
 
+      <div className="relative" style={{ borderTop: `1px solid ${inkSecond}25`, borderBottom: `1px solid ${inkSecond}25`, background: bg }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4">
+          {stats.map((s: any, i: number) => (
+            <div key={s.l} className="py-8 sm:py-10 text-center" style={{ borderLeft: i > 0 ? `1px solid ${inkSecond}20` : "none" }}>
+              <div className="text-3xl sm:text-5xl font-light tracking-tight">{s.n}</div>
+              <div className="text-xs sm:text-sm mt-1" style={{ color: inkSecond }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
-
 export default DigitalAgency3Hero;

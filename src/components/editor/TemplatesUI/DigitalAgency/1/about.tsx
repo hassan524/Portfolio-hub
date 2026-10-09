@@ -1,118 +1,50 @@
 // @ts-nocheck
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Layers, Box, Cpu, Eye, Compass, Wand2, ArrowRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
 export function DigitalAgency1About({ props = {}, theme, onChange }: any) {
-  const [activeTab, setActiveTab] = useState(0);
-
-  // Dynamic theme colors - NO manual tailwind color classes!
-  const bg = theme?.bg || theme?.bgPrimary || "#F7F8F9";
-  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || "#FFFFFF";
-  const text = theme?.text || theme?.ink || "#111827";
-  const textSecond = theme?.["text-second"] || theme?.["ink-second"] || theme?.textSecond || "#6B7280";
-  const surface = theme?.surface || "#FFFFFF";
+  const bg = theme?.["bg-second"] || "#FFFFFF";
+  const ink = theme?.ink || "#111827";
+  const ink2 = theme?.["ink-second"] || "#5B6472";
   const accent = theme?.accent || "#87D53C";
-
-  const pillars = [
-    {
-      num: "01",
-      title: "Playful Tactile Dimensionality",
-      tag: "Clay Physics",
-      desc: "We abandon flat corporate monotony for tactile, 3D clay-rendered visual systems that ignite curiosity and convert users.",
-      metric: "Sub-surface Light Physics",
-    },
-    {
-      num: "02",
-      title: "Hand-Sculpted Brand Worlds",
-      tag: "Custom Meshes",
-      desc: "Every character, mascot, and UI token is sculpted with bespoke geometry and warm organic materiality.",
-      metric: "Zero Stock Assets",
-    },
-    {
-      num: "03",
-      title: "Fluid WebGL Performance",
-      tag: "60-120 FPS",
-      desc: "Optimized WebGL and smooth micro-interactions that render in milliseconds without battery or GPU drain.",
-      metric: "<150ms Interaction Latency",
-    },
+  const surface = theme?.surface || "#FFFFFF";
+  const pillars = props.pillars || [
+    { title: "Tactile, not flat", desc: "3D and illustrated systems that feel like objects, not stock graphics.", tint: accent },
+    { title: "Made for you", desc: "Every character, icon and layout is custom. No recycled templates.", tint: "#7DD3FC" },
+    { title: "Quick and smooth", desc: "Interactive work that stays fast on phones and older devices.", tint: "#FDA4AF" },
   ];
-
+  const facts = props.facts || [{ n: "120+", l: "Projects delivered" }, { n: "40", l: "Brands launched" }, { n: "98%", l: "Clients return" }, { n: "12", l: "Awards" }];
+  const set = (k: string) => (v: string) => onChange?.({ [k]: v });
   return (
-    <section
-      id="about"
-      className="py-24 transition-colors relative"
-      style={{ backgroundColor: bgSecond, color: text }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pb-8 border-b" style={{ borderColor: `${textSecond}25` }}>
-          <div className="space-y-4 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${accent}25`, color: text }}>
-              <Sparkles size={14} />
-              <span>Studio Philosophy</span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-              <Editable
-                value={props?.aboutTitle || "Crafting tactile 3D experiences that elevate modern products."}
-                onChange={(v) => onChange?.({ aboutTitle: v })}
-              />
-            </h2>
-          </div>
-
-          <p className="text-base sm:text-lg max-w-md leading-relaxed" style={{ color: textSecond }}>
-            <Editable
-              value={props?.aboutDescription || "We are a boutique studio of 3D modelers and brand architects who believe digital interfaces should feel as tangible and delightful as physical toys."}
-              onChange={(v) => onChange?.({ aboutDescription: v })}
-            />
+    <section id="about" className="py-20 sm:py-28" style={{ background: bg, color: ink }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-14 mb-14">
+          <h2 className="lg:col-span-7 font-black tracking-tighter leading-[1] text-[clamp(2rem,5.5vw,4rem)]">
+            <Editable value={props.aboutTitle || "A small studio making digital work feel physical."} onChange={set("aboutTitle")} />
+          </h2>
+          <p className="lg:col-span-5 leading-relaxed text-base sm:text-lg self-end" style={{ color: ink2 }}>
+            <Editable value={props.aboutDescription || "We are modelers, designers and developers who work directly with founders and brand teams, from first sketch to launch day."} onChange={set("aboutDescription")} />
           </p>
         </div>
-
-        {/* Tactile Full-Bleed Feature Strips - NO BOX CARDS */}
-        <div className="space-y-4">
-          {pillars.map((pillar, i) => (
-            <div
-              key={pillar.title}
-              className="py-8 border-b transition-colors cursor-pointer group"
-              style={{ borderColor: `${textSecond}20` }}
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                <div className="lg:col-span-4 flex items-center gap-6">
-                  <span className="text-3xl sm:text-4xl font-black font-mono" style={{ color: accent }}>
-                    {pillar.num}
-                  </span>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider block" style={{ color: textSecond }}>
-                      {pillar.tag}
-                    </span>
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: text }}>
-                      {pillar.title}
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-5">
-                  <p className="text-sm leading-relaxed" style={{ color: textSecond }}>
-                    {pillar.desc}
-                  </p>
-                </div>
-
-                <div className="lg:col-span-3 flex lg:justify-end items-center gap-3">
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full border" style={{ borderColor: `${textSecond}30`, color: text }}>
-                    {pillar.metric}
-                  </span>
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" style={{ color: accent }} />
-                </div>
-              </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
+          {facts.map((f: any) => (
+            <div key={f.l} className="p-5 rounded-2xl border-2" style={{ borderColor: ink }}>
+              <div className="text-3xl sm:text-4xl font-black">{f.n}</div>
+              <div className="text-xs sm:text-sm font-semibold" style={{ color: ink2 }}>{f.l}</div>
             </div>
           ))}
         </div>
-
+        <div className="grid md:grid-cols-3 gap-5">
+          {pillars.map((p: any, i: number) => (
+            <motion.div key={p.title} whileHover={{ y: -6, rotate: i % 2 ? 1 : -1 }} className="p-7 rounded-3xl border-2 flex flex-col gap-4" style={{ background: surface, borderColor: ink, boxShadow: `5px 5px 0 ${ink}` }}>
+              <span className="w-12 h-12 rounded-2xl border-2" style={{ background: p.tint, borderColor: ink }} />
+              <h3 className="text-xl font-black">{p.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: ink2 }}>{p.desc}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
-
 export default DigitalAgency1About;

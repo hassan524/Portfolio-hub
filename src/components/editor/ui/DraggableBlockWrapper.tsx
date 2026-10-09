@@ -47,8 +47,7 @@ export function DraggableBlockWrapper({
         outline: isDragOver ? `2px dashed ${ink}60` : "none",
         outlineOffset: -2,
         opacity: isDragging ? 0.4 : 1,
-        transition: "opacity 0.15s",
-        zIndex: hasFreePositioned ? 200 : 1,
+        zIndex: hasFreePositioned ? 200 : (block.props?.kind === "navbar" || block.type === "navbar") ? 50 : 1,
         position: "relative",
       }}
     >

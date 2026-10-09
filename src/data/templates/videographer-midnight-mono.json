@@ -1,15 +1,15 @@
 {
   "id": "videographer-midnight-mono",
   "category": "Beauty & Cosmetics",
+  "view": "hero",
   "theme": {
-    "bg": "#0a0a0a",
-    "bg-second": "#ffffff",
-    "ink": "#ffffff",
-    "ink-second": "#000000",
-    "accent": "#6ee7b7",
-    "surface": "#272727",
-    "fontHeading": "Space Grotesk",
-    "fontBody": "Inter",
+    "bg": "#EDEFE3",
+    "bg-second": "#FFFFFF",
+    "ink": "#12261B",
+    "ink-second": "#5B6F61",
+    "accent": "#5E8160",
+    "surface": "rgba(94,129,96,0.12)",
+    "fontBody": "cormorant",
     "corners": "sharp",
     "spacing": "compact"
   },
@@ -20,7 +20,7 @@
       "order": 0,
       "props": {
         "kind": "navbar",
-        "variant": "navbar4",
+        "variant": "BeautyCosmetics5Navbar",
         "links": [],
         "sticky": true
       }
@@ -31,29 +31,29 @@
       "order": 1,
       "props": {
         "kind": "hero",
-        "variant": "hero-12"
-      }
-    },
-    {
-      "id": "block-projects-1",
-      "type": "ProjectsGrid",
-      "order": 2,
-      "props": {
-        "kind": "projects",
-        "items": [],
-        "variant": "projects-22"
+        "variant": "BeautyCosmetics5Hero"
       }
     },
     {
       "id": "block-about-1",
       "type": "AboutSimple",
-      "order": 3,
+      "order": 2,
       "props": {
         "kind": "about",
         "paragraphs": [],
         "skills": [],
         "experience": [],
-        "variant": "about-12"
+        "variant": "BeautyCosmetics5About"
+      }
+    },
+    {
+      "id": "block-projects-1",
+      "type": "ProjectsGrid",
+      "order": 3,
+      "props": {
+        "kind": "projects",
+        "items": [],
+        "variant": "BeautyCosmetics5Projects"
       }
     },
     {
@@ -63,7 +63,7 @@
       "props": {
         "kind": "testimonials",
         "items": [],
-        "variant": "testimonials-12"
+        "variant": "BeautyCosmetics5Testimonials"
       }
     },
     {
@@ -73,7 +73,7 @@
       "props": {
         "kind": "contact",
         "socials": [],
-        "variant": "contact-12"
+        "variant": "BeautyCosmetics5Contact"
       }
     },
     {
@@ -83,7 +83,7 @@
       "props": {
         "kind": "footer",
         "socials": [],
-        "variant": "footer-12"
+        "variant": "BeautyCosmetics5Footer"
       }
     }
   ],

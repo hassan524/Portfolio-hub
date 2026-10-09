@@ -2,6 +2,7 @@
   "id": "writer-clean-slate",
   "name": "Lumière Haute Parfumerie",
   "category": "Perfume Brand",
+  "view": "hero",
   "theme": {
     "bg": "#EED8C9",
     "bg-second": "#E5C8B4",
@@ -9,7 +10,6 @@
     "ink-second": "#7A5E54",
     "accent": "#9E4A28",
     "surface": "rgba(255, 255, 255, 0.55)",
-    "fontHeading": "Cinzel",
     "fontBody": "Inter",
     "corners": "rounded",
     "spacing": "cozy"

@@ -10,11 +10,11 @@ export function Contact({ props = {}, theme, onChange }: any) {
     const inkSecond = theme?.['ink-second'] || ink;
     const surface = theme?.surface || 'rgba(255, 255, 255, 0.12)';
     const accent = theme?.accent || '#c89c5a';
-  const fontBody = theme?.fontBody || "Inter";
+    const fontBody = theme?.fontBody || "Inter";
     const details = [{ icon: MapPin, label: 'Address', value: '73 Wentworth Avenue, Sydney NSW' }, { icon: Clock3, label: 'Hours', value: 'Mon–Fri 6:30–4 · Sat–Sun 7–4' }, { icon: Phone, label: 'Phone', value: '+61 2 9188 2044' }, { icon: Mail, label: 'Email', value: 'hello@beanandbloom.au' }];
 
     return (
-        <section id="contact" className="px-6 py-28 lg:px-12" style={{ backgroundColor: bg, color: ink , fontFamily: fontBody }}>
+        <section id="contact" className="px-6 py-28 lg:px-12" style={{ backgroundColor: bg, color: ink, fontFamily: fontBody }}>
             <div className="mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-[1fr_0.8fr]">
                 <motion.div
                     initial={{ opacity: 0, y: 40 }}

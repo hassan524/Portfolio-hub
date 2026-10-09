@@ -1,119 +1,84 @@
 // @ts-nocheck
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ArrowUpRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 import type { BlockComponentProps } from "@/components/blocks/types";
 
-type Props = BlockComponentProps<any>;
+const mix = (c: string, p: number) => `color-mix(in srgb, ${c} ${p}%, transparent)`;
+const LINKS = [
+  { label: "Home", href: "#home" },
+  { label: "About Us", href: "#about" },
+  { label: "Markets", href: "#projects" },
+  { label: "Reviews", href: "#testimonials" },
+  { label: "Contact", href: "#contact" },
+];
 
-function updateLink(links: any, onChange: Props["onChange"], i: number, label: string) {
-  const next = [...(links || [])];
-  next[i] = { ...next[i], label };
-  onChange?.({ links: next });
-}
-
-export function AIProduct2Navbar({ props = { links: [] }, theme, onChange }: Props) {
-  const bg = theme?.bg || "#0A0A0C";
-  const bgSecond = theme?.["bg-second"] || bg;
+export function AIProduct2Navbar({ theme }: BlockComponentProps<any>) {
+  const bg = theme?.bg || "#050505";
   const ink = theme?.ink || "#ffffff";
-  const inkSecond = theme?.["ink-second"] || ink;
-  const surface = theme?.surface || "rgba(255, 255, 255, 0.08)";
-  const accent = theme?.accent || "#3B82F6";
+  const accent = theme?.accent || "#F7931A";
+  const line = mix(ink, 14);
   const [open, setOpen] = useState(false);
-  const links = props?.links || [];
 
   return (
-    <header className="w-full px-6 py-4 transition-colors relative z-20">
+    <header className="w-full px-4 md:px-6 pt-5 relative z-30 transition-colors" style={{ backgroundColor: bg, color: ink }}>
       <div
-        className="w-full max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5 rounded-2xl backdrop-blur-xl shadow-sm transition-all"
-        style={{ backgroundColor: `${bg}E6`, border: `1px solid ${surface}`, color: ink }}
+        className="max-w-6xl mx-auto flex items-center justify-between pl-5 pr-2.5 py-2.5 rounded-full backdrop-blur-xl border"
+        style={{ backgroundColor: mix(bg, 70), borderColor: line }}
       >
-        <div className="flex items-center gap-4">
-          {props?.logo && (
-            <img
-              src={props.logo}
-              alt="Logo"
-              className="h-8 sm:h-9 w-auto max-w-[180px] shrink-0 object-contain"
-            />
-          )}
-          <Editable
-            value={props?.logoText || "Portfolio"}
-            onChange={(v) => onChange?.({ logoText: v })}
-            className="font-bold text-base tracking-tight cursor-pointer"
-            style={{ color: ink }}
-          />
-        </div>
+        {/* Logo */}
+        <a href="#home" className="flex items-center gap-2.5">
+          <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
+            <defs>
+              <linearGradient id="p2logo" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#FFD27A" /><stop offset="1" stopColor={accent} />
+              </linearGradient>
+            </defs>
+            <circle cx="16" cy="16" r="14" fill="url(#p2logo)" />
+            <path d="M10 16h12M16 10v12" stroke="#050505" strokeWidth="2.6" strokeLinecap="round" />
+          </svg>
+          <Editable as="span" className="font-bold text-lg tracking-tight" style={{ color: ink }}>Coinova</Editable>
+        </a>
 
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map((l, i) => (
-            <div
-              key={i}
-              className="text-xs font-semibold tracking-wider uppercase cursor-pointer transition-opacity duration-200 hover:opacity-100"
-              style={{ color: ink, opacity: 0.75 }}
-            >
-              <Editable
-                className="inline"
-                value={l.label}
-                onChange={(v) => updateLink(links, onChange, i, v)}
-              />
-            </div>
+        {/* Links */}
+        <nav className="hidden md:flex items-center gap-1">
+          {LINKS.map((l) => (
+            <a key={l.label} href={l.href} className="px-4 py-2 rounded-full text-sm font-medium transition-colors hover:bg-white/10" style={{ color: mix(ink, 78) }}>
+              <Editable className="inline">{l.label}</Editable>
+            </a>
           ))}
         </nav>
 
-        {props?.ctaLabel && (
+        <div className="flex items-center gap-2">
           <a
             href="#contact"
-            className="hidden md:flex items-center px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide cursor-pointer shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-95"
-            style={{ backgroundColor: accent, color: ink }}
+            className="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-transform hover:scale-[1.03] active:scale-95"
+            style={{ backgroundColor: ink, color: bg }}
           >
-            <Editable
-              value={props.ctaLabel}
-              onChange={(v) => onChange?.({ ctaLabel: v })}
-            />
+            <Editable className="inline">Join Waitlist</Editable>
+            <ArrowUpRight className="h-4 w-4" />
           </a>
-        )}
-
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden p-2 rounded-xl transition-colors cursor-pointer border"
-          style={{ backgroundColor: surface, color: ink, borderColor: surface }}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          <button
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+            className="md:hidden h-10 w-10 rounded-full grid place-items-center border cursor-pointer"
+            style={{ borderColor: line, color: ink }}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
-        <div
-          className="md:hidden mt-3 p-6 rounded-2xl border shadow-xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-2"
-          style={{ backgroundColor: bg, borderColor: surface, color: ink }}
-        >
-          {links.map((l, i) => (
-            <div
-              key={i}
-              className="text-sm font-semibold tracking-wider uppercase py-1 cursor-pointer transition-opacity hover:opacity-100"
-              style={{ color: ink, opacity: 0.75 }}
-              onClick={() => setOpen(false)}
-            >
-              <Editable
-                value={l.label}
-                onChange={(v) => updateLink(links, onChange, i, v)}
-              />
-            </div>
-          ))}
-          {props?.ctaLabel && (
-            <a
-              href="#contact"
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-center px-5 py-3 rounded-xl text-xs font-bold tracking-wide cursor-pointer shadow-sm mt-2"
-              style={{ backgroundColor: accent, color: ink }}
-            >
-              <Editable
-                value={props.ctaLabel}
-                onChange={(v) => onChange?.({ ctaLabel: v })}
-              />
+        <div className="md:hidden max-w-6xl mx-auto mt-3 p-5 rounded-3xl border flex flex-col gap-1 backdrop-blur-xl" style={{ backgroundColor: mix(bg, 92), borderColor: line }}>
+          {LINKS.map((l) => (
+            <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl text-sm font-medium" style={{ color: mix(ink, 85) }}>
+              <Editable className="inline">{l.label}</Editable>
             </a>
-          )}
+          ))}
+          <a href="#contact" onClick={() => setOpen(false)} className="mt-2 text-center px-5 py-3 rounded-full text-sm font-semibold" style={{ backgroundColor: ink, color: bg }}>
+            <Editable className="inline">Join Waitlist</Editable>
+          </a>
         </div>
       )}
     </header>

@@ -1,112 +1,32 @@
 // @ts-nocheck
-import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
 import { Editable } from "@/components/editor/ui/Editable";
 
 export function DigitalAgency3Footer({ props = {}, theme, onChange }: any) {
-  const bg = theme?.bg || "#F9F7F2";
-  const bgSecond = theme?.["bg-second"] || "#F3EFE6";
-  const ink = theme?.ink || "#1C1917";
-  const inkSecond = theme?.["ink-second"] || "#78716C";
-  const surface = theme?.surface || "#FFFFFF";
-  const accent = theme?.accent || "#C2410C";
-
-  const handleSmoothScroll = (e: React.MouseEvent, href: string) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const navLinks = [
-    { label: "Overview", href: "#home" },
-    { label: "Methodology", href: "#about" },
-    { label: "Campaigns", href: "#projects" },
-    { label: "Client Voices", href: "#testimonials" },
-    { label: "Studio Desk", href: "#contact" },
-  ];
-
+  const bg = theme?.bg || "#FFFFFF";
+  const bgSecond = theme?.["bg-second"] || theme?.bgSecond || "#F5F4F2";
+  const ink = theme?.text || theme?.ink || "#0F0F10";
+  const inkSecond = theme?.["text-second"] || theme?.["ink-second"] || "#6B6B70";
+  const go = (e: any, href: string) => { e.preventDefault(); document.querySelector(href)?.scrollIntoView({ behavior: "smooth" }); };
+  const links = props.navLinks || [["Solutions", "#about"], ["Services", "#services"], ["Cases", "#projects"], ["Reviews", "#testimonials"], ["Contact", "#contact"]];
+  const brand = props.brandName || "Stackline";
   return (
-    <footer
-      className="border-t py-16 transition-colors"
-      style={{
-        backgroundColor: bgSecond,
-        borderColor: "rgba(28, 25, 23, 0.08)",
-        color: ink,
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pb-12 border-b" style={{ borderColor: "rgba(0,0,0,0.08)" }}>
-          
-          {/* Logo & Tagline */}
-          <div className="space-y-2 text-center md:text-left">
-            <a
-              href="#home"
-              onClick={(e) => handleSmoothScroll(e, "#home")}
-              className="inline-flex items-center gap-2 cursor-pointer"
-            >
-              <span className="text-2xl font-serif font-black tracking-tight" style={{ color: ink }}>
-                <Editable
-                  value={props?.brandName || "STUDIO EDITORIAL"}
-                  onChange={(v) => onChange?.({ brandName: v })}
-                />
-              </span>
-              <span className="text-amber-500 text-sm">✦</span>
-            </a>
-            <p className="text-xs max-w-sm" style={{ color: inkSecond }}>
-              Artisanal brand campaigns, luxury e-commerce storytelling, and quantitative growth architecture.
-            </p>
+    <footer style={{ background: bg, color: ink, borderTop: `1px solid ${inkSecond}25` }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 pb-10" style={{ borderBottom: `1px solid ${inkSecond}25` }}>
+          <div className="max-w-sm space-y-3">
+            <a href="#home" onClick={(e) => go(e, "#home")} className="text-xl font-black tracking-tighter"><Editable value={brand} onChange={(v) => onChange?.({ brandName: v })} /></a>
+            <p className="text-sm leading-relaxed" style={{ color: inkSecond }}><Editable value={props.footerText || "Your technical partner for products and business systems, from first idea to ongoing support."} onChange={(v) => onChange?.({ footerText: v })} /></p>
           </div>
-
-          {/* Smooth Links */}
-          <nav className="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-wider">
-            {navLinks.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => handleSmoothScroll(e, item.href)}
-                className="hover:opacity-100 transition-opacity cursor-pointer"
-                style={{ color: inkSecond }}
-              >
-                {item.label}
-              </a>
-            ))}
+          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium">
+            {links.map(([l, h]: any) => <a key={l} href={h} onClick={(e) => go(e, h)} className="transition-opacity hover:opacity-60">{l}</a>)}
           </nav>
-
-          {/* Social Badges */}
-          <div className="flex items-center gap-2">
-            {["In", "Ar", "Vim", "Sub"].map((s) => (
-              <div
-                key={s}
-                className="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-serif font-bold transition-transform hover:scale-110 cursor-pointer"
-                style={{
-                  backgroundColor: surface,
-                  borderColor: "rgba(0,0,0,0.1)",
-                  color: ink,
-                }}
-              >
-                {s}
-              </div>
-            ))}
-          </div>
-
         </div>
-
-        {/* Bottom Credits */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style={{ color: inkSecond }}>
-          <div>
-            © {new Date().getFullYear()} Studio Editorial. All production rights reserved.
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="font-serif italic">Accepting select private commissions</span>
-          </div>
+        <div className="pt-6 text-xs flex flex-wrap justify-between gap-2" style={{ color: inkSecond }}>
+          <span>© {new Date().getFullYear()} {brand}. All rights reserved.</span>
+          <span>{props.footerNote || "Built for teams that run on software."}</span>
         </div>
       </div>
     </footer>
   );
 }
-
 export default DigitalAgency3Footer;
